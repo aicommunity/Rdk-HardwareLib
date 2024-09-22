@@ -6,7 +6,7 @@
 
 namespace RDK {
 
-UHardwareLibrary IOLibrary;
+UHardwareLibrary HardwareLibrary;
 
 
 
