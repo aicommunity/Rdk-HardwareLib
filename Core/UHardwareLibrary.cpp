@@ -26,18 +26,18 @@ UHardwareLibrary::UHardwareLibrary(void)
 // Не требуется предварительная очистка массива и уборка памяти.
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
-/*
- UContainer *cont;
- cont=new UFileIO;
- cont->SetName("FileIO");
- cont->Default();
- UploadClass("UFileIO",cont);
 
- cont=new UIOTextConverter;
- cont->SetName("IOTextConverter");
+ UContainer *cont;
+ cont=new UArduinoSensor;
+ cont->SetName("Arduino");  // Тут будут разные контейнеры под разные датчики/эффекторы
  cont->Default();
- UploadClass("UIOTextConverter",cont);
- */
+ UploadClass("Arduino",cont);
+
+ cont=new UADC;
+ cont->SetName("ADC");
+ cont->Default();
+ UploadClass("ADC",cont);
+
 }
 // --------------------------
 
