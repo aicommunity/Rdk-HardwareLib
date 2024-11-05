@@ -16,7 +16,7 @@ DEFINES += LIBRDK_LIBRARY_EXPORT
 DEFINES += RDK_UNICODE_RUN
 DEFINES += RDK_QT
 
-VERSION = 0 # $$system(hg parents --template '{rev}')
+VERSION = $$system(hg parents --template '{rev}')
 DEFINES += RDK_LIB_CVS_REVISION=$$VERSION
 
 unix {
@@ -28,7 +28,13 @@ windows {
 }
 
 HEADERS += \
+    ../../Core/UADC.h \
+    ../../Core/UArduinoChooseFirm.h \
+    ../../Core/UArduinoSensor.h \
     ../../Core/UHardwareLibrary.h
 
 SOURCES += \
-    ../../Core/UHardwareLibrary.cpp
+    ../../Core/UADC.cpp \
+    ../../Core/UArduinoChooseFirm.cpp \
+    ../../Core/UArduinoSensor.cpp \
+    ../../Core/UHardwareLibrary.cpp \
