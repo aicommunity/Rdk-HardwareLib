@@ -22,6 +22,7 @@ class ArduinoUploader: public QThread
 public:
  ArduinoUploader(void);
  virtual ~ArduinoUploader();
+ void run() override;
 
 signals:
  void uploadFinished(bool success);
@@ -33,7 +34,7 @@ public slots:
  void onSerialPortRead();
  void updateSerialPortList();
  void setSerialPortName(const QString &portName);
- // void readDHT11Data();
+ void readDHT11Data();
 
 private:
  void initSerialPort();

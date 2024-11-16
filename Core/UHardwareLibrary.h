@@ -24,6 +24,7 @@ UHardwareLibrary(void);
 // Заполняет массив ClassSamples готовыми экземплярами образцов и их именами.
 // Не требуется предварительная очистка массива и уборка памяти.
 virtual void CreateClassSamples(UStorage *storage);
+
 // --------------------------
 };
 

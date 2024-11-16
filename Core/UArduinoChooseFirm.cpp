@@ -77,6 +77,12 @@ void ArduinoUploader::onUploadClicked()
 bool ArduinoUploader::uploadArduino(const QString &fileName)
 {
  // Команда avrdude
+ //Пути к avrdude(загружает файл на микроконтроллер ардуины)
+ // C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17\bin\avrdude
+ // C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17\etc\avrdude.conf
+ //Пути к avr-gcc(компилирует код(если надо будет))
+ //C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\bin\avr-gcc
+
  QString avrdudeCommand = QString("avrdude -C avrdude.conf -v -patmega328p -carduino -P %1 -b 9600 -D -U flash:w:%2:i").arg(currentPortName).arg(fileName);
 
  // Запускаем avrdude через QProcess
@@ -96,11 +102,11 @@ void ArduinoUploader::onSerialPortRead()
  }
 }
 
-// void ArduinoUploader::readDHT11Data()
-// {
-//  serialPort->write("readDHT\n");
-//  readTimer->start(); // Запускаем таймер, чтобы ожидать ответа Arduino
-// }
+void ArduinoUploader::readDHT11Data()
+{
+ serialPort->write("readDHT\n");
+ readTimer->start(); // Запускаем таймер, чтобы ожидать ответа Arduino
+}
 
 void ArduinoUploader::setSerialPortName(const QString &portName)
 {
@@ -110,7 +116,14 @@ void ArduinoUploader::setSerialPortName(const QString &portName)
   serialPort = nullptr;
  }
  initSerialPort();
-};
+}
+
+void ArduinoUploader::run() {
+    // initSerialPort(); // Инициализируем последовательный порт
+    ArduinoUploader();
+        onSerialPortRead();
+    //     // readDHT11Data();
+}
 }
 
 #endif

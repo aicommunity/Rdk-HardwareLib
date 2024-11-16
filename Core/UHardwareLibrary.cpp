@@ -2,7 +2,7 @@
 #define UHardwareLibrary_CPP
 
 #include "UHardwareLibrary.h"
-
+#include <QDebug>
 
 namespace RDK {
 
@@ -26,7 +26,6 @@ UHardwareLibrary::UHardwareLibrary(void)
 // Не требуется предварительная очистка массива и уборка памяти.
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
-
  UContainer *cont;
  cont=new UArduinoSensor;
  cont->SetName("Arduino");  // Тут будут разные контейнеры под разные датчики/эффекторы
@@ -37,7 +36,6 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
  cont->SetName("ADC");
  cont->Default();
  UploadClass("ADC",cont);
-
 }
 // --------------------------
 
