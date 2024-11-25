@@ -2,9 +2,6 @@
 #define UARDUINOCHOOSEFIRM_CPP
 
 #include "UArduinoChooseFirm.h"
-// #include <QFileDialog>
-// #include <QMessageBox>
-#include <QDebug>
 
 namespace RDK {
 
@@ -19,24 +16,56 @@ void ArduinoUploader::initSerialPort()
   serialPort->setBaudRate(QSerialPort::Baud9600);
 
   if (serialPort->open(QIODevice::ReadWrite)) {
-   qDebug() << "Порт Arduino подключен.";
-   readTimer->start();
+   qDebug() << "Arduino port is connected";
    } else {
-    qDebug() << "Ошибка подключения к порту Arduino.";
+    qDebug() << "Failed to connect to Arduino port";
    }
  } else {
-   qDebug() << "Порт Arduino не найден.";
+   qDebug() << "Arduino port not found";
+    }
+}
+
+void ArduinoUploader::onSerialPortRead()
+{
+    qDebug() << "Start to read data";
+
+    while (serialPort->bytesAvailable() >= sizeof(float)) {
+        QByteArray data = serialPort->readAll(); // Чтение всех доступных данных с порта
+
+        // Обработка полученных данных
+        if (data.size() >= sizeof(float)) {
+            float temperature;
+            float humidity;
+
+            memcpy(&temperature, data.constData(), sizeof(temperature));
+            memcpy(&humidity, data.constData() + sizeof(temperature), sizeof(humidity));
+            dataBuffer.append(temperature);
+            dataBuffer2.append(humidity);
+            if (dataBuffer.size() > 512) { // Если сохраненных значений больше 512, удаляем самое старое
+                dataBuffer.removeFirst(); // Удаляем первое (самое старое) значение
+            }
+            if (dataBuffer2.size() > 512) { // Если сохраненных значений больше 512, удаляем самое старое
+                dataBuffer2.removeFirst(); // Удаляем первое (самое старое) значение
+            }
+            qDebug() << "Received temperature:" << QString::number(temperature, 'f', 2);
+            qDebug() << "Received humidity:" << QString::number(humidity, 'f', 2);
+        } else {
+            qDebug() << "Failed to get data";
+        }
+
     }
 }
 
 ArduinoUploader::ArduinoUploader(void)
 {
  initSerialPort();
-
- //Таймер на чтениие из порта с интервалом в 1 секунду
+ //Таймер на чтениие из порта с интервалом в 2 секунды
  readTimer = new QTimer(this);
- readTimer->setInterval(1000);
+ readTimer->setInterval(2000);
  connect(readTimer, &QTimer::timeout, this, &ArduinoUploader::onSerialPortRead);
+ readTimer->start();
+
+ onSerialPortRead();
 }
 
 ArduinoUploader::~ArduinoUploader()
@@ -53,23 +82,23 @@ ArduinoUploader::~ArduinoUploader()
 
 void ArduinoUploader::onUploadClicked()
 {
- QString fileName = "test_temp.ino";
+ // QString fileName = "test_temp.ino";
 
- if (!serialPort->isOpen()) {
-  emit dataReceived("Порт Arduino не подключен.");
-  return;
- }
+ // if (!serialPort->isOpen()) {
+ //  emit dataReceived("Failed to connect to Arduino port");
+ //  return;
+ // }
 
- emit dataReceived("Загрузка файла...");
- bool success = uploadArduino(fileName);
+ // emit dataReceived("Loading file...");
+ // bool success = uploadArduino(fileName);
 
- if (success) {
-  emit dataReceived("Файл успешно загружен.");
- } else {
-  emit dataReceived("Ошибка загрузки файла.");
- }
+ // if (success) {
+ //  emit dataReceived("File is uploaded succesfully");
+ // } else {
+ //  emit dataReceived("File loading error");
+ // }
 
- emit uploadFinished(success);
+ // emit uploadFinished(success);
 }
 
 
@@ -85,7 +114,7 @@ bool ArduinoUploader::uploadArduino(const QString &fileName)
 
  QString avrdudeCommand = QString("avrdude -C avrdude.conf -v -patmega328p -carduino -P %1 -b 9600 -D -U flash:w:%2:i").arg(currentPortName).arg(fileName);
 
- // Запускаем avrdude через QProcess
+ // // Запускаем avrdude через QProcess
  QProcess process;
  process.start(avrdudeCommand);
  process.waitForFinished();
@@ -93,36 +122,27 @@ bool ArduinoUploader::uploadArduino(const QString &fileName)
  return process.exitCode() == 0;
 }
 
-void ArduinoUploader::onSerialPortRead()
-{
- if (serialPort->canReadLine()) {
-  QString data = serialPort->readLine();
-  qDebug() << "Полученные данные: " << data;
-  //Здесь пойдёт сохранение полученных данных в вектор класса UArduinoSensor
- }
-}
+
 
 void ArduinoUploader::readDHT11Data()
 {
- serialPort->write("readDHT\n");
- readTimer->start(); // Запускаем таймер, чтобы ожидать ответа Arduino
+ // serialPort->write("readDHT\n");
+ // readTimer->start(); // Запускаем таймер, чтобы ожидать ответа Arduino
 }
 
 void ArduinoUploader::setSerialPortName(const QString &portName)
 {
- currentPortName = portName;
- if (serialPort) {
-  delete serialPort;
-  serialPort = nullptr;
- }
- initSerialPort();
+ // currentPortName = portName;
+ // if (serialPort) {
+ //  delete serialPort;
+ //  serialPort = nullptr;
+ // }
+ // initSerialPort();
 }
 
 void ArduinoUploader::run() {
     // initSerialPort(); // Инициализируем последовательный порт
-    ArduinoUploader();
-        onSerialPortRead();
-    //     // readDHT11Data();
+    //     onSerialPortRead();
 }
 }
 
