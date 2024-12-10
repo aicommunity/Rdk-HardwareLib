@@ -3,45 +3,65 @@
 
 // #include <QString>
 // #include <QThread>
+#include <string>
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
-#include "UArduinoChooseFirm.h"
+#include "UArduinoConnect.h"
 
 
 namespace RDK {
 
-class ArduinoUploader;
+class  UArduinoConnect;
 
 class RDK_LIB_TYPE UArduinoSensor: public UNet
 {
 protected:
-ArduinoUploader *ardup;
-QMutex ardupMutex;
+    UEPtr<UArduinoConnect>UArdConn;
+ // UArduinoConnect *UArdConn;
 
 public: //Входные и выходные параметры
-
-    // ULProperty<double,UArduinoSensor<double> > LowerSensorLimit;
-    // ULProperty<double,UArduinoSensor<double> > UpperSensorLimit;
-
-    /// Вектор double - нижняя граница данных датчика
-    UPropertyInputData<MDVector<float>, UArduinoSensor> LowerSensorLimit;
-    /// Вектор double - верхняя граница данных датчика
-    UPropertyInputData<MDVector<float>, UArduinoSensor> UpperSensorLimit;
-
+    //Параметр - нижняя граница входных данных
+    ULProperty<double, UArduinoSensor, ptPubParameter> LowerSensorLimit;
+    //Параметр - верхняя граница входных данных
+    ULProperty<double, UArduinoSensor, ptPubParameter> UpperSensorLimit;
+    //Параметр - имя порта для подключения
+    ULProperty<string, UArduinoSensor, ptPubParameter> PortToConnect;
+    //Параметр - имя порта для подключения
+    ULProperty<bool, UArduinoSensor, ptPubParameter> PortChanged;
     /// Вектор double(возможно, должен быть матрицей)
-    UPropertyOutputData<MDVector<float>, UArduinoSensor, ptPubParameter | ptOutput> DoubleVectorReadings;
+    UPropertyOutputData<MDVector<double>, UArduinoSensor, ptPubParameter | ptOutput> DoubleVectorReadings;
 
 public:
 UArduinoSensor(void);
 virtual ~UArduinoSensor(void);
+void UpdateReadings(float temperature);
+
+protected:
+void ResetPortChanged();
 
 public:
 // Выделяет память для новой чистой копии объекта этого класса
 virtual UArduinoSensor* New(void);
-void updateReadings(float temperature);
 
+    // --------------------------
+    // Скрытые методы управления счетом
+    // --------------------------
 protected:
-    // bool Initialized;
+    /// Восстановление настроек по умолчанию и сброс процесса счета
+    virtual bool ADefault(void);
+
+    /// Обеспечивает сборку внутренней структуры объекта
+    /// после настройки параметров
+    /// Автоматически вызывает метод Reset() и выставляет Ready в true
+    /// в случае успешной сборки
+    virtual bool ABuild(void);
+
+    /// Сброс процесса счета.
+    virtual bool AReset(void);
+
+    /// Выполняет расчет этого объекта
+    virtual bool ACalculate(void);
+    // --------------------------
 
 protected:
 /// Восстановление настроек по умолчанию и сброс процесса счета
@@ -60,7 +80,6 @@ virtual bool ASReset(void);
 virtual bool ASCalculate(void);
 
 protected:
-// bool Initialize(void);
 virtual void AInit(void);
 virtual void AUnInit(void);
 };

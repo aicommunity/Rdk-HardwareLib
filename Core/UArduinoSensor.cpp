@@ -4,12 +4,14 @@
 #include "UArduinoSensor.h"
 namespace RDK{
 
-class ArduinoUploader;
+class  UArduinoConnect;
 
 UArduinoSensor::UArduinoSensor(void)
 :LowerSensorLimit("LowerSensorLimit", this),
  UpperSensorLimit("UpperSensorLimit", this),
- DoubleVectorReadings("DoubleVectorReadings", this)
+ DoubleVectorReadings("DoubleVectorReadings", this),
+ PortToConnect("PortToConnect", this),
+ PortChanged("PortChanged", this)
 {
 }
 
@@ -17,7 +19,7 @@ UArduinoSensor::~UArduinoSensor(void)
 {
 }
 
-void UArduinoSensor::updateReadings(float temperature) {
+void UArduinoSensor::UpdateReadings(float temperature) {
     // Добавляем значения в DoubleVectorReadings
     // DoubleVectorReadings.push_back(temperature);
 
@@ -31,24 +33,49 @@ UArduinoSensor* UArduinoSensor::New(void)
     return new UArduinoSensor;
 }
 
-void UArduinoSensor::AInit(void)
+void UArduinoSensor::AInit()
 {
-    // ardupMutex.lock();
-    ardup = new ArduinoUploader();
-    // ardupMutex.unlock();
-    // if(!Initialized)
-    // {
-    //     if(!Initialize())
-    //         return;
-    // }
+    string PortName = PortToConnect;
+    if (UArdConn == NULL) {
+        UArdConn = new  UArduinoConnect(PortName);
+    }
 }
 
 void UArduinoSensor::AUnInit(void)
 {
-    // ardupMutex.lock(); // Блокируем мьютекс перед доступом к ardup
-    delete ardup;      // Освобождаем память
-    ardup = nullptr;   // Обнуляем указатель
-    // ardupMutex.unlock(); // Разблокируем мьютекс
+    delete UArdConn;      // Освобождаем память
+    UArdConn = nullptr;   // Обнуляем указатель
+}
+
+bool UArduinoSensor::ADefault(void)
+{
+    return ASDefault();
+}
+
+// Обеспечивает сборку внутренней структуры объекта
+// после настройки параметров
+// Автоматически вызывает метод Reset() и выставляет Ready в true
+// в случае успешной сборки
+bool UArduinoSensor::ABuild(void)
+{
+    // ResetPortChanged();
+    // if (PortChanged == true) {
+    //     string PortName = PortToConnect;
+    //     AInit(PortName);
+    // }
+    return ASBuild();
+}
+
+// Сброс процесса счета.
+bool UArduinoSensor::AReset(void)
+{
+    return ASReset();
+}
+
+// Выполняет расчет этого объекта
+bool UArduinoSensor::ACalculate(void)
+{
+    return ASCalculate();
 }
 
 // Скрытые методы управления счетом
@@ -84,6 +111,10 @@ bool UArduinoSensor::ASCalculate(void)
 // {
 //     Data.push_back(data);
 // }
+
+void UArduinoSensor::ResetPortChanged() {
+    PortChanged = false;
+}
 
 }
 #endif
