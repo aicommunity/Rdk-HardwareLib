@@ -10,6 +10,8 @@
 #include <QString>
 #include <QDebug>
 #include <QMutex>
+#include <QDateTime>
+#include <QTimeZone>
 #include <thread>
 #include <mutex>
 #include <string>
@@ -34,7 +36,7 @@ private:
     QTimer *ReadTimer;
     QVector<double> DataBuffer;
     QVector<double> DataBuffer2;
-    // std::function<void(float, float)> DataCallback;
+    QVector<double> TimeBuffer;
     UArduinoSensor* Sensor;
 
 public:
@@ -46,11 +48,10 @@ signals:
  void UploadFinished(bool success);
  void DataReceived(const QString &data);
  void SerialPortConnected(bool connected);
- // void newDataReceived(float temperature, float humidity);
 
 public:
  void OnSerialPortRead();
-
+double getCustomDateTimeFormat();
 };
 }
 

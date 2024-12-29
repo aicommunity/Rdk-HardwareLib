@@ -5,6 +5,29 @@
 
 namespace RDK {
 
+double UArduinoConnect::getCustomDateTimeFormat() {
+    QDateTime now = QDateTime::currentDateTime();
+    QDate date = now.date();
+    QTime time = now.time();
+
+    // int day = date.day();
+    // int month = date.month();
+    // int year = date.year() % 100; // Последние две цифры года
+    int hour = time.hour();
+    int minute = time.minute();
+    int second = time.second();
+
+    // Формируем число в формате 291224143251
+    double customDateTime = /*(day * 10000000000LL) +
+                            (month * 100000000LL) +
+                            (year * 1000000LL) +*/
+                            (hour * 10000LL) +
+                            (minute * 100LL) +
+                            second;
+
+    return customDateTime;
+}
+
 void  UArduinoConnect::InitSerialPort(string &PortName)
 {
  QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
@@ -38,18 +61,28 @@ void  UArduinoConnect::OnSerialPortRead()
 
             memcpy(&temperature, data.constData(), sizeof(temperature));
             memcpy(&humidity, data.constData() + sizeof(temperature), sizeof(humidity));
+
+            double customDateTime = getCustomDateTimeFormat();
+
             DataBuffer.append(temperature);
             DataBuffer2.append(humidity);
+            TimeBuffer.append(customDateTime);
+
             if (DataBuffer.size() > 512) { // Если сохраненных значений больше 512, удаляем самое старое
                 DataBuffer.removeFirst(); // Удаляем первое (самое старое) значение
             }
             if (DataBuffer2.size() > 512) { // Если сохраненных значений больше 512, удаляем самое старое
                 DataBuffer2.removeFirst(); // Удаляем первое (самое старое) значение
             }
-            qDebug() << "Received temperature:" << QString::number(temperature, 'f', 2);
-            qDebug() << "Received humidity:" << QString::number(humidity, 'f', 2);
+            if (TimeBuffer.size() > 512) {
+                TimeBuffer.removeFirst();
+            }
+            // qDebug() << "Received temperature:" << QString::number(temperature, 'f', 2);
+            // qDebug() << "Received humidity:" << QString::number(humidity, 'f', 2);
+            // qDebug() << "Custom-Time:" << QString::number(customDateTime, 'f', 2);
+            // qDebug() << "Pascal-Time:" << QString::number(pascalTimeDouble, 'f', 0);
             if (Sensor) {
-                Sensor->onDataReceived(temperature, humidity);
+                Sensor->onDataReceived(temperature, humidity, customDateTime);
             }
         } else {
             qDebug() << "Failed to get data";

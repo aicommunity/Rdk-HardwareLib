@@ -19,14 +19,15 @@ UArduinoSensor::~UArduinoSensor(void)
 {
 }
 
-void UArduinoSensor::UpdateReadings(float temperature, float humidity) {
+void UArduinoSensor::UpdateReadings(float temperature, float humidity, double pascalTimeDouble) {
 
+    DoubleMatrixReadings(0,0) = pascalTimeDouble;
     DoubleMatrixReadings(1,0) = temperature;
     DoubleMatrixReadings(2,0) = humidity;
 
     qDebug() << "Received temperature on Sensor:" << QString::number(temperature, 'lf', 2);
     qDebug() << "Received humidity on Sensor:" << QString::number(humidity, 'lf', 2);
-
+    qDebug() << "Time:" << QString::number(pascalTimeDouble, 'lf', 2);
 }
 
 bool UArduinoSensor::SetPortToConnect(const string& value)
@@ -96,18 +97,13 @@ bool UArduinoSensor::ACalculate(void)
     return true;
 }
 
-// UArduinoSensor::RecieveData(double data)
-// {
-//     Data.push_back(data);
-// }
-
 void UArduinoSensor::ResetPortChanged() {
     PortChanged = false;
 }
 
-void UArduinoSensor::onDataReceived(float temperature, float humidity)
+void UArduinoSensor::onDataReceived(float temperature, float humidity, double pascalTimeDouble)
 {
-    UpdateReadings(temperature, humidity);
+    UpdateReadings(temperature, humidity, pascalTimeDouble);
 }
 
 }
