@@ -28,13 +28,13 @@ windows {
 }
 
 HEADERS += \
-    ../../Core/UADC.h \
-    ../../Core/UArduinoChooseFirm.h \
+    ../../Core/UAdcSensor.h \
+    ../../Core/UArduinoConnect.h \
     ../../Core/UArduinoSensor.h \
     ../../Core/UHardwareLibrary.h
 
 SOURCES += \
-    ../../Core/UADC.cpp \
-    ../../Core/UArduinoChooseFirm.cpp \
+    ../../Core/UAdcSensor.cpp \
+    ../../Core/UArduinoConnect.cpp \
     ../../Core/UArduinoSensor.cpp \
     ../../Core/UHardwareLibrary.cpp \

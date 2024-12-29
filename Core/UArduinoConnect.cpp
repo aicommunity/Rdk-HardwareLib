@@ -48,6 +48,9 @@ void  UArduinoConnect::OnSerialPortRead()
             }
             qDebug() << "Received temperature:" << QString::number(temperature, 'f', 2);
             qDebug() << "Received humidity:" << QString::number(humidity, 'f', 2);
+            if (Sensor) {
+                Sensor->onDataReceived(temperature, humidity);
+            }
         } else {
             qDebug() << "Failed to get data";
         }
@@ -55,7 +58,8 @@ void  UArduinoConnect::OnSerialPortRead()
     }
 }
 
- UArduinoConnect:: UArduinoConnect(string &PortName)
+ UArduinoConnect:: UArduinoConnect(string &PortName, UArduinoSensor* sensor)
+    : Sensor(sensor)
 {
  InitSerialPort(PortName);
  //Таймер на чтениие из порта с интервалом в 2 секунды
@@ -79,29 +83,6 @@ void  UArduinoConnect::OnSerialPortRead()
  }
 }
 
-void  UArduinoConnect::OnUploadClicked()
-{
- // QString fileName = "test_temp.ino";
-
- // if (!serialPort->isOpen()) {
- //  emit dataReceived("Failed to connect to Arduino port");
- //  return;
- // }
-
- // emit dataReceived("Loading file...");
- // bool success = uploadArduino(fileName);
-
- // if (success) {
- //  emit dataReceived("File is uploaded succesfully");
- // } else {
- //  emit dataReceived("File loading error");
- // }
-
- // emit uploadFinished(success);
-}
-
-
-
 bool  UArduinoConnect::UploadArduino(const QString &fileName)
 {
  // Команда avrdude
@@ -121,28 +102,10 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
  return process.exitCode() == 0;
 }
 
-
-
-void  UArduinoConnect::ReadDHT11Data()
-{
- // serialPort->write("readDHT\n");
- // readTimer->start(); // Запускаем таймер, чтобы ожидать ответа Arduino
-}
-
-void  UArduinoConnect::SetSerialPortName(const QString &portName)
-{
- // currentPortName = portName;
- // if (serialPort) {
- //  delete serialPort;
- //  serialPort = nullptr;
- // }
- // initSerialPort();
-}
-
-void  UArduinoConnect::run() {
-    // initSerialPort(); // Инициализируем последовательный порт
-    //     onSerialPortRead();
-}
+// void  UArduinoConnect::run() {
+//     // initSerialPort(); // Инициализируем последовательный порт
+//     //     onSerialPortRead();
+// }
 }
 
 #endif
