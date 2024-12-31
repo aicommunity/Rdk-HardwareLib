@@ -5,7 +5,7 @@
 
 namespace RDK {
 
-double UArduinoConnect::getCustomDateTimeFormat() {
+double UArduinoConnect::DateTime() {
     QDateTime now = QDateTime::currentDateTime();
     QDate date = now.date();
     QTime time = now.time();
@@ -62,11 +62,11 @@ void  UArduinoConnect::OnSerialPortRead()
             memcpy(&temperature, data.constData(), sizeof(temperature));
             memcpy(&humidity, data.constData() + sizeof(temperature), sizeof(humidity));
 
-            double customDateTime = getCustomDateTimeFormat();
+            double time = DateTime();
 
             DataBuffer.append(temperature);
             DataBuffer2.append(humidity);
-            TimeBuffer.append(customDateTime);
+            TimeBuffer.append(time);
 
             if (DataBuffer.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
                 DataBuffer.removeFirst(); // ”дал€ем первое (самое старое) значение
@@ -82,7 +82,7 @@ void  UArduinoConnect::OnSerialPortRead()
             // qDebug() << "Custom-Time:" << QString::number(customDateTime, 'f', 2);
             // qDebug() << "Pascal-Time:" << QString::number(pascalTimeDouble, 'f', 0);
             if (Sensor) {
-                Sensor->onDataReceived(temperature, humidity, customDateTime);
+                Sensor->DataReceived(temperature, humidity, time);
             }
         } else {
             qDebug() << "Failed to get data";

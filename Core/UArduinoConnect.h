@@ -51,7 +51,7 @@ signals:
 
 public:
  void OnSerialPortRead();
-double getCustomDateTimeFormat();
+double DateTime();
 };
 }
 

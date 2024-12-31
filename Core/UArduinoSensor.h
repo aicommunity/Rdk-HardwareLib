@@ -36,8 +36,8 @@ public: //¬ходные и выходные параметры
 public:
 UArduinoSensor(void);
 virtual ~UArduinoSensor(void);
-void UpdateReadings(float temperature, float humidity, double pascalTimeDouble);
-void onDataReceived(float temperature, float humidity, double pascalTimeDouble);
+void UpdateReadings(float temperature, float humidity, double time);
+void DataReceived(float temperature, float humidity, double time);
 
 protected:
 void ResetPortChanged();

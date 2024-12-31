@@ -19,15 +19,15 @@ UArduinoSensor::~UArduinoSensor(void)
 {
 }
 
-void UArduinoSensor::UpdateReadings(float temperature, float humidity, double pascalTimeDouble) {
+void UArduinoSensor::UpdateReadings(float temperature, float humidity, double time) {
 
-    DoubleMatrixReadings(0,0) = pascalTimeDouble;
+    DoubleMatrixReadings(0,0) = time;
     DoubleMatrixReadings(1,0) = temperature;
     DoubleMatrixReadings(2,0) = humidity;
 
     qDebug() << "Received temperature on Sensor:" << QString::number(temperature, 'lf', 2);
     qDebug() << "Received humidity on Sensor:" << QString::number(humidity, 'lf', 2);
-    qDebug() << "Time:" << QString::number(pascalTimeDouble, 'lf', 2);
+    qDebug() << "Time:" << QString::number(time, 'lf', 2);
 }
 
 bool UArduinoSensor::SetPortToConnect(const string& value)
@@ -49,9 +49,9 @@ UArduinoSensor* UArduinoSensor::New(void)
 void UArduinoSensor::AInit()
 {
     string PortName = PortToConnect;
+    DoubleMatrixReadings.Assign(3,3,0.0);
     if (UArdConn == NULL) {
         UArdConn = new  UArduinoConnect(PortName, this);
-        // QObject::connect(UArdConn, &UArduinoConnect::newDataReceived, this, &UArduinoSensor::onDataReceived);
     }
 }
 
@@ -59,7 +59,6 @@ void UArduinoSensor::AUnInit(void)
 {
     if(UArdConn)
     {
-        // QObject::disconnect(UArdConn, &UArduinoConnect::newDataReceived, this, &UArduinoSensor::onDataReceived);
         delete UArdConn;      // Освобождаем память
         UArdConn = nullptr;   // Обнуляем указатель
     }
@@ -101,9 +100,9 @@ void UArduinoSensor::ResetPortChanged() {
     PortChanged = false;
 }
 
-void UArduinoSensor::onDataReceived(float temperature, float humidity, double pascalTimeDouble)
+void UArduinoSensor::DataReceived(float temperature, float humidity, double time)
 {
-    UpdateReadings(temperature, humidity, pascalTimeDouble);
+    UpdateReadings(temperature, humidity, time);
 }
 
 }
