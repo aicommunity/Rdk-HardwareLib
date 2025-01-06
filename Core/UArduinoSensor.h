@@ -32,12 +32,13 @@ public: //Входные и выходные параметры
     ULProperty<bool, UArduinoSensor, ptPubState> PortChanged;
     /// Вектор double(возможно, должен быть матрицей)
     UPropertyOutputData<MDMatrix<double>, UArduinoSensor, ptPubParameter | ptOutput> DoubleMatrixReadings;
+    int CurrentCol;
 
 public:
 UArduinoSensor(void);
 virtual ~UArduinoSensor(void);
-void UpdateReadings(float temperature, float humidity, double time);
-void DataReceived(float temperature, float humidity, double time);
+void UpdateReadings(float temperature, float humidity, double time, float mfield);
+void DataReceived(float temperature, float humidity, double time, float mfield);
 
 protected:
 void ResetPortChanged();

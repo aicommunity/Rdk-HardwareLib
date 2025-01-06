@@ -19,15 +19,30 @@ UArduinoSensor::~UArduinoSensor(void)
 {
 }
 
-void UArduinoSensor::UpdateReadings(float temperature, float humidity, double time) {
+void UArduinoSensor::UpdateReadings(float temperature, float humidity, double time, float mfield) {
 
-    DoubleMatrixReadings(0,0) = time;
-    DoubleMatrixReadings(1,0) = temperature;
-    DoubleMatrixReadings(2,0) = humidity;
+    int cols = DoubleMatrixReadings.GetCols();
+    int rows = DoubleMatrixReadings.GetRows();
+
+    qDebug() << "Cols:" << cols;
+
+    if (CurrentCol >= cols) {
+        qDebug() << "Maximum number of columns reached. Cannot add more data.";
+        DoubleMatrixReadings.Assign(rows, cols, 0.0);
+        CurrentCol = 0;
+    }
+
+    DoubleMatrixReadings(0, CurrentCol) = time;
+    DoubleMatrixReadings(1, CurrentCol) = temperature;
+    DoubleMatrixReadings(2, CurrentCol) = humidity;
+    DoubleMatrixReadings(3, CurrentCol) = mfield;
+
+    CurrentCol++; // Переход к следующему столбцу
 
     qDebug() << "Received temperature on Sensor:" << QString::number(temperature, 'lf', 2);
     qDebug() << "Received humidity on Sensor:" << QString::number(humidity, 'lf', 2);
     qDebug() << "Time:" << QString::number(time, 'lf', 2);
+    qDebug() << "Magnetic Field" << QString::number(mfield, 'lf', 2);
 }
 
 bool UArduinoSensor::SetPortToConnect(const string& value)
@@ -49,7 +64,8 @@ UArduinoSensor* UArduinoSensor::New(void)
 void UArduinoSensor::AInit()
 {
     string PortName = PortToConnect;
-    DoubleMatrixReadings.Assign(3,3,0.0);
+    DoubleMatrixReadings.Assign(4,4,0.0);
+    CurrentCol = 0;
     if (UArdConn == NULL) {
         UArdConn = new  UArduinoConnect(PortName, this);
     }
@@ -100,9 +116,9 @@ void UArduinoSensor::ResetPortChanged() {
     PortChanged = false;
 }
 
-void UArduinoSensor::DataReceived(float temperature, float humidity, double time)
+void UArduinoSensor::DataReceived(float temperature, float humidity, double time, float mfield)
 {
-    UpdateReadings(temperature, humidity, time);
+    UpdateReadings(temperature, humidity, time, mfield);
 }
 
 }

@@ -36,6 +36,7 @@ private:
     QTimer *ReadTimer;
     QVector<double> DataBuffer;
     QVector<double> DataBuffer2;
+    QVector<double> DataBuffer3;
     QVector<double> TimeBuffer;
     UArduinoSensor* Sensor;
 
