@@ -5,7 +5,7 @@
 
 namespace RDK {
 
-double UArduinoConnect::getCustomDateTimeFormat() {
+double UArduinoConnect::DateTime() {
     QDateTime now = QDateTime::currentDateTime();
     QDate date = now.date();
     QTime time = now.time();
@@ -51,22 +51,25 @@ void  UArduinoConnect::OnSerialPortRead()
 {
     qDebug() << "Start to read data";
 
-    while (SerialPort->bytesAvailable() >= sizeof(float)) {
+    while (SerialPort->bytesAvailable() >= sizeof(double)) {
         QByteArray data = SerialPort->readAll(); // „тение всех доступных данных с порта
 
         // ќбработка полученных данных
-        if (data.size() >= sizeof(float)) {
+        if (data.size() >= sizeof(double)) {
             float temperature;
             float humidity;
+            float mfield;
 
             memcpy(&temperature, data.constData(), sizeof(temperature));
             memcpy(&humidity, data.constData() + sizeof(temperature), sizeof(humidity));
+            memcpy(&mfield, data.constData() + sizeof(temperature) + sizeof(humidity), sizeof(mfield));
 
-            double customDateTime = getCustomDateTimeFormat();
+            double time = DateTime();
 
             DataBuffer.append(temperature);
             DataBuffer2.append(humidity);
-            TimeBuffer.append(customDateTime);
+            DataBuffer3.append(mfield);
+            TimeBuffer.append(time);
 
             if (DataBuffer.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
                 DataBuffer.removeFirst(); // ”дал€ем первое (самое старое) значение
@@ -74,15 +77,18 @@ void  UArduinoConnect::OnSerialPortRead()
             if (DataBuffer2.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
                 DataBuffer2.removeFirst(); // ”дал€ем первое (самое старое) значение
             }
+            if (DataBuffer3.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
+                DataBuffer3.removeFirst(); // ”дал€ем первое (самое старое) значение
+            }
             if (TimeBuffer.size() > 512) {
                 TimeBuffer.removeFirst();
             }
-            // qDebug() << "Received temperature:" << QString::number(temperature, 'f', 2);
-            // qDebug() << "Received humidity:" << QString::number(humidity, 'f', 2);
-            // qDebug() << "Custom-Time:" << QString::number(customDateTime, 'f', 2);
-            // qDebug() << "Pascal-Time:" << QString::number(pascalTimeDouble, 'f', 0);
+            qDebug() << "Received temperature:" << QString::number(temperature, 'lf', 2);
+            qDebug() << "Received humidity:" << QString::number(humidity, 'lf', 2);
+            qDebug() << "mfield:" << QString::number(mfield, 'lf', 2);
+            qDebug() << "Custom-Time:" << QString::number(time, 'lf', 2);
             if (Sensor) {
-                Sensor->onDataReceived(temperature, humidity, customDateTime);
+                Sensor->DataReceived(temperature, humidity, time, mfield);
             }
         } else {
             qDebug() << "Failed to get data";
