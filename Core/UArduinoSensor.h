@@ -22,16 +22,24 @@ protected:
  // UArduinoConnect *UArdConn;
 
 public: //Входные и выходные параметры
+
     //Параметр - нижняя граница входных данных
     ULProperty<double, UArduinoSensor, ptPubParameter> LowerSensorLimit;
+
     //Параметр - верхняя граница входных данных
     ULProperty<double, UArduinoSensor, ptPubParameter> UpperSensorLimit;
+
     //Параметр - имя порта для подключения
     ULProperty<string, UArduinoSensor, ptPubParameter> PortToConnect;
-    //Параметр - имя порта для подключения
+
+    //Параметр - имя порта для подключения изменено
     ULProperty<bool, UArduinoSensor, ptPubState> PortChanged;
-    /// Вектор double(возможно, должен быть матрицей)
-    UPropertyOutputData<MDMatrix<double>, UArduinoSensor, ptPubParameter | ptOutput> DoubleMatrixReadings;
+
+    //Параметр - команда, отправляемая на ардуино
+    ULProperty<string, UArduinoSensor, ptPubParameter> Command;
+
+    //Матрица полученных значений
+    UPropertyOutputData<MDMatrix<double>, UArduinoSensor, ptPubState | ptOutput> DoubleMatrixReadings;
     int CurrentCol;
 
 public:
@@ -39,6 +47,7 @@ UArduinoSensor(void);
 virtual ~UArduinoSensor(void);
 void UpdateReadings(float temperature, float humidity, double time, float mfield);
 void DataReceived(float temperature, float humidity, double time, float mfield);
+void SendCommand(string command);
 
 protected:
 void ResetPortChanged();

@@ -43,7 +43,6 @@ private:
 public:
  UArduinoConnect(string &PortName, UArduinoSensor* sensor);
  virtual ~ UArduinoConnect();
- // void run() override;
 
 signals:
  void UploadFinished(bool success);
@@ -52,7 +51,8 @@ signals:
 
 public:
  void OnSerialPortRead();
-double DateTime();
+ double DateTime();
+ void SendCommandArduino(string command);
 };
 }
 

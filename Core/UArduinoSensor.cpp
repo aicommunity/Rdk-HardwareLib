@@ -11,7 +11,8 @@ UArduinoSensor::UArduinoSensor(void)
  UpperSensorLimit("UpperSensorLimit", this),
  DoubleMatrixReadings("DoubleMatrixReadings", this),
  PortToConnect("PortToConnect", this, &UArduinoSensor::SetPortToConnect),
- PortChanged("PortChanged", this)
+ PortChanged("PortChanged", this),
+ Command("Command", this)
 {
 }
 
@@ -65,6 +66,7 @@ void UArduinoSensor::AInit()
 {
     string PortName = PortToConnect;
     DoubleMatrixReadings.Assign(4,4,0.0);
+    // SendCommand(Command);
     CurrentCol = 0;
     if (UArdConn == NULL) {
         UArdConn = new  UArduinoConnect(PortName, this);
@@ -119,6 +121,11 @@ void UArduinoSensor::ResetPortChanged() {
 void UArduinoSensor::DataReceived(float temperature, float humidity, double time, float mfield)
 {
     UpdateReadings(temperature, humidity, time, mfield);
+}
+
+void UArduinoSensor::SendCommand(string command) {
+    string CommandArd = command;
+    UArdConn->SendCommandArduino(CommandArd);
 }
 
 }

@@ -141,10 +141,19 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
  return process.exitCode() == 0;
 }
 
-// void  UArduinoConnect::run() {
-//     // initSerialPort(); // Инициализируем последовательный порт
-//     //     onSerialPortRead();
-// }
+void UArduinoConnect::SendCommandArduino(string command) {
+    if (SerialPort->isOpen()) {
+        QByteArray byteArray = QByteArray::fromStdString(command);
+        SerialPort->write(byteArray);
+        if (SerialPort->waitForBytesWritten(1000)) {
+            qDebug() << "Command sent:" << command.c_str();
+        } else {
+            qDebug() << "Failed to send command:" << SerialPort->errorString();
+        }
+    } else {
+        qDebug() << "Serial port is not open.";
+    }
+}
 }
 
 #endif
