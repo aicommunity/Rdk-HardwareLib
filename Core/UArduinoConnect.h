@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QtSerialPort/qserialport>
 #include <QtSerialPort/qserialportinfo>
+#include <QByteArray>
 #include <QProcess>
 #include <QTimer>
 #include <QString>
@@ -12,6 +13,7 @@
 #include <QMutex>
 #include <QDateTime>
 #include <QTimeZone>
+#include <QQueue>
 #include <thread>
 #include <mutex>
 #include <string>
@@ -33,12 +35,15 @@ private:
 
     QSerialPort *SerialPort;
     QString CurrentPortName;
-    QTimer *ReadTimer;
+    QTimer *WriteTimer;
+    QTimer *SendTimer;
     QVector<double> DataBuffer;
     QVector<double> DataBuffer2;
     QVector<double> DataBuffer3;
     QVector<double> TimeBuffer;
     UArduinoSensor* Sensor;
+    QMutex writeMutex;
+    QByteArray WriteBuffer;
 
 public:
  UArduinoConnect(string &PortName, UArduinoSensor* sensor);
@@ -46,13 +51,15 @@ public:
 
 signals:
  void UploadFinished(bool success);
- void DataReceived(const QString &data);
+ void DataReceived(float temperature, float humidity, double time, float mfield);
  void SerialPortConnected(bool connected);
 
 public:
  void OnSerialPortRead();
+ void CheckWrite();
+ void WriteData(const QByteArray &data);
+ void SendData();
  double DateTime();
- void SendCommandArduino(string command);
 };
 }
 

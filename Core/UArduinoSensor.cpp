@@ -123,10 +123,12 @@ void UArduinoSensor::DataReceived(float temperature, float humidity, double time
     UpdateReadings(temperature, humidity, time, mfield);
 }
 
-void UArduinoSensor::SendCommand(string command) {
-    string CommandArd = command;
-    UArdConn->SendCommandArduino(CommandArd);
+void UArduinoSensor::SendCommand(string command){
+    if(UArdConn){
+        string CommandArd = command;
+        UArdConn->CheckWrite();
+        UArdConn->SendData();
+    }
 }
-
 }
 #endif
