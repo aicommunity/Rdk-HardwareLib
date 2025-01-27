@@ -39,20 +39,34 @@ void  UArduinoConnect::InitSerialPort(string &PortName)
 
   if (SerialPort->open(QIODevice::ReadWrite)) {
    qDebug() << "Arduino port is connected";
+      connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoConnect::OnSerialPortRead);
    } else {
     qDebug() << "Failed to connect to Arduino port";
    }
  } else {
    qDebug() << "Arduino port not found";
     }
+ //Таймер на проверку готовности порта к записи данных
+ WriteTimer = new QTimer(this);
+ connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
+ WriteTimer->start(100);
+ // Таймер на отправку данных
+ SendTimer = new QTimer(this);
+ connect(SendTimer, &QTimer::timeout, this, &UArduinoConnect::SendData);
+ SendTimer->start(1000);
 }
 
 void  UArduinoConnect::OnSerialPortRead()
 {
+    if (!SerialPort->isOpen()) {
+        qDebug() << "Serial port is not open.";
+        return;
+    }
     qDebug() << "Start to read data";
 
-    while (SerialPort->bytesAvailable() >= sizeof(double)) {
-        QByteArray data = SerialPort->readAll(); // Чтение всех доступных данных с порта
+   if (SerialPort->bytesAvailable() >= sizeof(double)) {
+        QByteArray data = SerialPort->readAll();
+         // Чтение всех доступных данных с порта
 
         // Обработка полученных данных
         if (data.size() >= sizeof(double)) {
@@ -101,12 +115,6 @@ void  UArduinoConnect::OnSerialPortRead()
     : Sensor(sensor)
 {
  InitSerialPort(PortName);
- //Таймер на чтениие из порта с интервалом в 2 секунды
- ReadTimer = new QTimer(this);
- ReadTimer->setInterval(2000);
- connect(ReadTimer, &QTimer::timeout, this, & UArduinoConnect::OnSerialPortRead);
- ReadTimer->start();
-
  OnSerialPortRead();
 }
 
@@ -115,10 +123,6 @@ void  UArduinoConnect::OnSerialPortRead()
  if (SerialPort) {
   SerialPort->close();
   delete SerialPort;
- }
-
- if (ReadTimer) {
-  delete ReadTimer;
  }
 }
 
@@ -141,18 +145,31 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
  return process.exitCode() == 0;
 }
 
-void UArduinoConnect::SendCommandArduino(string command) {
-    if (SerialPort->isOpen()) {
-        QByteArray byteArray = QByteArray::fromStdString(command);
-        SerialPort->write(byteArray);
-        if (SerialPort->waitForBytesWritten(1000)) {
-            qDebug() << "Command sent:" << command.c_str();
+void UArduinoConnect::WriteData(const QByteArray &data) {
+    QMutexLocker locker(&writeMutex);
+    WriteBuffer.append(data);
+}
+
+void UArduinoConnect::CheckWrite() {
+    QMutexLocker locker(&writeMutex);
+    if (!WriteBuffer.isEmpty() && SerialPort->isWritable()) {
+        QByteArray data = WriteBuffer;
+        WriteBuffer.clear();
+        int bytesWritten = SerialPort->write(data);
+        if (bytesWritten > 0) {
+            if (!SerialPort->waitForBytesWritten(5000)) {
+                qDebug() << "Error: Unable to write data to serial port";
+            }
         } else {
-            qDebug() << "Failed to send command:" << SerialPort->errorString();
+            qDebug() << "Error: Failed to write data to serial port";
         }
-    } else {
-        qDebug() << "Serial port is not open.";
     }
+}
+
+void UArduinoConnect::SendData() {
+    // Пример команды - вращение
+    QByteArray data = "ROTATE";
+    WriteData(data);
 }
 }
 
