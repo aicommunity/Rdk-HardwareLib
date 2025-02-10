@@ -40,6 +40,7 @@ public: //Входные и выходные параметры
 
     //Матрица полученных значений
     UPropertyOutputData<MDMatrix<double>, UArduinoSensor, ptPubState | ptOutput> DoubleMatrixReadings;
+
     int CurrentCol;
 
 public:

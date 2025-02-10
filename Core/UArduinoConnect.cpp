@@ -112,7 +112,8 @@ void  UArduinoConnect::OnSerialPortRead()
 }
 
  UArduinoConnect:: UArduinoConnect(string &PortName, UArduinoSensor* sensor)
-    : Sensor(sensor)
+    : Sensor(sensor),
+      com()
 {
  InitSerialPort(PortName);
  OnSerialPortRead();
@@ -167,8 +168,8 @@ void UArduinoConnect::CheckWrite() {
 }
 
 void UArduinoConnect::SendData() {
-    // Пример команды - вращение
-    QByteArray data = "ROTATE";
+    QString qStr = QString::fromStdString(com);
+    QByteArray data = qStr.toUtf8();
     WriteData(data);
 }
 }

@@ -45,9 +45,11 @@ private:
     QMutex writeMutex;
     QByteArray WriteBuffer;
 
+
 public:
  UArduinoConnect(string &PortName, UArduinoSensor* sensor);
  virtual ~ UArduinoConnect();
+ string com;
 
 signals:
  void UploadFinished(bool success);
