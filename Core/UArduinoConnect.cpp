@@ -101,9 +101,9 @@ void  UArduinoConnect::OnSerialPortRead()
             qDebug() << "Received humidity:" << QString::number(humidity, 'lf', 2);
             qDebug() << "mfield:" << QString::number(mfield, 'lf', 2);
             qDebug() << "Custom-Time:" << QString::number(time, 'lf', 2);
-            if (Sensor) {
-                Sensor->DataReceived(temperature, humidity, time, mfield);
-            }
+            // if (onDataReceived) {
+                onDataReceived(temperature, humidity, time, mfield);
+            // }
         } else {
             qDebug() << "Failed to get data";
         }
@@ -111,12 +111,9 @@ void  UArduinoConnect::OnSerialPortRead()
     }
 }
 
- UArduinoConnect:: UArduinoConnect(string &PortName, UArduinoSensor* sensor)
-    : Sensor(sensor),
-      com()
-{
- InitSerialPort(PortName);
- OnSerialPortRead();
+ UArduinoConnect:: UArduinoConnect(string &PortName, std::function<void(float, float, float, double)> onDataReceived)
+    : SerialPort(nullptr), WriteTimer(nullptr), SendTimer(nullptr), com(""), onDataReceived(onDataReceived) {
+    InitSerialPort(PortName);
 }
 
  UArduinoConnect::~ UArduinoConnect()

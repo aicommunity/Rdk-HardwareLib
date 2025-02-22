@@ -68,7 +68,7 @@ void UArduinoSensor::AInit()
     DoubleMatrixReadings.Assign(4,4,0.0);
     CurrentCol = 0;
     if (UArdConn == NULL) {
-        UArdConn = new  UArduinoConnect(PortName, this);
+        UArdConn = new  UArduinoConnect(PortName, std::bind(&UArduinoSensor::DataReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
         SendCommand(Command);
     }
 }
@@ -124,8 +124,7 @@ void UArduinoSensor::DataReceived(float temperature, float humidity, double time
 }
 
 void UArduinoSensor::SendCommand(string command){
-    if(UArdConn){
-        // string CommandArd = command;
+    if(UArdConn){   
         UArdConn->com = command;
         UArdConn->CheckWrite();
         UArdConn->SendData();

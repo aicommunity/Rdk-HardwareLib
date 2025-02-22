@@ -1,8 +1,6 @@
 #ifndef UARDUINOSENSOR_H
 #define UARDUINOSENSOR_H
 
-// #include <QString>
-// #include <QThread>
 #include <QObject>
 #include <QVector>
 #include <string>

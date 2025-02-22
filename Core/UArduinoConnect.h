@@ -19,17 +19,17 @@
 #include <string>
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
-#include "UArduinoSensor.h"
+// #include "UArduinoSensor.h"
 
 namespace RDK{
 
-class UArduinoSensor;
+// class UArduinoSensor;
 
 class UArduinoConnect: public QThread
 {
  Q_OBJECT
 
-private:
+public:
     void InitSerialPort(string &PortName);
     bool UploadArduino(const QString &FileName);
 
@@ -41,13 +41,12 @@ private:
     QVector<double> DataBuffer2;
     QVector<double> DataBuffer3;
     QVector<double> TimeBuffer;
-    UArduinoSensor* Sensor;
     QMutex writeMutex;
     QByteArray WriteBuffer;
 
+     std::function<void(float, float, float, double)> onDataReceived;
 
-public:
- UArduinoConnect(string &PortName, UArduinoSensor* sensor);
+ UArduinoConnect(string &PortName,  std::function<void(float, float, float, double)> onDataReceived);
  virtual ~ UArduinoConnect();
  string com;
 
