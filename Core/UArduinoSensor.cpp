@@ -2,6 +2,7 @@
 #define UARDUINOSENSOR_CPP
 
 #include "UArduinoSensor.h"
+
 namespace RDK{
 
 class  UArduinoConnect;
@@ -12,7 +13,10 @@ UArduinoSensor::UArduinoSensor(void)
  DoubleMatrixReadings("DoubleMatrixReadings", this),
  PortToConnect("PortToConnect", this, &UArduinoSensor::SetPortToConnect),
  PortChanged("PortChanged", this),
- Command("Command", this)
+ Command("Command", this),
+ SendCommandFlag("SendCommandFlag", this),
+ SentCommand("SentCommand", this),
+ GetDataFromBuffers("GetDataFromBuffers", this)
 {
 }
 
@@ -64,13 +68,6 @@ UArduinoSensor* UArduinoSensor::New(void)
 
 void UArduinoSensor::AInit()
 {
-    string PortName = PortToConnect;
-    DoubleMatrixReadings.Assign(4,4,0.0);
-    CurrentCol = 0;
-    if (UArdConn == NULL) {
-        UArdConn = new  UArduinoConnect(PortName, std::bind(&UArduinoSensor::DataReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-        SendCommand(Command);
-    }
 }
 
 void UArduinoSensor::AUnInit(void)
@@ -93,7 +90,7 @@ bool UArduinoSensor::ADefault(void)
 // в случае успешной сборки
 bool UArduinoSensor::ABuild(void)
 {
-    Init();
+//    Init();
     // ResetPortChanged();
     // if (PortChanged == true) {
     //     string PortName = PortToConnect;
@@ -105,12 +102,33 @@ bool UArduinoSensor::ABuild(void)
 // Сброс процесса счета.
 bool UArduinoSensor::AReset(void)
 {
+    SendCommandFlag = false;
     return true;
 }
 
 // Выполняет расчет этого объекта
 bool UArduinoSensor::ACalculate(void)
 {
+    string PortName = PortToConnect;
+    DoubleMatrixReadings.Assign(4,4,0.0);
+    CurrentCol = 0;
+    if (UArdConn == nullptr)
+    {
+        UArdConn = new  UArduinoConnect(PortName, std::bind(&UArduinoSensor::DataReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    }
+
+   // if(GetDataFromBuffers)
+   // {
+   //     // UArdConn->PopDataPortion
+   //     PutDataToMatrix();
+   // }
+
+  if(SendCommandFlag)
+  {
+      SendCommand(Command);
+      SentCommand = Command;
+      SendCommandFlag = false;
+  }
     return true;
 }
 
@@ -120,7 +138,46 @@ void UArduinoSensor::ResetPortChanged() {
 
 void UArduinoSensor::DataReceived(float temperature, float humidity, double time, float mfield)
 {
-    UpdateReadings(temperature, humidity, time, mfield);
+    // UpdateReadings(temperature, humidity, time, mfield);
+    // if(GetDataFromBuffers)
+    // {
+        // UArdConn->PopDataPortion
+        PutDataToMatrix();
+    // }
+}
+
+void UArduinoSensor::PutDataToMatrix() {
+    int cols = DoubleMatrixReadings.GetCols();
+    int rows = DoubleMatrixReadings.GetRows();
+
+    // Определяем минимальный размер буферов
+    int minSize = qMin(UArdConn->TimeBuffer.size(),
+                       qMin(UArdConn->DataBuffer.size(),
+                            qMin(UArdConn->DataBuffer2.size(),
+                                 UArdConn->DataBuffer3.size())));
+
+    // Записываем столько данных, сколько есть во всех буферах
+    for (int i = 0; i < minSize && CurrentCol < cols; i++) {
+        DoubleMatrixReadings(0, CurrentCol) = UArdConn->TimeBuffer.takeFirst();
+        DoubleMatrixReadings(1, CurrentCol) = UArdConn->DataBuffer.takeFirst();
+        DoubleMatrixReadings(2, CurrentCol) = UArdConn->DataBuffer2.takeFirst();
+        DoubleMatrixReadings(3, CurrentCol) = UArdConn->DataBuffer3.takeFirst();
+
+        qDebug() << "Recorded data at col" << CurrentCol
+                 << "Time:" << DoubleMatrixReadings(0, CurrentCol)
+                 << "Temp:" << DoubleMatrixReadings(1, CurrentCol)
+                 << "Hum:" << DoubleMatrixReadings(2, CurrentCol)
+                 << "MField:" << DoubleMatrixReadings(3, CurrentCol);
+
+        CurrentCol++;
+    }
+
+    // Если матрица заполнена - сбросить
+    if (CurrentCol >= cols) {
+        DoubleMatrixReadings.Assign(rows, cols, 0.0);
+        CurrentCol = 0;
+        qDebug() << "Matrix reset";
+    }
 }
 
 void UArduinoSensor::SendCommand(string command){

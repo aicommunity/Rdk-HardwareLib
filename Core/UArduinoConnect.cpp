@@ -56,6 +56,30 @@ void  UArduinoConnect::InitSerialPort(string &PortName)
  SendTimer->start(1000);
 }
 
+void UArduinoConnect::FillBuffer1(float temperature) {
+    QMutexLocker locker(&writeMutex);
+    DataBuffer.append(temperature);
+    qDebug() << "Buffer1 size:" << DataBuffer.size() << "Last:" << DataBuffer.last();
+}
+
+void UArduinoConnect::FillBuffer2(float humidity) {
+    QMutexLocker locker(&writeMutex);
+    DataBuffer2.append(humidity);
+    qDebug() << "Buffer2 size:" << DataBuffer2.size() << "Last:" << DataBuffer2.last();
+}
+
+void UArduinoConnect::FillBuffer3(float mfield) {
+    QMutexLocker locker(&writeMutex);
+    DataBuffer3.append(mfield);  // <--- ”бедитесь что используетс€ DataBuffer3!
+    qDebug() << "Buffer3 size:" << DataBuffer3.size() << "Last:" << DataBuffer3.last();
+}
+void UArduinoConnect::FillTimeBuffer(float time)
+{
+    QMutexLocker locker(&writeMutex);
+    TimeBuffer.append(time);
+    qDebug() << "TimeBuffer size:" << TimeBuffer.size() << "Last:" << TimeBuffer.last();
+}
+
 void  UArduinoConnect::OnSerialPortRead()
 {
     if (!SerialPort->isOpen()) {
@@ -80,23 +104,28 @@ void  UArduinoConnect::OnSerialPortRead()
 
             double time = DateTime();
 
-            DataBuffer.append(temperature);
-            DataBuffer2.append(humidity);
-            DataBuffer3.append(mfield);
-            TimeBuffer.append(time);
+            FillBuffer1(temperature);
+            FillBuffer2(humidity);
+            FillBuffer3(mfield);
+            FillTimeBuffer(time);
 
-            if (DataBuffer.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-                DataBuffer.removeFirst(); // ”дал€ем первое (самое старое) значение
-            }
-            if (DataBuffer2.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-                DataBuffer2.removeFirst(); // ”дал€ем первое (самое старое) значение
-            }
-            if (DataBuffer3.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-                DataBuffer3.removeFirst(); // ”дал€ем первое (самое старое) значение
-            }
-            if (TimeBuffer.size() > 512) {
-                TimeBuffer.removeFirst();
-            }
+            // DataBuffer.append(temperature);
+            // DataBuffer2.append(humidity);
+            // DataBuffer3.append(mfield);
+            // TimeBuffer.append(time);
+
+            // if (DataBuffer.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
+            //     DataBuffer.removeFirst(); // ”дал€ем первое (самое старое) значение
+            // }
+            // if (DataBuffer2.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
+            //     DataBuffer2.removeFirst(); // ”дал€ем первое (самое старое) значение
+            // }
+            // if (DataBuffer3.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
+            //     DataBuffer3.removeFirst(); // ”дал€ем первое (самое старое) значение
+            // }
+            // if (TimeBuffer.size() > 512) {
+            //     TimeBuffer.removeFirst();
+            // }
             qDebug() << "Received temperature:" << QString::number(temperature, 'lf', 2);
             qDebug() << "Received humidity:" << QString::number(humidity, 'lf', 2);
             qDebug() << "mfield:" << QString::number(mfield, 'lf', 2);
@@ -150,7 +179,7 @@ void UArduinoConnect::WriteData(const QByteArray &data) {
 
 void UArduinoConnect::CheckWrite() {
     QMutexLocker locker(&writeMutex);
-    if (!WriteBuffer.isEmpty() && SerialPort->isWritable()) {
+    if (!WriteBuffer.isEmpty() && SerialPort && SerialPort->isWritable()) {
         QByteArray data = WriteBuffer;
         WriteBuffer.clear();
         int bytesWritten = SerialPort->write(data);

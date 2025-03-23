@@ -57,6 +57,10 @@ signals:
 
 public:
  void OnSerialPortRead();
+ void FillBuffer1(float temperature);
+ void FillBuffer2(float humidity);
+ void FillBuffer3(float mfield);
+ void FillTimeBuffer(float time);
  void CheckWrite();
  void WriteData(const QByteArray &data);
  void SendData();
