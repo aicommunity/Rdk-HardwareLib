@@ -41,7 +41,9 @@ public:
     QVector<double> DataBuffer2;
     QVector<double> DataBuffer3;
     QVector<double> TimeBuffer;
+    QMutex bufferMutex;
     QMutex writeMutex;
+    QMutex commandMutex;
     QByteArray WriteBuffer;
 
      std::function<void(float, float, float, double)> onDataReceived;
@@ -57,12 +59,24 @@ signals:
 
 public:
  void OnSerialPortRead();
+
  void FillBuffer1(float temperature);
  void FillBuffer2(float humidity);
  void FillBuffer3(float mfield);
  void FillTimeBuffer(float time);
+
+ QVector<double> GetBuffer1();
+ QVector<double> GetBuffer2();
+ QVector<double> GetBuffer3();
+ QVector<double> GetTimeBuffer();
+
+ void ClearBuffer1();
+ void ClearBuffer2();
+ void ClearBuffer3();
+ void ClearTimeBuffer();
+
  void CheckWrite();
- void WriteData(const QByteArray &data);
+ void SetCommand(string& cmd);
  void SendData();
  double DateTime();
 };

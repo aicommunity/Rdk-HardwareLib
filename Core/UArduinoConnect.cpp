@@ -57,27 +57,75 @@ void  UArduinoConnect::InitSerialPort(string &PortName)
 }
 
 void UArduinoConnect::FillBuffer1(float temperature) {
-    QMutexLocker locker(&writeMutex);
+    QMutexLocker locker(&bufferMutex);
+    if (DataBuffer.size() < 512) {
+        DataBuffer.removeFirst();
+    }
     DataBuffer.append(temperature);
-    qDebug() << "Buffer1 size:" << DataBuffer.size() << "Last:" << DataBuffer.last();
 }
 
 void UArduinoConnect::FillBuffer2(float humidity) {
-    QMutexLocker locker(&writeMutex);
+    QMutexLocker locker(&bufferMutex);
+    if (DataBuffer2.size() < 512) {
+        DataBuffer2.removeFirst();
+    }
     DataBuffer2.append(humidity);
-    qDebug() << "Buffer2 size:" << DataBuffer2.size() << "Last:" << DataBuffer2.last();
 }
 
 void UArduinoConnect::FillBuffer3(float mfield) {
-    QMutexLocker locker(&writeMutex);
-    DataBuffer3.append(mfield);  // <--- Убедитесь что используется DataBuffer3!
-    qDebug() << "Buffer3 size:" << DataBuffer3.size() << "Last:" << DataBuffer3.last();
+    QMutexLocker locker(&bufferMutex);
+    if (DataBuffer3.size() < 512) {
+        DataBuffer3.removeFirst();
+    }
+    DataBuffer3.append(mfield);
 }
 void UArduinoConnect::FillTimeBuffer(float time)
 {
-    QMutexLocker locker(&writeMutex);
+    QMutexLocker locker(&bufferMutex);
+    if (TimeBuffer.size() < 512) {
+        TimeBuffer.removeFirst();
+    }
     TimeBuffer.append(time);
-    qDebug() << "TimeBuffer size:" << TimeBuffer.size() << "Last:" << TimeBuffer.last();
+}
+
+QVector<double> UArduinoConnect::GetBuffer1() {
+    QMutexLocker locker(&bufferMutex);
+    return DataBuffer;
+}
+
+QVector<double> UArduinoConnect::GetBuffer2() {
+    QMutexLocker locker(&bufferMutex);
+    return DataBuffer2;
+}
+
+QVector<double> UArduinoConnect::GetBuffer3() {
+    QMutexLocker locker(&bufferMutex);
+    return DataBuffer3;
+}
+
+QVector<double> UArduinoConnect::GetTimeBuffer() {
+    QMutexLocker locker(&bufferMutex);
+    return TimeBuffer;
+}
+
+void UArduinoConnect::ClearBuffer1() {
+    QMutexLocker locker(&bufferMutex);
+    DataBuffer.clear();
+}
+
+void UArduinoConnect::ClearBuffer2() {
+    QMutexLocker locker(&bufferMutex);
+    DataBuffer2.clear();
+}
+
+void UArduinoConnect::ClearBuffer3() {
+    QMutexLocker locker(&bufferMutex);
+    DataBuffer3.clear();
+}
+
+void UArduinoConnect::ClearTimeBuffer() {
+    QMutexLocker locker(&bufferMutex);
+    TimeBuffer.clear();
 }
 
 void  UArduinoConnect::OnSerialPortRead()
@@ -147,6 +195,8 @@ void  UArduinoConnect::OnSerialPortRead()
 
  UArduinoConnect::~ UArduinoConnect()
 {
+ if (WriteTimer) delete WriteTimer;
+ if (SendTimer) delete SendTimer;
  if (SerialPort) {
   SerialPort->close();
   delete SerialPort;
@@ -172,31 +222,44 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
  return process.exitCode() == 0;
 }
 
-void UArduinoConnect::WriteData(const QByteArray &data) {
-    QMutexLocker locker(&writeMutex);
-    WriteBuffer.append(data);
-}
-
 void UArduinoConnect::CheckWrite() {
-    QMutexLocker locker(&writeMutex);
-    if (!WriteBuffer.isEmpty() && SerialPort && SerialPort->isWritable()) {
-        QByteArray data = WriteBuffer;
-        WriteBuffer.clear();
-        int bytesWritten = SerialPort->write(data);
-        if (bytesWritten > 0) {
-            if (!SerialPort->waitForBytesWritten(5000)) {
-                qDebug() << "Error: Unable to write data to serial port";
-            }
-        } else {
-            qDebug() << "Error: Failed to write data to serial port";
+    QMutexLocker lockPort(&writeMutex);
+    if(!SerialPort || !SerialPort->isOpen()) return;
+
+    if(SerialPort->bytesToWrite() == 0 && !WriteBuffer.isEmpty()) {
+        qint64 written = SerialPort->write(WriteBuffer);
+        if(written > 0) {
+            WriteBuffer = WriteBuffer.mid(written);
+        }
+        else {
+            qDebug() << "Write error:" << SerialPort->errorString();
         }
     }
 }
 
+void UArduinoConnect::SetCommand(string& cmd) {
+    QMutexLocker lock(&commandMutex);
+    com = cmd;
+}
+
 void UArduinoConnect::SendData() {
+    QMutexLocker lockCmd(&commandMutex);
+    QMutexLocker lockWrite(&writeMutex);
+
+    if (com.empty()) return;
+
     QString qStr = QString::fromStdString(com);
-    QByteArray data = qStr.toUtf8();
-    WriteData(data);
+    QByteArray data = qStr.toUtf8().append('\n');
+
+    if (WriteBuffer.size() + data.size() > 4096) {
+        qDebug() << "Write buffer overflow!";
+        return;
+    }
+
+    WriteBuffer.append(data);
+    com.clear();
+
+    CheckWrite();
 }
 }
 

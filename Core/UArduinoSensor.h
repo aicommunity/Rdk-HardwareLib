@@ -50,6 +50,8 @@ public: //¬ходные и выходные параметры
 
     int CurrentCol;
 
+    QMutex arduinoMutex;
+
 public:
 UArduinoSensor(void);
 virtual ~UArduinoSensor(void);

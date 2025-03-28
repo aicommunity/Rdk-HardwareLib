@@ -96,6 +96,7 @@ bool UArduinoSensor::ABuild(void)
     //     string PortName = PortToConnect;
     //     AInit(PortName);
     // }
+    DoubleMatrixReadings.Assign(4,4,0.0);
     return true;
 }
 
@@ -110,7 +111,7 @@ bool UArduinoSensor::AReset(void)
 bool UArduinoSensor::ACalculate(void)
 {
     string PortName = PortToConnect;
-    DoubleMatrixReadings.Assign(4,4,0.0);
+
     CurrentCol = 0;
     if (UArdConn == nullptr)
     {
@@ -138,30 +139,35 @@ void UArduinoSensor::ResetPortChanged() {
 
 void UArduinoSensor::DataReceived(float temperature, float humidity, double time, float mfield)
 {
-    // UpdateReadings(temperature, humidity, time, mfield);
-    // if(GetDataFromBuffers)
-    // {
-        // UArdConn->PopDataPortion
+    if(GetDataFromBuffers)
+    {
         PutDataToMatrix();
-    // }
+    }
 }
 
 void UArduinoSensor::PutDataToMatrix() {
+
+    QMutexLocker locker(&arduinoMutex);
+    if (!UArdConn) return;
+
+    QVector<double> timeData = UArdConn->GetTimeBuffer();
+    QVector<double> tempData = UArdConn->GetBuffer1();
+    QVector<double> humData = UArdConn->GetBuffer2();
+    QVector<double> mfieldData = UArdConn->GetBuffer3();
+
+    const int minSize = qMin(
+        qMin(timeData.size(), tempData.size()),
+        qMin(humData.size(), mfieldData.size())
+        );
+
     int cols = DoubleMatrixReadings.GetCols();
     int rows = DoubleMatrixReadings.GetRows();
 
-    // Определяем минимальный размер буферов
-    int minSize = qMin(UArdConn->TimeBuffer.size(),
-                       qMin(UArdConn->DataBuffer.size(),
-                            qMin(UArdConn->DataBuffer2.size(),
-                                 UArdConn->DataBuffer3.size())));
-
-    // Записываем столько данных, сколько есть во всех буферах
     for (int i = 0; i < minSize && CurrentCol < cols; i++) {
-        DoubleMatrixReadings(0, CurrentCol) = UArdConn->TimeBuffer.takeFirst();
-        DoubleMatrixReadings(1, CurrentCol) = UArdConn->DataBuffer.takeFirst();
-        DoubleMatrixReadings(2, CurrentCol) = UArdConn->DataBuffer2.takeFirst();
-        DoubleMatrixReadings(3, CurrentCol) = UArdConn->DataBuffer3.takeFirst();
+        DoubleMatrixReadings(0, CurrentCol) = timeData[i];
+        DoubleMatrixReadings(1, CurrentCol) = tempData[i];
+        DoubleMatrixReadings(2, CurrentCol) = humData[i];
+        DoubleMatrixReadings(3, CurrentCol) = mfieldData[i];
 
         qDebug() << "Recorded data at col" << CurrentCol
                  << "Time:" << DoubleMatrixReadings(0, CurrentCol)
@@ -172,18 +178,22 @@ void UArduinoSensor::PutDataToMatrix() {
         CurrentCol++;
     }
 
-    // Если матрица заполнена - сбросить
     if (CurrentCol >= cols) {
         DoubleMatrixReadings.Assign(rows, cols, 0.0);
         CurrentCol = 0;
         qDebug() << "Matrix reset";
     }
+
+    UArdConn->ClearBuffer1();
+    UArdConn->ClearBuffer2();
+    UArdConn->ClearBuffer3();
+    UArdConn->ClearTimeBuffer();
 }
 
-void UArduinoSensor::SendCommand(string command){
-    if(UArdConn){   
-        UArdConn->com = command;
-        UArdConn->CheckWrite();
+void UArduinoSensor::SendCommand(string command) {
+    QMutexLocker locker(&arduinoMutex);
+    if (UArdConn) {
+        UArdConn->SetCommand(command);
         UArdConn->SendData();
     }
 }
