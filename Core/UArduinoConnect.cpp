@@ -58,7 +58,7 @@ void  UArduinoConnect::InitSerialPort(string &PortName)
 
 void UArduinoConnect::FillBuffer1(float temperature) {
     QMutexLocker locker(&bufferMutex);
-    if (DataBuffer.size() < 512) {
+    if (DataBuffer.size() >= 512) {
         DataBuffer.removeFirst();
     }
     DataBuffer.append(temperature);
@@ -66,7 +66,7 @@ void UArduinoConnect::FillBuffer1(float temperature) {
 
 void UArduinoConnect::FillBuffer2(float humidity) {
     QMutexLocker locker(&bufferMutex);
-    if (DataBuffer2.size() < 512) {
+    if (DataBuffer2.size() >= 512) {
         DataBuffer2.removeFirst();
     }
     DataBuffer2.append(humidity);
@@ -74,7 +74,7 @@ void UArduinoConnect::FillBuffer2(float humidity) {
 
 void UArduinoConnect::FillBuffer3(float mfield) {
     QMutexLocker locker(&bufferMutex);
-    if (DataBuffer3.size() < 512) {
+    if (DataBuffer3.size() >= 512) {
         DataBuffer3.removeFirst();
     }
     DataBuffer3.append(mfield);
@@ -82,50 +82,38 @@ void UArduinoConnect::FillBuffer3(float mfield) {
 void UArduinoConnect::FillTimeBuffer(float time)
 {
     QMutexLocker locker(&bufferMutex);
-    if (TimeBuffer.size() < 512) {
+    if (TimeBuffer.size() >= 512) {
         TimeBuffer.removeFirst();
     }
     TimeBuffer.append(time);
 }
 
-QVector<double> UArduinoConnect::GetBuffer1() {
+QVector<double> UArduinoConnect::GetAndClearBuffer1() {
     QMutexLocker locker(&bufferMutex);
-    return DataBuffer;
-}
-
-QVector<double> UArduinoConnect::GetBuffer2() {
-    QMutexLocker locker(&bufferMutex);
-    return DataBuffer2;
-}
-
-QVector<double> UArduinoConnect::GetBuffer3() {
-    QMutexLocker locker(&bufferMutex);
-    return DataBuffer3;
-}
-
-QVector<double> UArduinoConnect::GetTimeBuffer() {
-    QMutexLocker locker(&bufferMutex);
-    return TimeBuffer;
-}
-
-void UArduinoConnect::ClearBuffer1() {
-    QMutexLocker locker(&bufferMutex);
+    QVector<double> result = DataBuffer;
     DataBuffer.clear();
+    return result;
 }
 
-void UArduinoConnect::ClearBuffer2() {
+QVector<double> UArduinoConnect::GetAndClearBuffer2() {
     QMutexLocker locker(&bufferMutex);
+    QVector<double> result = DataBuffer2;
     DataBuffer2.clear();
+    return result;
 }
 
-void UArduinoConnect::ClearBuffer3() {
+QVector<double> UArduinoConnect::GetAndClearBuffer3() {
     QMutexLocker locker(&bufferMutex);
+    QVector<double> result = DataBuffer3;
     DataBuffer3.clear();
+    return result;
 }
 
-void UArduinoConnect::ClearTimeBuffer() {
+QVector<double> UArduinoConnect::GetAndClearTimeBuffer() {
     QMutexLocker locker(&bufferMutex);
+    QVector<double> result = TimeBuffer;
     TimeBuffer.clear();
+    return result;
 }
 
 void  UArduinoConnect::OnSerialPortRead()
@@ -157,29 +145,12 @@ void  UArduinoConnect::OnSerialPortRead()
             FillBuffer3(mfield);
             FillTimeBuffer(time);
 
-            // DataBuffer.append(temperature);
-            // DataBuffer2.append(humidity);
-            // DataBuffer3.append(mfield);
-            // TimeBuffer.append(time);
-
-            // if (DataBuffer.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-            //     DataBuffer.removeFirst(); // ”дал€ем первое (самое старое) значение
-            // }
-            // if (DataBuffer2.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-            //     DataBuffer2.removeFirst(); // ”дал€ем первое (самое старое) значение
-            // }
-            // if (DataBuffer3.size() > 512) { // ≈сли сохраненных значений больше 512, удал€ем самое старое
-            //     DataBuffer3.removeFirst(); // ”дал€ем первое (самое старое) значение
-            // }
-            // if (TimeBuffer.size() > 512) {
-            //     TimeBuffer.removeFirst();
-            // }
             qDebug() << "Received temperature:" << QString::number(temperature, 'lf', 2);
             qDebug() << "Received humidity:" << QString::number(humidity, 'lf', 2);
             qDebug() << "mfield:" << QString::number(mfield, 'lf', 2);
             qDebug() << "Custom-Time:" << QString::number(time, 'lf', 2);
             // if (onDataReceived) {
-                onDataReceived(temperature, humidity, time, mfield);
+                // onDataReceived(temperature, humidity, time, mfield);
             // }
         } else {
             qDebug() << "Failed to get data";
@@ -188,20 +159,28 @@ void  UArduinoConnect::OnSerialPortRead()
     }
 }
 
- UArduinoConnect:: UArduinoConnect(string &PortName, std::function<void(float, float, float, double)> onDataReceived)
-    : SerialPort(nullptr), WriteTimer(nullptr), SendTimer(nullptr), com(""), onDataReceived(onDataReceived) {
+ UArduinoConnect:: UArduinoConnect(string &PortName)
+    : SerialPort(nullptr), WriteTimer(nullptr), SendTimer(nullptr), com("") {
     InitSerialPort(PortName);
 }
 
- UArduinoConnect::~ UArduinoConnect()
-{
- if (WriteTimer) delete WriteTimer;
- if (SendTimer) delete SendTimer;
- if (SerialPort) {
-  SerialPort->close();
-  delete SerialPort;
+ UArduinoConnect::~UArduinoConnect() {
+     if (WriteTimer) {
+         WriteTimer->stop();
+         delete WriteTimer;
+     }
+     if (SendTimer) {
+         SendTimer->stop();
+         delete SendTimer;
+     }
+
+     if (SerialPort) {
+         if (SerialPort->isOpen()) {
+             SerialPort->close();
+         }
+         SerialPort->deleteLater();
+     }
  }
-}
 
 bool  UArduinoConnect::UploadArduino(const QString &fileName)
 {

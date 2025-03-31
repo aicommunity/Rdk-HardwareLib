@@ -36,6 +36,9 @@ public: //Входные и выходные параметры
     //Параметр - команда, отправляемая на ардуино
     ULProperty<string, UArduinoSensor, ptPubParameter> Command;
 
+    //Параметр - количество отображаемых столбцов матрицы
+    ULProperty<int, UArduinoSensor, ptPubParameter> MatrixCols;
+
     // Состояние - флаг необходимости отправить команду
     ULProperty<bool, UArduinoSensor, ptPubState> SendCommandFlag;
 
@@ -50,13 +53,11 @@ public: //Входные и выходные параметры
 
     int CurrentCol;
 
-    QMutex arduinoMutex;
+    // QMutex arduinoMutex;
 
 public:
 UArduinoSensor(void);
 virtual ~UArduinoSensor(void);
-void UpdateReadings(float temperature, float humidity, double time, float mfield);
-void DataReceived(float temperature, float humidity, double time, float mfield);
 void SendCommand(string command);
 void PutDataToMatrix();
 

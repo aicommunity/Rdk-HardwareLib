@@ -46,9 +46,9 @@ public:
     QMutex commandMutex;
     QByteArray WriteBuffer;
 
-     std::function<void(float, float, float, double)> onDataReceived;
+     // std::function<void(float, float, float, double)> onDataReceived;
 
- UArduinoConnect(string &PortName,  std::function<void(float, float, float, double)> onDataReceived);
+ UArduinoConnect(string &PortName);
  virtual ~ UArduinoConnect();
  string com;
 
@@ -65,15 +65,10 @@ public:
  void FillBuffer3(float mfield);
  void FillTimeBuffer(float time);
 
- QVector<double> GetBuffer1();
- QVector<double> GetBuffer2();
- QVector<double> GetBuffer3();
- QVector<double> GetTimeBuffer();
-
- void ClearBuffer1();
- void ClearBuffer2();
- void ClearBuffer3();
- void ClearTimeBuffer();
+ QVector<double> GetAndClearBuffer1();
+ QVector<double> GetAndClearBuffer2();
+ QVector<double> GetAndClearBuffer3();
+ QVector<double> GetAndClearTimeBuffer();
 
  void CheckWrite();
  void SetCommand(string& cmd);

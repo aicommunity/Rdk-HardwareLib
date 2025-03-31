@@ -16,38 +16,13 @@ UArduinoSensor::UArduinoSensor(void)
  Command("Command", this),
  SendCommandFlag("SendCommandFlag", this),
  SentCommand("SentCommand", this),
- GetDataFromBuffers("GetDataFromBuffers", this)
+ GetDataFromBuffers("GetDataFromBuffers", this),
+ MatrixCols("MatrixCols", this)
 {
 }
 
 UArduinoSensor::~UArduinoSensor(void)
 {
-}
-
-void UArduinoSensor::UpdateReadings(float temperature, float humidity, double time, float mfield) {
-
-    int cols = DoubleMatrixReadings.GetCols();
-    int rows = DoubleMatrixReadings.GetRows();
-
-    qDebug() << "Cols:" << cols;
-
-    if (CurrentCol >= cols) {
-        qDebug() << "Maximum number of columns reached. Cannot add more data.";
-        DoubleMatrixReadings.Assign(rows, cols, 0.0);
-        CurrentCol = 0;
-    }
-
-    DoubleMatrixReadings(0, CurrentCol) = time;
-    DoubleMatrixReadings(1, CurrentCol) = temperature;
-    DoubleMatrixReadings(2, CurrentCol) = humidity;
-    DoubleMatrixReadings(3, CurrentCol) = mfield;
-
-    CurrentCol++; // Переход к следующему столбцу
-
-    qDebug() << "Received temperature on Sensor:" << QString::number(temperature, 'lf', 2);
-    qDebug() << "Received humidity on Sensor:" << QString::number(humidity, 'lf', 2);
-    qDebug() << "Time:" << QString::number(time, 'lf', 2);
-    qDebug() << "Magnetic Field" << QString::number(mfield, 'lf', 2);
 }
 
 bool UArduinoSensor::SetPortToConnect(const string& value)
@@ -96,7 +71,7 @@ bool UArduinoSensor::ABuild(void)
     //     string PortName = PortToConnect;
     //     AInit(PortName);
     // }
-    DoubleMatrixReadings.Assign(4,4,0.0);
+    DoubleMatrixReadings.Assign(4,MatrixCols,0.0);
     return true;
 }
 
@@ -115,21 +90,20 @@ bool UArduinoSensor::ACalculate(void)
     CurrentCol = 0;
     if (UArdConn == nullptr)
     {
-        UArdConn = new  UArduinoConnect(PortName, std::bind(&UArduinoSensor::DataReceived, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+        UArdConn = new  UArduinoConnect(PortName);
     }
 
-   // if(GetDataFromBuffers)
-   // {
-   //     // UArdConn->PopDataPortion
-   //     PutDataToMatrix();
-   // }
+    if(GetDataFromBuffers)
+    {
+         PutDataToMatrix();
+    }
 
-  if(SendCommandFlag)
-  {
-      SendCommand(Command);
-      SentCommand = Command;
-      SendCommandFlag = false;
-  }
+    if(SendCommandFlag)
+    {
+        SendCommand(Command);
+        SentCommand = Command;
+        SendCommandFlag = false;
+    }
     return true;
 }
 
@@ -137,33 +111,35 @@ void UArduinoSensor::ResetPortChanged() {
     PortChanged = false;
 }
 
-void UArduinoSensor::DataReceived(float temperature, float humidity, double time, float mfield)
-{
-    if(GetDataFromBuffers)
-    {
-        PutDataToMatrix();
-    }
-}
-
 void UArduinoSensor::PutDataToMatrix() {
+    if (!UArdConn) {
+        qDebug() << "Arduino connection not found";
+        return;
+    }
 
-    QMutexLocker locker(&arduinoMutex);
-    if (!UArdConn) return;
+    QVector<double> timeData = UArdConn->GetAndClearTimeBuffer();
+    QVector<double> tempData = UArdConn->GetAndClearBuffer1();
+    QVector<double> humData = UArdConn->GetAndClearBuffer2();
+    QVector<double> mfieldData = UArdConn->GetAndClearBuffer3();
 
-    QVector<double> timeData = UArdConn->GetTimeBuffer();
-    QVector<double> tempData = UArdConn->GetBuffer1();
-    QVector<double> humData = UArdConn->GetBuffer2();
-    QVector<double> mfieldData = UArdConn->GetBuffer3();
-
-    const int minSize = qMin(
+    int dataCount = qMin(
         qMin(timeData.size(), tempData.size()),
         qMin(humData.size(), mfieldData.size())
         );
 
-    int cols = DoubleMatrixReadings.GetCols();
-    int rows = DoubleMatrixReadings.GetRows();
+    if (dataCount == 0) {
+        qDebug() << "No data available in buffers";
+        return;
+    }
 
-    for (int i = 0; i < minSize && CurrentCol < cols; i++) {
+    int cols = MatrixCols; //или dataCount
+    // int rows = DoubleMatrixReadings.GetRows();
+
+    for (int i = 0; i < dataCount; i++) {
+        if (CurrentCol >= cols) {
+            CurrentCol = 0;
+        }
+
         DoubleMatrixReadings(0, CurrentCol) = timeData[i];
         DoubleMatrixReadings(1, CurrentCol) = tempData[i];
         DoubleMatrixReadings(2, CurrentCol) = humData[i];
@@ -177,21 +153,10 @@ void UArduinoSensor::PutDataToMatrix() {
 
         CurrentCol++;
     }
-
-    if (CurrentCol >= cols) {
-        DoubleMatrixReadings.Assign(rows, cols, 0.0);
-        CurrentCol = 0;
-        qDebug() << "Matrix reset";
-    }
-
-    UArdConn->ClearBuffer1();
-    UArdConn->ClearBuffer2();
-    UArdConn->ClearBuffer3();
-    UArdConn->ClearTimeBuffer();
 }
 
 void UArduinoSensor::SendCommand(string command) {
-    QMutexLocker locker(&arduinoMutex);
+    // QMutexLocker locker(&arduinoMutex);
     if (UArdConn) {
         UArdConn->SetCommand(command);
         UArdConn->SendData();
