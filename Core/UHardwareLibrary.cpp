@@ -27,7 +27,7 @@ UHardwareLibrary::UHardwareLibrary(void)
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
  UContainer *cont;
- cont=new UArduinoSensor;
+ cont=new UArduinoControl;
  cont->SetName("Arduino");  // Тут будут разные контейнеры под разные датчики/эффекторы
  cont->Default();
  UploadClass("Arduino",cont);
@@ -36,6 +36,11 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
  cont->SetName("ADC");
  cont->Default();
  UploadClass("ADC",cont);
+
+ cont=new UDcControlDemo;
+ cont->SetName("DC");
+ cont->Default();
+ UploadClass("DC",cont);
 }
 // --------------------------
 

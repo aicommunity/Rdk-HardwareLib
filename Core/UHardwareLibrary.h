@@ -4,8 +4,9 @@
 #include "../../../Rdk/Deploy/Include/rdk.h"
 
 #include "UArduinoConnect.h"
-#include "UArduinoSensor.h"
+#include "UArduinoControl.h"
 #include "UAdcSensor.h"
+#include "UDcControlDemo.h"
 
 namespace RDK {
 

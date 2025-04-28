@@ -19,15 +19,19 @@
 #include <string>
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
-// #include "UArduinoSensor.h"
+// #include "UArduinoControl.h"
 
 namespace RDK{
 
-// class UArduinoSensor;
+// class UArduinoControl;
+
+struct DataPoint {
+    QVector<double> data; // Формат: [timestamp, temperature, humidity, mfield]
+};
 
 class UArduinoConnect: public QThread
 {
- Q_OBJECT
+    Q_OBJECT
 
 public:
     void InitSerialPort(string &PortName);
@@ -37,7 +41,7 @@ public:
     QString CurrentPortName;
     QTimer *WriteTimer;
     QTimer *SendTimer;
-    QVector<double> DataBuffer;
+    QVector<double> DataBuffer1;
     QVector<double> DataBuffer2;
     QVector<double> DataBuffer3;
     QVector<double> TimeBuffer;
@@ -46,34 +50,40 @@ public:
     QMutex commandMutex;
     QByteArray WriteBuffer;
 
-     // std::function<void(float, float, float, double)> onDataReceived;
+    // std::function<void(float, float, float, double)> onDataReceived;
 
- UArduinoConnect(string &PortName);
- virtual ~ UArduinoConnect();
- string com;
+    UArduinoConnect(string &PortName);
+    virtual ~ UArduinoConnect();
+    string com;
 
 signals:
- void UploadFinished(bool success);
- void DataReceived(float temperature, float humidity, double time, float mfield);
- void SerialPortConnected(bool connected);
+    void UploadFinished(bool success);
+    void DataReceived(float temperature, float humidity, double time, float mfield);
+    void SerialPortConnected(bool connected);
 
 public:
- void OnSerialPortRead();
+    void OnSerialPortRead();
 
- void FillBuffer1(float temperature);
- void FillBuffer2(float humidity);
- void FillBuffer3(float mfield);
- void FillTimeBuffer(float time);
+    void FillBuffer1(float temperature);
+    void FillBuffer2(float humidity);
+    void FillBuffer3(float mfield);
+    void FillTimeBuffer(float time);
 
- QVector<double> GetAndClearBuffer1();
- QVector<double> GetAndClearBuffer2();
- QVector<double> GetAndClearBuffer3();
- QVector<double> GetAndClearTimeBuffer();
+    QVector<double> GetAndClearBuffer1();
+    QVector<double> GetAndClearBuffer2();
+    QVector<double> GetAndClearBuffer3();
+    QVector<double> GetAndClearTimeBuffer();
 
- void CheckWrite();
- void SetCommand(string& cmd);
- void SendData();
- double DateTime();
+    void CheckWrite();
+    void SetCommand(string& cmd);
+    void SendData();
+    double DateTime();
+
+    QVector<DataPoint> DataBuffer;
+    void FillData(double timestamp, uint8_t paramCount, float temperature, float humidity, float mfield, float servo_speed);
+    QVector<double> GetAndClearAllData();
+
+    QVector<int> allPins;
 };
 }
 

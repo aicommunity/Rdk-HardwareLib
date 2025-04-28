@@ -30,11 +30,15 @@ windows {
 HEADERS += \
     ../../Core/UAdcSensor.h \
     ../../Core/UArduinoConnect.h \
-    ../../Core/UArduinoSensor.h \
+    ../../Core/UArduinoControl.h \
+    ../../Core/UArduinoControl.h \
+    ../../Core/UDcControlDemo.h \
     ../../Core/UHardwareLibrary.h
 
 SOURCES += \
     ../../Core/UAdcSensor.cpp \
     ../../Core/UArduinoConnect.cpp \
-    ../../Core/UArduinoSensor.cpp \
+    ../../Core/UArduinoControl.cpp \
+    ../../Core/UArduinoControl.cpp \
+    ../../Core/UDcControlDemo.cpp \
     ../../Core/UHardwareLibrary.cpp \
