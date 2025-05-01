@@ -40,17 +40,10 @@ public:
     QSerialPort *SerialPort;
     QString CurrentPortName;
     QTimer *WriteTimer;
-    QTimer *SendTimer;
-    QVector<double> DataBuffer1;
-    QVector<double> DataBuffer2;
-    QVector<double> DataBuffer3;
-    QVector<double> TimeBuffer;
     QMutex bufferMutex;
     QMutex writeMutex;
     QMutex commandMutex;
     QByteArray WriteBuffer;
-
-    // std::function<void(float, float, float, double)> onDataReceived;
 
     UArduinoConnect(string &PortName);
     virtual ~ UArduinoConnect();
@@ -63,16 +56,6 @@ signals:
 
 public:
     void OnSerialPortRead();
-
-    void FillBuffer1(float temperature);
-    void FillBuffer2(float humidity);
-    void FillBuffer3(float mfield);
-    void FillTimeBuffer(float time);
-
-    QVector<double> GetAndClearBuffer1();
-    QVector<double> GetAndClearBuffer2();
-    QVector<double> GetAndClearBuffer3();
-    QVector<double> GetAndClearTimeBuffer();
 
     void CheckWrite();
     void SetCommand(string& cmd);

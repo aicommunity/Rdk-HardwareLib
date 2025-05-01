@@ -18,7 +18,6 @@ UArduinoControl::UArduinoControl(void)
     SentCommand("SentCommand", this),
     GetDataFromBuffers("GetDataFromBuffers", this),
     MatrixCols("MatrixCols", this),
-    SendInputCommandFlag("SendInputCommandFlag", this),
     InputCommand("InputCommand", this),
     GetPinsInfo("GetPinsInfo", this)
 // Pins("Pins", this)
@@ -107,19 +106,19 @@ bool UArduinoControl::ACalculate(void)
     //     Pins = UArdConn->GetPins();
     // }
 
+
     if(SendCommandFlag)
     {
         if(InputCommand.IsNewData()) {
+            qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
             SendCommand(InputCommand);
             SentCommand = InputCommand;
-            //InputCommand = nullptr;
-            SendCommandFlag = false;
-        }
-        /*else {
+        } else {
+            qDebug() << "Command send" << QString::fromStdString(Command);
             SendCommand(Command);
             SentCommand = Command;
+        }
             SendCommandFlag = false;
-        }*/
     }
     return true;
 }
@@ -148,6 +147,15 @@ void UArduinoControl::PutDataToMatrix() {
         qDebug() << "Processing block:"
                  << "Time:" << timestamp
                  << "Params:" << paramCount;
+
+        if(paramCount > 0) {
+            double speed = allData[index + paramCount - 1];
+
+            if(SpeedValues.size() >= 512) {
+                SpeedValues.removeFirst();
+            }
+            SpeedValues.append(speed);
+        }
 
         // Проверяем целостность данных
         if (index + paramCount > allData.size()) {

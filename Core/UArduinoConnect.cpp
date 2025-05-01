@@ -50,10 +50,6 @@ void  UArduinoConnect::InitSerialPort(string &PortName)
     WriteTimer = new QTimer(this);
     connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
     WriteTimer->start(100);
-    // Таймер на отправку данных
-    SendTimer = new QTimer(this);
-    connect(SendTimer, &QTimer::timeout, this, &UArduinoConnect::SendData);
-    SendTimer->start(1000);
 }
 
 void UArduinoConnect::FillData(double timestamp, uint8_t paramCount,
@@ -69,7 +65,7 @@ void UArduinoConnect::FillData(double timestamp, uint8_t paramCount,
              << "Speed:" << servo_speed;
 
     if (DataBuffer.size() >= 512) {
-        qDebug() << "Buffer overflow - removing oldest entry";
+        qDebug() << "Buffer overflow - removing oldest pack";
         DataBuffer.removeFirst();
     }
 
@@ -89,7 +85,7 @@ QVector<double> UArduinoConnect::GetAndClearAllData() {
     QMutexLocker locker(&bufferMutex);
     QVector<double> result;
     for (const auto& dp : DataBuffer) {
-        result += dp.data; // Формат: [t1, temp1, hum1, mfield1, speed1, t2, temp2...]
+        result += dp.data;
     }
     DataBuffer.clear();
     return result;
@@ -116,7 +112,6 @@ void UArduinoConnect::OnSerialPortRead() {
         }
 
         uint8_t packetId = static_cast<uint8_t>(ptr[index++]);
-        qDebug() << "Processing packet ID:" << QString::number(packetId, 16).toUpper();
 
         if (packetId == 0x01) {
             qDebug() << "Sensor data packet detected";
@@ -130,7 +125,6 @@ void UArduinoConnect::OnSerialPortRead() {
             qDebug() << "Parameters count:" << paramCount;
 
             int requiredBytes = paramCount * sizeof(float);
-            qDebug() << "Required bytes:" << requiredBytes << "Available:" << (dataSize - index);
 
             if (index + requiredBytes > dataSize) {
                 qDebug() << "Not enough data for parameters";
@@ -192,7 +186,7 @@ void UArduinoConnect::OnSerialPortRead() {
 }
 
 UArduinoConnect:: UArduinoConnect(string &PortName)
-    : SerialPort(nullptr), WriteTimer(nullptr), SendTimer(nullptr), com("") {
+    : SerialPort(nullptr), WriteTimer(nullptr), com("") {
     InitSerialPort(PortName);
 }
 
@@ -200,10 +194,6 @@ UArduinoConnect::~UArduinoConnect() {
     if (WriteTimer) {
         WriteTimer->stop();
         delete WriteTimer;
-    }
-    if (SendTimer) {
-        SendTimer->stop();
-        delete SendTimer;
     }
 
     if (SerialPort) {
@@ -235,14 +225,15 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
 
 void UArduinoConnect::CheckWrite() {
     QMutexLocker lockPort(&writeMutex);
-    if(!SerialPort || !SerialPort->isOpen()) return;
+    if (!SerialPort || !SerialPort->isOpen()) return;
 
-    if(SerialPort->bytesToWrite() == 0 && !WriteBuffer.isEmpty()) {
+    if (SerialPort->bytesToWrite() == 0 && !WriteBuffer.isEmpty()) {
         qint64 written = SerialPort->write(WriteBuffer);
-        if(written > 0) {
+        if (written > 0) {
+            QByteArray sentData = WriteBuffer.left(written);
+            qDebug() << "Successfully sent command:" << sentData.trimmed();
             WriteBuffer = WriteBuffer.mid(written);
-        }
-        else {
+        } else {
             qDebug() << "Write error:" << SerialPort->errorString();
         }
     }
@@ -255,22 +246,28 @@ void UArduinoConnect::SetCommand(string& cmd) {
 
 void UArduinoConnect::SendData() {
     QMutexLocker lockCmd(&commandMutex);
-    QMutexLocker lockWrite(&writeMutex);
-
     if (com.empty()) return;
 
-    QString qStr = QString::fromStdString(com);
-    QByteArray data = qStr.toUtf8().append('\n');
-
-    if (WriteBuffer.size() + data.size() > 4096) {
-        qDebug() << "Write buffer overflow!";
+    if (!SerialPort || !SerialPort->isOpen()) {
+        qDebug() << "SendData: Port is not open.";
         return;
     }
 
-    WriteBuffer.append(data);
-    com.clear();
+    QByteArray data;
+    {
+        QString qStr = QString::fromStdString(com);
+        data = qStr.toUtf8().append('\n');
+        com.clear();
+    }
 
-    CheckWrite();
+    {
+        QMutexLocker lockWrite(&writeMutex);
+        if (WriteBuffer.size() + data.size() > 4096) {
+            qDebug() << "Write buffer overflow!";
+            return;
+        }
+        WriteBuffer.append(data);
+    }
 }
 }
 

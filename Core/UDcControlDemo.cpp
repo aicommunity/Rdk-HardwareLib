@@ -62,24 +62,26 @@ bool UDcControlDemo::AReset(void)
 // Выполняет расчет этого объекта
 bool UDcControlDemo::ACalculate(void)
 {
-    if(UArdSen == nullptr)
+    if(UArdContr == nullptr)
     {
-        UArdSen = new UArduinoControl();
+        UArdContr = new UArduinoControl();
     }
 
     // GetEnvironment()->GetTime();
 
     if(SendCommandFlag)
     {
-        UArdSen->InputCommand = Command;
+        UArdContr->InputCommand = Command;
         SentCommand = Command;
         SendCommandFlag = false;
     }
 
-    // if(GetSpeed)
-    // {
-    //     Speed = UArdSen->speed;
-    // }
+    if (GetSpeed) {
+        if (!UArdContr->SpeedValues.isEmpty()) {
+            Speed = static_cast<float>(UArdContr->SpeedValues.last());
+        }
+        GetSpeed = false;
+    }
     return true;
 }
 
