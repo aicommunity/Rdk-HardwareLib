@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <string>
+#include <QTimer>
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
 #include "UArduinoConnect.h"
@@ -43,7 +44,7 @@ public: //¬ходные и выходные параметры
     ULProperty<bool, UArduinoControl, ptPubState> SendCommandFlag;
 
     // —осто€ние - флаг необходимости отправить команду
-    ULProperty<bool, UArduinoControl, ptPubState> SendInputCommandFlag;
+    // ULProperty<bool, UArduinoControl, ptPubState> SendInputCommandFlag;
 
     // —осто€ние - последн€€ команда, отправленна€ на ардуино
     ULProperty<string, UArduinoControl, ptPubState> SentCommand;
@@ -66,6 +67,8 @@ public: //¬ходные и выходные параметры
     int CurrentCol;
 
     QString LastCom;
+
+    QVector<double> SpeedValues;
 
     // QMutex arduinoMutex;
 

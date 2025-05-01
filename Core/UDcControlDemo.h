@@ -11,7 +11,7 @@ class RDK_LIB_TYPE UDcControlDemo: public UNet
 {
 
 protected:
-    UEPtr<UArduinoControl>UArdSen;
+    UEPtr<UArduinoControl>UArdContr;
 
 public:
 
