@@ -26,10 +26,6 @@ void setup() {
   dht.begin(); 
   myservo.attach(SERVOPIN); 
 
-  while (!Serial) {
-    ; 
-  }
-
   analogPins = (int*)malloc(numPins * sizeof(int));
   analogPins[0] = A0;  
   analogPins[1] = A1;  
@@ -91,9 +87,7 @@ void loop() {
       if (newDelay > 0) {
         mainDelay = newDelay;
       }
-    } else if (command.startsWith("GET ENABLED PINS")) {
-      sendEnabledPins(); 
-    }
+    } 
   }
 
   if (servoRunning) {
@@ -152,20 +146,20 @@ void sendSensorData() {
   }
 }
 
-void sendEnabledPins() {
-  const uint8_t packetHeader = 0xAA;
-  Serial.write(packetHeader);
+// void sendEnabledPins() {
+//   const uint8_t packetHeader = 0xAA;
+//   Serial.write(packetHeader);
 
-  Serial.write(static_cast<uint8_t>(numPins));
+//   Serial.write(static_cast<uint8_t>(numPins));
 
-  for(int i = 0; i < numPins; i++) {
-    Serial.write(static_cast<uint8_t>(analogPins[i]));
-  }
+//   for(int i = 0; i < numPins; i++) {
+//     Serial.write(static_cast<uint8_t>(analogPins[i]));
+//   }
 
-  Serial.write(static_cast<uint8_t>(dhtPin));
-  Serial.write(static_cast<uint8_t>(HALLPIN));
-  Serial.write(static_cast<uint8_t>(SERVOPIN));
-}
+//   Serial.write(static_cast<uint8_t>(dhtPin));
+//   Serial.write(static_cast<uint8_t>(HALLPIN));
+//   Serial.write(static_cast<uint8_t>(SERVOPIN));
+// }
 
 // Функция для преобразования строкового представления пина в номер пина
 int getPinFromString(String pinStr) {
