@@ -193,7 +193,6 @@ UArduinoConnect:: UArduinoConnect(string &PortName)
 UArduinoConnect::~UArduinoConnect() {
     if (WriteTimer) {
         WriteTimer->stop();
-        delete WriteTimer;
     }
 
     if (SerialPort) {
