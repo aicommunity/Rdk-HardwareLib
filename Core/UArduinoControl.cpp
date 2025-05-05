@@ -106,19 +106,19 @@ bool UArduinoControl::ACalculate(void)
     //     Pins = UArdConn->GetPins();
     // }
 
+    if(InputCommand.IsConnected() && InputCommand.IsNewData() && !InputCommand->empty())
+    {
+     qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
+     SendCommand(InputCommand);
+     SentCommand = InputCommand;
+    }
 
     if(SendCommandFlag)
     {
-        if(InputCommand.IsNewData()) {
-            qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
-            SendCommand(InputCommand);
-            SentCommand = InputCommand;
-        } else {
-            qDebug() << "Command send" << QString::fromStdString(Command);
-            SendCommand(Command);
-            SentCommand = Command;
-        }
-            SendCommandFlag = false;
+     qDebug() << "Command send" << QString::fromStdString(Command);
+     SendCommand(Command);
+     SentCommand = Command;
+     SendCommandFlag = false;
     }
     return true;
 }
