@@ -108,17 +108,17 @@ bool UArduinoControl::ACalculate(void)
 
     if(InputCommand.IsConnected() && InputCommand.IsNewData() && !InputCommand->empty())
     {
-     qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
-     SendCommand(InputCommand);
-     SentCommand = InputCommand;
+        qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
+        SendCommand(InputCommand);
+        SentCommand = InputCommand;
     }
 
     if(SendCommandFlag)
     {
-     qDebug() << "Command send" << QString::fromStdString(Command);
-     SendCommand(Command);
-     SentCommand = Command;
-     SendCommandFlag = false;
+        qDebug() << "Command send" << QString::fromStdString(Command);
+        SendCommand(Command);
+        SentCommand = Command;
+        SendCommandFlag = false;
     }
     return true;
 }
@@ -130,60 +130,65 @@ void UArduinoControl::PutDataToMatrix() {
     }
 
     QVector<double> allData = UArdConn->GetAndClearAllData();
-    qDebug() << "Processing" << allData.size() << "data points";
+    qDebug() << "Processing" << allData.size() << "data points (MatrixCols:" << MatrixCols << ")";
 
     int index = 0;
+    const int MAX_PARAMS = 10;
+
     while (index < allData.size()) {
-        if (index + 1 >= allData.size()) {
-            qDebug() << "Incomplete data block";
+        if (index + 2 > allData.size()) {
+            qDebug() << "Truncated block header at index" << index;
             break;
         }
 
-        // Читаем временную метку и количество параметров
         double timestamp = allData[index++];
         int paramCount = static_cast<int>(allData[index++]);
-        int totalRows = paramCount + 1; // Время + параметры
 
-        qDebug() << "Processing block:"
-                 << "Time:" << timestamp
-                 << "Params:" << paramCount;
-
-        if(paramCount > 0) {
-            double speed = allData[index + paramCount - 1];
-
-            if(SpeedValues.size() >= 512) {
-                SpeedValues.removeFirst();
-            }
-            SpeedValues.append(speed);
+        if (paramCount >= 1000) {
+            qDebug() << "Skipping error block, code:" << paramCount;
+            continue;
         }
 
-        // Проверяем целостность данных
+        if (paramCount <= 0 || paramCount > MAX_PARAMS) {
+            qDebug() << "Invalid param count:" << paramCount << "at index" << index-2;
+            index += paramCount;
+            continue;
+        }
+
         if (index + paramCount > allData.size()) {
-            qDebug() << "Data corruption in block! Expected"
-                     << paramCount << "parameters, got"
-                     << (allData.size() - index);
+            qDebug() << "Corrupted data block at index" << index;
             break;
         }
 
-        // Ресайз матрицы при необходимости
+        int totalRows = paramCount + 1;
         if (DoubleMatrixReadings->GetRows() != totalRows) {
-            qDebug() << "Resizing matrix to" << totalRows << "rows";
             DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
+            qDebug() << "Resized matrix to" << totalRows << "rows";
         }
 
-        // Заполняем данные
+        if (CurrentCol >= MatrixCols) {
+            DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
+            CurrentCol = 0;
+            qDebug() << "---- Matrix cleared ----";
+        }
+
+        qDebug() << "Writing to column" << CurrentCol;
         for (int row = 0; row < totalRows; row++) {
-            if (row == 0) {
-                DoubleMatrixReadings(row, CurrentCol) = timestamp;
-            } else {
-                DoubleMatrixReadings(row, CurrentCol) = allData[index++];
+            double value = (row == 0) ? timestamp : allData[index++];
+
+            if (row < DoubleMatrixReadings->GetRows() && CurrentCol < MatrixCols) {
+                DoubleMatrixReadings(row, CurrentCol) = value;
+                qDebug() << "  [" << row << "," << CurrentCol << "] =" << value;
             }
-            qDebug() << "Matrix[" << row << "," << CurrentCol << "] ="
-                     << DoubleMatrixReadings(row, CurrentCol);
         }
 
-        CurrentCol = (CurrentCol + 1) % MatrixCols;
-        qDebug() << "Current column index updated to:" << CurrentCol;
+        CurrentCol++;
+
+        if (CurrentCol >= MatrixCols) {
+            DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
+            CurrentCol = 0;
+            qDebug() << "---- Matrix reset ----";
+        }
     }
 }
 

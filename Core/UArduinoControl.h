@@ -5,6 +5,8 @@
 #include <QVector>
 #include <string>
 #include <QTimer>
+#include <cmath>
+#include <QtDebug>
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
 #include "UArduinoConnect.h"
