@@ -118,31 +118,50 @@ void loop() {
 // Остальные функции (sendSensorData, sendEnabledPins, getPinFromString) остаются без изменений
 
 void sendSensorData() {
+  // Инициализируем флаги ошибок
+  uint8_t errorFlags = 0;
+
+  // Считываем данные с датчиков
   float humidity = dht.readHumidity();
   float temperature = dht.readTemperature();
+  int hallValue = analogRead(HALLPIN);
+  
+  // Проверяем и обрабатываем ошибки DHT
+  if (isnan(temperature)) {
+    errorFlags |= 0x01; // Устанавливаем бит 0 для ошибки температуры
+    temperature = -999.0;
+  }
+  if (isnan(humidity)) {
+    errorFlags |= 0x02; // Устанавливаем бит 1 для ошибки влажности
+    humidity = -999.0;
+  }
 
-  if (!isnan(temperature) && !isnan(humidity)) {
-    int hallValue = analogRead(HALLPIN);
-    float hallStatus = (hallValue > 512) ? 1.0 : 0.0;
-    float currentSpeed = (float)stepDelay;
+  // Обработка датчика Холла
+  float hallStatus = -999.0;
+  if (hallValue >= 0 && hallValue <= 1023) { // Нормальный диапазон
+    hallStatus = (hallValue > 512) ? 1.0 : 0.0;
+  } else {
+    errorFlags |= 0x04; // Устанавливаем бит 2 для ошибки Холла
+  }
 
-    // Пакет данных датчиков (ID 0x01)
-    Serial.write(0x01); // Идентификатор пакета
-    Serial.write(4);    // Количество параметров (4)
-    Serial.write(reinterpret_cast<const char*>(&temperature), sizeof(float));
-    Serial.write(reinterpret_cast<const char*>(&humidity), sizeof(float));
-    Serial.write(reinterpret_cast<const char*>(&hallStatus), sizeof(float));
-    Serial.write(reinterpret_cast<const char*>(&currentSpeed), sizeof(float));
+  // Рассчитываем скорость
+  float currentSpeed = (stepDelay > 0) ? 1000.0 / stepDelay : 0.0;
 
-    // Пакет информации о пинах (ID 0x02)
-    Serial.write(0x02); // Идентификатор пакета
-    Serial.write(static_cast<uint8_t>(numPins + 3)); // Общее количество пинов
-    for(int i = 0; i < numPins; i++) {
-      Serial.write(static_cast<uint8_t>(analogPins[i]));
-    }
-    Serial.write(static_cast<uint8_t>(dhtPin));
-    Serial.write(static_cast<uint8_t>(HALLPIN));
-    Serial.write(static_cast<uint8_t>(SERVOPIN));
+  // Формируем и отправляем пакет
+  Serial.write(0x01);         // ID пакета
+  Serial.write(errorFlags);   // Байт состояния
+  Serial.write(4);            // Количество параметров
+  
+  // Всегда отправляем все данные
+  Serial.write(reinterpret_cast<const char*>(&temperature), sizeof(float));
+  Serial.write(reinterpret_cast<const char*>(&humidity), sizeof(float));
+  Serial.write(reinterpret_cast<const char*>(&hallStatus), sizeof(float));
+  Serial.write(reinterpret_cast<const char*>(&currentSpeed), sizeof(float));
+
+  // Дополнительная отправка критических ошибок (опционально)
+  if (errorFlags != 0) {
+    Serial.write(0x03);       // ID пакета ошибок
+    Serial.write(errorFlags); 
   }
 }
 
