@@ -28,25 +28,39 @@ double UArduinoConnect::DateTime() {
     return customDateTime;
 }
 
-void  UArduinoConnect::InitSerialPort(string &PortName)
+void UArduinoConnect::InitSerialPort(string &PortName)
 {
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+    CurrentPortName = QString::fromStdString(PortName);
 
-    if (!ports.isEmpty()) {
-        CurrentPortName = QString::fromStdString(PortName);
-        SerialPort = new QSerialPort(CurrentPortName);
-        SerialPort->setBaudRate(QSerialPort::Baud9600);
-
-        if (SerialPort->open(QIODevice::ReadWrite)) {
-            qDebug() << "Arduino port is connected";
-            connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoConnect::OnSerialPortRead);
-        } else {
-            qDebug() << "Failed to connect to Arduino port";
+    // Проверяем существование порта
+    bool portExists = false;
+    for(const auto& port : ports) {
+        if(port.portName() == CurrentPortName) {
+            portExists = true;
+            break;
         }
-    } else {
-        qDebug() << "Arduino port not found";
     }
-    //Таймер на проверку готовности порта к записи данных
+
+    if(!portExists) {
+        qDebug() << "Port" << CurrentPortName << "not found!";
+        return;
+    }
+
+    SerialPort = new QSerialPort(CurrentPortName);
+    SerialPort->setBaudRate(QSerialPort::Baud9600);
+
+    if (!SerialPort->open(QIODevice::ReadWrite)) {
+        qDebug() << "Failed to open port:" << SerialPort->errorString();
+        delete SerialPort;
+        SerialPort = nullptr;
+        return;
+    }
+
+    qDebug() << "Arduino port is connected";
+    connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoConnect::OnSerialPortRead);
+
+    // Инициализация таймера только если порт открыт
     WriteTimer = new QTimer(this);
     connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
     WriteTimer->start(100);
@@ -92,94 +106,117 @@ QVector<double> UArduinoConnect::GetAndClearAllData() {
 }
 
 void UArduinoConnect::OnSerialPortRead() {
-    if (!SerialPort->isOpen()) {
+    if (!SerialPort || !SerialPort->isOpen()) {
         qDebug() << "Port not open, skip reading";
         return;
     }
 
     QByteArray data = SerialPort->readAll();
-    qDebug() << "Received raw data, size:" << data.size() << "bytes";
-    qDebug() << "Hex dump:" << data.toHex();
-
     const char* ptr = data.constData();
     int index = 0;
     int dataSize = data.size();
 
     while (index < dataSize) {
-        if (index >= dataSize) {
-            qDebug() << "Reached end of data";
-            break;
-        }
-
         uint8_t packetId = static_cast<uint8_t>(ptr[index++]);
 
         if (packetId == 0x01) {
-            qDebug() << "Sensor data packet detected";
-
-            if (index + 1 > dataSize) {
-                qDebug() << "Incomplete packet header";
+            if (index + 2 > dataSize) {
+                qDebug() << "Incomplete data header";
                 break;
             }
 
+            uint8_t errorFlags = static_cast<uint8_t>(ptr[index++]);
             uint8_t paramCount = static_cast<uint8_t>(ptr[index++]);
-            qDebug() << "Parameters count:" << paramCount;
-
             int requiredBytes = paramCount * sizeof(float);
 
             if (index + requiredBytes > dataSize) {
-                qDebug() << "Not enough data for parameters";
+                qDebug() << "Incomplete data packet";
                 break;
             }
 
-            if (paramCount == 4) {
-                float temperature, humidity, mfield, speed;
-                memcpy(&temperature, ptr + index, sizeof(float)); index += sizeof(float);
-                memcpy(&humidity, ptr + index, sizeof(float)); index += sizeof(float);
-                memcpy(&mfield, ptr + index, sizeof(float)); index += sizeof(float);
-                memcpy(&speed, ptr + index, sizeof(float)); index += sizeof(float);
+            float values[4] = {NAN, NAN, NAN, NAN};
+            bool validData = true;
 
-                qDebug() << "Parsed values:"
-                         << "Temp:" << temperature
-                         << "Hum:" << humidity
-                         << "Field:" << mfield
-                         << "Speed:" << speed;
+            for (int i = 0; i < paramCount; i++) {
+                memcpy(&values[i], ptr + index, sizeof(float));
+                index += sizeof(float);
 
-                FillData(DateTime(), paramCount, temperature, humidity, mfield, speed);
-            } else {
-                qDebug() << "Unexpected parameter count:" << paramCount;
-                index += requiredBytes;
+                if (values[i] <= -999.0f) {
+                    values[i] = NAN;
+                    validData = false;
+                }
             }
-        } else if (packetId == 0x02) {
-            qDebug() << "Pins info packet detected";
 
+            QStringList errors;
+            if (errorFlags & 0x01) errors << "DHT Temperature";
+            if (errorFlags & 0x02) errors << "DHT Humidity";
+            if (errorFlags & 0x04) errors << "Hall Sensor";
+            if (!errors.isEmpty()) {
+                qDebug() << "Sensor errors detected:" << errors.join(", ");
+            }
+
+            if (validData || paramCount == 4) {
+                FillData(DateTime(), paramCount,
+                         values[0],  // temperature
+                         values[1],  // humidity
+                         values[2],  // mfield
+                         values[3]); // servo_speed
+            }
+        }
+
+        else if (packetId == 0x02) {
             if (index + 1 > dataSize) {
                 qDebug() << "Incomplete pins header";
                 break;
             }
 
             uint8_t pinCount = static_cast<uint8_t>(ptr[index++]);
-            qDebug() << "Total pins:" << pinCount;
-
             if (index + pinCount > dataSize) {
-                qDebug() << "Not enough data for pins";
+                qDebug() << "Incomplete pins data";
                 break;
             }
 
             QVector<int> newPins;
-            qDebug() << "Pins list:";
-            for (int i = 0; i < pinCount; ++i) {
-                uint8_t pin = static_cast<uint8_t>(ptr[index++]);
-                newPins.append(pin);
-                qDebug() << "Pin #" << i << ":" << pin;
+            for (int i = 0; i < pinCount; i++) {
+                newPins.append(static_cast<uint8_t>(ptr[index++]));
             }
 
-            {
-                QMutexLocker locker(&bufferMutex);
-                allPins = newPins;
-                qDebug() << "Updated pins list:" << allPins;
+            QMutexLocker locker(&bufferMutex);
+            allPins = newPins;
+            qDebug() << "Updated pins list:" << allPins;
+        }
+
+        else if (packetId == 0x03) {
+            if (index + 1 > dataSize) {
+                qDebug() << "Incomplete error packet";
+                break;
             }
-        } else {
-            qDebug() << "Unknown packet ID:" << packetId;
+
+            uint8_t errorCode = static_cast<uint8_t>(ptr[index++]);
+            double timestamp = DateTime();
+
+            QString errorMsg;
+            switch(errorCode) {
+            case 0x01: errorMsg = "DHT Sensor Failure"; break;
+            case 0x02: errorMsg = "Hall Sensor Failure"; break;
+            case 0x03: errorMsg = "Analog Sensor Failure"; break;
+            default: errorMsg = QString("Unknown Error (0x%1)").arg(errorCode, 2, 16, QChar('0'));
+            }
+
+            qDebug().nospace() << "[ERROR]["
+                               << QDateTime::fromMSecsSinceEpoch(timestamp).toString("hh:mm:ss.zzz")
+                               << "] " << errorMsg;
+
+            QMutexLocker locker(&bufferMutex);
+            DataPoint errorPoint;
+            errorPoint.data.append(timestamp);
+            errorPoint.data.append(static_cast<double>(errorCode + 1000)); // Коды 1001+
+            DataBuffer.append(errorPoint);
+        }
+
+        else {
+            qDebug() << "Unknown packet ID: 0x"
+                     << QString::number(packetId, 16).toUpper();
             break;
         }
     }
@@ -224,7 +261,10 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
 
 void UArduinoConnect::CheckWrite() {
     QMutexLocker lockPort(&writeMutex);
-    if (!SerialPort || !SerialPort->isOpen()) return;
+    if (!SerialPort || !SerialPort->isOpen()) {
+        qDebug() << "CheckWrite: Port is not open.";
+        return;
+    }
 
     if (SerialPort->bytesToWrite() == 0 && !WriteBuffer.isEmpty()) {
         qint64 written = SerialPort->write(WriteBuffer);
