@@ -5,6 +5,16 @@
 
 namespace RDK {
 
+#ifdef Q_OS_WIN
+// Аналоговые пины на Arduino UNO: A0=14, A1=15, ..., A5=19
+#define A0 14
+#define A1 15
+#define A2 16
+#define A3 17
+#define A4 18
+#define A5 19
+#endif
+
 double UArduinoConnect::DateTime() {
     QDateTime now = QDateTime::currentDateTime();
     QDate date = now.date();
@@ -105,6 +115,15 @@ QVector<double> UArduinoConnect::GetAndClearAllData() {
     return result;
 }
 
+QString UArduinoConnect::pinToString(int pin) {
+    if (pin >= A0 && pin <= A5) {
+        return QString("A%1").arg(pin - A0);
+    } else if (pin >= 2 && pin <= 13) {
+        return QString("D%1").arg(pin);
+    }
+    return QString::number(pin);
+}
+
 void UArduinoConnect::OnSerialPortRead() {
     if (!SerialPort || !SerialPort->isOpen()) {
         qDebug() << "Port not open, skip reading";
@@ -121,69 +140,58 @@ void UArduinoConnect::OnSerialPortRead() {
 
         if (packetId == 0x01) {
             if (index + 2 > dataSize) {
-                qDebug() << "Incomplete data header";
+                qDebug() << "Incomplete sensor header";
                 break;
             }
 
-            uint8_t errorFlags = static_cast<uint8_t>(ptr[index++]);
-            uint8_t paramCount = static_cast<uint8_t>(ptr[index++]);
+            uint8_t errorFlags = ptr[index++];
+            uint8_t paramCount = ptr[index++];
             int requiredBytes = paramCount * sizeof(float);
 
             if (index + requiredBytes > dataSize) {
-                qDebug() << "Incomplete data packet";
+                qDebug() << "Incomplete sensor data";
                 break;
             }
 
-            float values[4] = {NAN, NAN, NAN, NAN};
-            bool validData = true;
-
+            float values[4] = {NAN};
             for (int i = 0; i < paramCount; i++) {
                 memcpy(&values[i], ptr + index, sizeof(float));
                 index += sizeof(float);
-
-                if (values[i] <= -999.0f) {
-                    values[i] = NAN;
-                    validData = false;
-                }
             }
 
             QStringList errors;
-            if (errorFlags & 0x01) errors << "DHT Temperature";
-            if (errorFlags & 0x02) errors << "DHT Humidity";
+            if (errorFlags & 0x01) errors << "Temperature";
+            if (errorFlags & 0x02) errors << "Humidity";
             if (errorFlags & 0x04) errors << "Hall Sensor";
             if (!errors.isEmpty()) {
-                qDebug() << "Sensor errors detected:" << errors.join(", ");
+                qDebug() << "Sensor errors:" << errors.join(", ");
             }
 
-            if (validData || paramCount == 4) {
-                FillData(DateTime(), paramCount,
-                         values[0],  // temperature
-                         values[1],  // humidity
-                         values[2],  // mfield
-                         values[3]); // servo_speed
-            }
+            FillData(DateTime(), paramCount, values[0], values[1], values[2], values[3]);
         }
 
         else if (packetId == 0x02) {
             if (index + 1 > dataSize) {
-                qDebug() << "Incomplete pins header";
+                qDebug() << "Incomplete pin header";
                 break;
             }
 
-            uint8_t pinCount = static_cast<uint8_t>(ptr[index++]);
+            uint8_t pinCount = ptr[index++];
             if (index + pinCount > dataSize) {
-                qDebug() << "Incomplete pins data";
+                qDebug() << "Incomplete pin data";
                 break;
             }
 
             QVector<int> newPins;
             for (int i = 0; i < pinCount; i++) {
-                newPins.append(static_cast<uint8_t>(ptr[index++]));
+                newPins.append(ptr[index++]);
             }
 
-            QMutexLocker locker(&bufferMutex);
-            allPins = newPins;
-            qDebug() << "Updated pins list:" << allPins;
+            {
+                QMutexLocker locker(&bufferMutex);
+                allPins = newPins;
+            }
+            qDebug() << "Updated pin configuration:" << newPins;
         }
 
         else if (packetId == 0x03) {
@@ -192,32 +200,47 @@ void UArduinoConnect::OnSerialPortRead() {
                 break;
             }
 
-            uint8_t errorCode = static_cast<uint8_t>(ptr[index++]);
-            double timestamp = DateTime();
-
-            QString errorMsg;
+            uint8_t errorCode = ptr[index++];
             switch(errorCode) {
-            case 0x01: errorMsg = "DHT Sensor Failure"; break;
-            case 0x02: errorMsg = "Hall Sensor Failure"; break;
-            case 0x03: errorMsg = "Analog Sensor Failure"; break;
-            default: errorMsg = QString("Unknown Error (0x%1)").arg(errorCode, 2, 16, QChar('0'));
+            case 0x01: qDebug() << "DHT Sensor Failure"; break;
+            case 0x02: qDebug() << "Hall Sensor Failure"; break;
+            case 0x03: qDebug() << "Analog Sensor Failure"; break;
+            default: qDebug() << "Unknown error code:" << errorCode;
+            }
+        }
+
+        else if (packetId == 0x04) {
+            if (index + 1 > dataSize) {
+                qDebug() << "[STATUS] Incomplete header";
+                break;
             }
 
-            qDebug().nospace() << "[ERROR]["
-                               << QDateTime::fromMSecsSinceEpoch(timestamp).toString("hh:mm:ss.zzz")
-                               << "] " << errorMsg;
+            uint8_t analogPinCount = ptr[index++];
 
-            QMutexLocker locker(&bufferMutex);
-            DataPoint errorPoint;
-            errorPoint.data.append(timestamp);
-            errorPoint.data.append(static_cast<double>(errorCode + 1000)); // Коды 1001+
-            DataBuffer.append(errorPoint);
+            if (index + analogPinCount + 2 > dataSize) {
+                qDebug() << "[STATUS] Data corruption. Expected pins:"
+                         << analogPinCount << "| Buffer size:" << (dataSize - index);
+                break;
+            }
+
+            QStringList analogPins;
+            for (int i = 0; i < analogPinCount; i++) {
+                int pin = static_cast<uint8_t>(ptr[index++]);
+                analogPins.append(pinToString(pin));
+            }
+
+            int dhtPin = static_cast<uint8_t>(ptr[index++]);
+            int servoPin = static_cast<uint8_t>(ptr[index++]);
+
+            qDebug().nospace()
+                << "[STATUS] Analog(" << analogPinCount << "): "
+                << analogPins.join(", ")
+                << " | DHT: " << pinToString(dhtPin)
+                << " | Servo: " << pinToString(servoPin);
         }
 
         else {
-            qDebug() << "Unknown packet ID: 0x"
-                     << QString::number(packetId, 16).toUpper();
-            break;
+            qDebug() << "Unknown packet type:" << packetId;
         }
     }
 }
