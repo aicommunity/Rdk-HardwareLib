@@ -10,7 +10,7 @@ DHT dht(DEFAULT_DHTPIN, DHTTYPE);
 Servo myservo;
 
 int* analogPins;  // Указатель на массив пинов
-int numPins = 2;   // Начальное количество пинов
+int numPins = 0;   // Начальное количество пинов
 bool readingEnabled = true; // Флаг для управления чтением
 int dhtPin = DEFAULT_DHTPIN; // Пин для датчика DHT11
 bool servoRunning = false; // Флаг для управления состоянием сервопривода
@@ -82,12 +82,14 @@ void loop() {
       if (newDelay > 0) {
         stepDelay = newDelay; 
       }
-    } else if (command.startsWith("SET DELAY ")) { // Обработка SET DELAY
+    } else if (command.startsWith("SET DELAY ")) {
       int newDelay = command.substring(10).toInt();
       if (newDelay > 0) {
         mainDelay = newDelay;
       }
-    } 
+    } else if (command.startsWith("GET STATUS")) {
+      sendStatusPacket();
+    }
   }
 
   if (servoRunning) {
@@ -108,77 +110,49 @@ void loop() {
     for (int i = 0; i < numPins; i++) {
       int sensorValue = analogRead(analogPins[i]); 
     }
+    sendSensorData();
   }
 
-  sendSensorData();
-
-  delay(mainDelay); // Используется настраиваемая задержка
+  delay(mainDelay); 
 }
 
-// Остальные функции (sendSensorData, sendEnabledPins, getPinFromString) остаются без изменений
+void sendStatusPacket() {
+  Serial.write(0x04);             
+  
+  int totalAnalogPins = numPins + 1;
+  Serial.write(totalAnalogPins);     
+  
+  Serial.write(HALLPIN);           
+  Serial.write(dhtPin);           
+  Serial.write(SERVOPIN);         
+}
 
 void sendSensorData() {
-  // Инициализируем флаги ошибок
-  uint8_t errorFlags = 0;
+    float humidity = dht.readHumidity();
+    float temperature = dht.readTemperature();
+    int hallValue = analogRead(HALLPIN);
+    float currentSpeed = (stepDelay > 0) ? 1000.0 / stepDelay : 0.0;
 
-  // Считываем данные с датчиков
-  float humidity = dht.readHumidity();
-  float temperature = dht.readTemperature();
-  int hallValue = analogRead(HALLPIN);
-  
-  // Проверяем и обрабатываем ошибки DHT
-  if (isnan(temperature)) {
-    errorFlags |= 0x01; // Устанавливаем бит 0 для ошибки температуры
-    temperature = -999.0;
-  }
-  if (isnan(humidity)) {
-    errorFlags |= 0x02; // Устанавливаем бит 1 для ошибки влажности
-    humidity = -999.0;
-  }
+    uint8_t errorFlags = 0;
+    if (isnan(temperature)) errorFlags |= 0x01;
+    if (isnan(humidity)) errorFlags |= 0x02;
 
-  // Обработка датчика Холла
-  float hallStatus = -999.0;
-  if (hallValue >= 0 && hallValue <= 1023) { // Нормальный диапазон
-    hallStatus = (hallValue > 512) ? 1.0 : 0.0;
-  } else {
-    errorFlags |= 0x04; // Устанавливаем бит 2 для ошибки Холла
-  }
+    float hallStatus = NAN;
+    if (hallValue < 10 || hallValue > 1013) {
+        errorFlags |= 0x04;
+    } else {
+        hallStatus = (hallValue > 512) ? 1.0 : 0.0;
+    }
 
-  // Рассчитываем скорость
-  float currentSpeed = (stepDelay > 0) ? 1000.0 / stepDelay : 0.0;
-
-  // Формируем и отправляем пакет
-  Serial.write(0x01);         // ID пакета
-  Serial.write(errorFlags);   // Байт состояния
-  Serial.write(4);            // Количество параметров
-  
-  // Всегда отправляем все данные
-  Serial.write(reinterpret_cast<const char*>(&temperature), sizeof(float));
-  Serial.write(reinterpret_cast<const char*>(&humidity), sizeof(float));
-  Serial.write(reinterpret_cast<const char*>(&hallStatus), sizeof(float));
-  Serial.write(reinterpret_cast<const char*>(&currentSpeed), sizeof(float));
-
-  // Дополнительная отправка критических ошибок (опционально)
-  if (errorFlags != 0) {
-    Serial.write(0x03);       // ID пакета ошибок
-    Serial.write(errorFlags); 
-  }
+    Serial.write(0x01);
+    Serial.write(errorFlags);
+    Serial.write(4); //количество параметров
+    
+    Serial.write(reinterpret_cast<char*>(&temperature), sizeof(float));
+    Serial.write(reinterpret_cast<char*>(&humidity), sizeof(float));
+    Serial.write(reinterpret_cast<char*>(&hallStatus), sizeof(float));
+    Serial.write(reinterpret_cast<char*>(&currentSpeed), sizeof(float));
 }
-
-// void sendEnabledPins() {
-//   const uint8_t packetHeader = 0xAA;
-//   Serial.write(packetHeader);
-
-//   Serial.write(static_cast<uint8_t>(numPins));
-
-//   for(int i = 0; i < numPins; i++) {
-//     Serial.write(static_cast<uint8_t>(analogPins[i]));
-//   }
-
-//   Serial.write(static_cast<uint8_t>(dhtPin));
-//   Serial.write(static_cast<uint8_t>(HALLPIN));
-//   Serial.write(static_cast<uint8_t>(SERVOPIN));
-// }
 
 // Функция для преобразования строкового представления пина в номер пина
 int getPinFromString(String pinStr) {
