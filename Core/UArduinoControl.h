@@ -33,9 +33,6 @@ public: //Входные и выходные параметры
     //Параметр - имя порта для подключения
     ULProperty<string, UArduinoControl, ptPubParameter> PortToConnect;
 
-    //Параметр - имя порта для подключения изменено
-    ULProperty<bool, UArduinoControl, ptPubState> PortChanged;
-
     //Параметр - команда, отправляемая на ардуино
     UPropertyInputData<string, UArduinoControl, ptPubParameter | ptInput> Command;
 
@@ -67,6 +64,7 @@ public: //Входные и выходные параметры
     // ULProperty<QVector<int>, UArduinoControl, ptPubState> Pins;
 
     int CurrentCol;
+    bool portchanged;
 
     QString LastCom;
 

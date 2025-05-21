@@ -12,14 +12,14 @@ UArduinoControl::UArduinoControl(void)
     UpperSensorLimit("UpperSensorLimit", this),
     DoubleMatrixReadings("DoubleMatrixReadings", this),
     PortToConnect("PortToConnect", this, &UArduinoControl::SetPortToConnect),
-    PortChanged("PortChanged", this),
     Command("Command", this),
     SendCommandFlag("SendCommandFlag", this),
     SentCommand("SentCommand", this),
     GetDataFromBuffers("GetDataFromBuffers", this),
     MatrixCols("MatrixCols", this),
     InputCommand("InputCommand", this),
-    GetPinsInfo("GetPinsInfo", this)
+    GetPinsInfo("GetPinsInfo", this),
+    portchanged(false)
 // Pins("Pins", this)
 {
 }
@@ -31,8 +31,8 @@ UArduinoControl::~UArduinoControl(void)
 bool UArduinoControl::SetPortToConnect(const string& value)
 {
     UnInit();
-    Ready=false;
-    PortChanged = true;
+    Ready = false;
+    portchanged = true; // Устанавливаем флаг при изменении порта
     return true;
 }
 
@@ -68,12 +68,7 @@ bool UArduinoControl::ADefault(void)
 // в случае успешной сборки
 bool UArduinoControl::ABuild(void)
 {
-    //    Init();
-    // ResetPortChanged();
-    // if (PortChanged == true) {
-    //     string PortName = PortToConnect;
-    //     AInit(PortName);
-    // }
+    portchanged = false;
     DoubleMatrixReadings.Assign(4,MatrixCols,0.0);
     return true;
 }

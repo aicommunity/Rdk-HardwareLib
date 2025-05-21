@@ -56,7 +56,7 @@ signals:
 
 public:
     void OnSerialPortRead();
-
+    QString pinToString(int pin);
     void CheckWrite();
     void SetCommand(string& cmd);
     void SendData();
