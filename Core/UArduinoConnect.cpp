@@ -70,26 +70,28 @@ void UArduinoConnect::InitSerialPort(string &PortName)
     qDebug() << "Arduino port is connected";
     connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoConnect::OnSerialPortRead);
 
-    // Инициализация таймера только если порт открыт
-    WriteTimer = new QTimer(this);
-    connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
-    WriteTimer->start(100);
+    // // Инициализация таймера только если порт открыт
+    // WriteTimer = new QTimer(this);
+    // connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
+    // WriteTimer->start(100);
 }
 
 void UArduinoConnect::FillData(double timestamp, uint8_t paramCount,
                                float temperature, float humidity,
                                float mfield, float servo_speed) {
     QMutexLocker locker(&bufferMutex);
-    qDebug() << "Storing data point:"
-             << "Params count:" << paramCount
-             << "Time:" << timestamp
-             << "Temp:" << temperature
-             << "Hum:" << humidity
-             << "Field:" << mfield
-             << "Speed:" << servo_speed;
-
+    if (deb) {
+        qDebug() << "Storing data point:"
+                 << "Params count:" << paramCount
+                 << "Time:" << timestamp
+                 << "Temp:" << temperature
+                 << "Hum:" << humidity
+                 << "Field:" << mfield
+                 << "Speed:" << servo_speed;
+    }
     if (DataBuffer.size() >= 512) {
-        qDebug() << "Buffer overflow - removing oldest pack";
+        if (deb)
+            qDebug() << "Buffer overflow - removing oldest pack";
         DataBuffer.removeFirst();
     }
 
@@ -102,7 +104,8 @@ void UArduinoConnect::FillData(double timestamp, uint8_t paramCount,
     dp.data.append(servo_speed);
 
     DataBuffer.append(dp);
-    qDebug() << "Current buffer size:" << DataBuffer.size();
+    if (deb)
+        qDebug() << "Current buffer size:" << DataBuffer.size();
 }
 
 QVector<double> UArduinoConnect::GetAndClearAllData() {
@@ -191,7 +194,8 @@ void UArduinoConnect::OnSerialPortRead() {
                 QMutexLocker locker(&bufferMutex);
                 allPins = newPins;
             }
-            qDebug() << "Updated pin configuration:" << newPins;
+            if (deb)
+                qDebug() << "Updated pin configuration:" << newPins;
         }
 
         else if (packetId == 0x03) {
@@ -232,11 +236,13 @@ void UArduinoConnect::OnSerialPortRead() {
             int dhtPin = static_cast<uint8_t>(ptr[index++]);
             int servoPin = static_cast<uint8_t>(ptr[index++]);
 
-            qDebug().nospace()
-                << "[STATUS] Analog(" << analogPinCount << "): "
-                << analogPins.join(", ")
-                << " | DHT: " << pinToString(dhtPin)
-                << " | Servo: " << pinToString(servoPin);
+            if (deb) {
+                qDebug().nospace()
+                    << "[STATUS] Analog(" << analogPinCount << "): "
+                    << analogPins.join(", ")
+                    << " | DHT: " << pinToString(dhtPin)
+                    << " | Servo: " << pinToString(servoPin);
+            }
         }
 
         else {
@@ -246,14 +252,11 @@ void UArduinoConnect::OnSerialPortRead() {
 }
 
 UArduinoConnect:: UArduinoConnect(string &PortName)
-    : SerialPort(nullptr), WriteTimer(nullptr), com("") {
+    : SerialPort(nullptr), com(""), deb("") {
     InitSerialPort(PortName);
 }
 
 UArduinoConnect::~UArduinoConnect() {
-    if (WriteTimer) {
-        WriteTimer->stop();
-    }
 
     if (SerialPort) {
         if (SerialPort->isOpen()) {
@@ -330,6 +333,7 @@ void UArduinoConnect::SendData() {
         }
         WriteBuffer.append(data);
     }
+    CheckWrite();
 }
 }
 

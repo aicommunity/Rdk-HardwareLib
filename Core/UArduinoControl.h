@@ -60,10 +60,10 @@ public: //Входные и выходные параметры
     // Состояние - флаг необходимости забрать список пинов
     ULProperty<bool, UArduinoControl, ptPubState> GetPinsInfo;
 
-    // Состояние - вектор доступных пинов
-    // ULProperty<QVector<int>, UArduinoControl, ptPubState> Pins;
+    // Состояние - флаг необходимости отображать дебаговые сообщения
+    ULProperty<bool, UArduinoControl, ptPubState> ShowDebug;
 
-    int CurrentCol;
+    int CurrentRow;
     bool portchanged;
 
     QString LastCom;

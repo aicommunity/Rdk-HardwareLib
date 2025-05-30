@@ -19,8 +19,8 @@ UArduinoControl::UArduinoControl(void)
     MatrixCols("MatrixCols", this),
     InputCommand("InputCommand", this),
     GetPinsInfo("GetPinsInfo", this),
-    portchanged(false)
-// Pins("Pins", this)
+    portchanged(false),
+    ShowDebug("ShowDebug", this)
 {
 }
 
@@ -85,32 +85,31 @@ bool UArduinoControl::ACalculate(void)
 {
     string PortName = PortToConnect;
 
-    CurrentCol = 0;
+    CurrentRow = 0;
     if (UArdConn == nullptr)
     {
         UArdConn = new  UArduinoConnect(PortName);
     }
+
+    UArdConn->deb = ShowDebug;
 
     if(GetDataFromBuffers)
     {
         PutDataToMatrix();
     }
 
-    // if(GetPinsInfo)
-    // {
-    //     Pins = UArdConn->GetPins();
-    // }
-
     if(InputCommand.IsConnected() && InputCommand.IsNewData() && !InputCommand->empty())
     {
-        qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
+        if (ShowDebug)
+            qDebug() << "InputCommand send" << QString::fromStdString(InputCommand);
         SendCommand(InputCommand);
         SentCommand = InputCommand;
     }
 
     if(SendCommandFlag)
     {
-        qDebug() << "Command send" << QString::fromStdString(Command);
+        if (ShowDebug)
+            qDebug() << "Command send" << QString::fromStdString(Command);
         SendCommand(Command);
         SentCommand = Command;
         SendCommandFlag = false;
@@ -125,14 +124,16 @@ void UArduinoControl::PutDataToMatrix() {
     }
 
     QVector<double> allData = UArdConn->GetAndClearAllData();
-    qDebug() << "Processing" << allData.size() << "data points (MatrixCols:" << MatrixCols << ")";
+    if (ShowDebug)
+        qDebug() << "Processing" << allData.size() << "data points (MatrixCols:" << MatrixCols << ")";
 
     int index = 0;
     const int MAX_PARAMS = 10;
 
     while (index < allData.size()) {
         if (index + 2 > allData.size()) {
-            qDebug() << "Truncated block header at index" << index;
+            if (ShowDebug)
+                qDebug() << "Truncated block header at index" << index;
             break;
         }
 
@@ -155,34 +156,33 @@ void UArduinoControl::PutDataToMatrix() {
             break;
         }
 
-        int totalRows = paramCount + 1;
-        if (DoubleMatrixReadings->GetRows() != totalRows) {
-            DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
-            qDebug() << "Resized matrix to" << totalRows << "rows";
+        int totalCols = paramCount + 1;
+        if (DoubleMatrixReadings->GetCols() != totalCols) {
+            DoubleMatrixReadings.Assign(MatrixCols, totalCols, 0.0);
+            if (ShowDebug)
+                qDebug() << "Resized matrix to" << totalCols << "columns";
         }
 
-        if (CurrentCol >= MatrixCols) {
-            DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
-            CurrentCol = 0;
-            qDebug() << "---- Matrix cleared ----";
+        if (CurrentRow >= MatrixCols) {
+            CurrentRow = 0;
         }
 
-        qDebug() << "Writing to column" << CurrentCol;
-        for (int row = 0; row < totalRows; row++) {
-            double value = (row == 0) ? timestamp : allData[index++];
+        if (ShowDebug)
+            qDebug() << "Writing to row" << CurrentRow;
+        for (int col = 0; col < totalCols; col++) {
+            double value = (col == 0) ? timestamp : allData[index++];
 
-            if (row < DoubleMatrixReadings->GetRows() && CurrentCol < MatrixCols) {
-                DoubleMatrixReadings(row, CurrentCol) = value;
-                qDebug() << "  [" << row << "," << CurrentCol << "] =" << value;
+            if (CurrentRow < MatrixCols && col < DoubleMatrixReadings->GetCols()) {
+                DoubleMatrixReadings(CurrentRow, col) = value;
+                if (ShowDebug)
+                    qDebug() << "  [" << CurrentRow << "," << col << "] =" << value;
             }
         }
 
-        CurrentCol++;
+        CurrentRow++;
 
-        if (CurrentCol >= MatrixCols) {
-            DoubleMatrixReadings.Assign(totalRows, MatrixCols, 0.0);
-            CurrentCol = 0;
-            qDebug() << "---- Matrix reset ----";
+        if (CurrentRow >= MatrixCols) {
+            CurrentRow = 0;
         }
     }
 }

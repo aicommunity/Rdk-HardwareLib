@@ -39,7 +39,7 @@ public:
 
     QSerialPort *SerialPort;
     QString CurrentPortName;
-    QTimer *WriteTimer;
+    // QTimer *WriteTimer;
     QMutex bufferMutex;
     QMutex writeMutex;
     QMutex commandMutex;
@@ -48,6 +48,7 @@ public:
     UArduinoConnect(string &PortName);
     virtual ~ UArduinoConnect();
     string com;
+    bool deb;
 
 signals:
     void UploadFinished(bool success);
