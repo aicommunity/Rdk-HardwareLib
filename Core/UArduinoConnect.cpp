@@ -3,9 +3,7 @@
 
 #include "UArduinoConnect.h"
 
-namespace RDK {
-
-#ifdef Q_OS_WIN
+//#ifdef Q_OS_WIN
 // Аналоговые пины на Arduino UNO: A0=14, A1=15, ..., A5=19
 #define A0 14
 #define A1 15
@@ -13,11 +11,13 @@ namespace RDK {
 #define A3 17
 #define A4 18
 #define A5 19
-#endif
+//#endif
+
+namespace RDK {
 
 double UArduinoConnect::DateTime() {
     QDateTime now = QDateTime::currentDateTime();
-    QDate date = now.date();
+    //QDate date = now.date();
     QTime time = now.time();
 
     // int day = date.day();

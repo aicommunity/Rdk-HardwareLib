@@ -10,17 +10,17 @@ class  UArduinoConnect;
 UArduinoControl::UArduinoControl(void)
     :LowerSensorLimit("LowerSensorLimit", this),
     UpperSensorLimit("UpperSensorLimit", this),
-    DoubleMatrixReadings("DoubleMatrixReadings", this),
     PortToConnect("PortToConnect", this, &UArduinoControl::SetPortToConnect),
     Command("Command", this),
     SendCommandFlag("SendCommandFlag", this),
     SentCommand("SentCommand", this),
-    GetDataFromBuffers("GetDataFromBuffers", this),
     MatrixCols("MatrixCols", this),
     InputCommand("InputCommand", this),
+    GetDataFromBuffers("GetDataFromBuffers", this),
+    DoubleMatrixReadings("DoubleMatrixReadings", this),
     GetPinsInfo("GetPinsInfo", this),
-    portchanged(false),
-    ShowDebug("ShowDebug", this)
+    ShowDebug("ShowDebug", this),
+    portchanged(false)
 {
 }
 

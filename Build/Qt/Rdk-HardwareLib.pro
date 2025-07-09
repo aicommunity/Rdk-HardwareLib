@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       -= gui
+QT       += serialport
 
 TARGET = Rdk-HardwareLib.qt
 TEMPLATE = lib
