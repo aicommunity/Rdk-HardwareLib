@@ -10,6 +10,13 @@
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
 #include "UArduinoConnect.h"
+#include "UEPtr.h"
+#include "ModernSmartPointers.h"
+#include <memory>
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <atomic>
 
 
 namespace RDK {
@@ -19,48 +26,48 @@ class  UArduinoConnect;
 class RDK_LIB_TYPE UArduinoControl: public UNet
 {
 protected:
-    UEPtr<UArduinoConnect>UArdConn;
+    std::shared_ptr<UArduinoConnect>UArdConn;
     // UArduinoConnect *UArdConn;
 
-public: //Входные и выходные параметры
+public: //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-    //Параметр - нижняя граница входных данных
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<double, UArduinoControl, ptPubParameter> LowerSensorLimit;
 
-    //Параметр - верхняя граница входных данных
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<double, UArduinoControl, ptPubParameter> UpperSensorLimit;
 
-    //Параметр - имя порта для подключения
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<string, UArduinoControl, ptPubParameter> PortToConnect;
 
-    //Параметр - команда, отправляемая на ардуино
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     UPropertyInputData<string, UArduinoControl, ptPubParameter | ptInput> Command;
 
-    //Параметр - количество отображаемых столбцов матрицы
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<int, UArduinoControl, ptPubParameter> MatrixCols;
 
-    // Состояние - флаг необходимости отправить команду
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<bool, UArduinoControl, ptPubState> SendCommandFlag;
 
-    // Состояние - флаг необходимости отправить команду
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     // ULProperty<bool, UArduinoControl, ptPubState> SendInputCommandFlag;
 
-    // Состояние - последняя команда, отправленная на ардуино
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<string, UArduinoControl, ptPubState> SentCommand;
 
-    // Команда, пришедшая от UDcControlDemo
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ UDcControlDemo
     UPropertyInputData<string, UArduinoControl, ptPubState | ptInput> InputCommand;
 
-    // Состояние - флаг необходимости забрать данные из буферов
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<bool, UArduinoControl, ptPubState> GetDataFromBuffers;
 
-    //Матрица полученных значений
+    //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     UPropertyOutputData<MDMatrix<double>, UArduinoControl, ptPubState> DoubleMatrixReadings;
 
-    // Состояние - флаг необходимости забрать список пинов
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     ULProperty<bool, UArduinoControl, ptPubState> GetPinsInfo;
 
-    // Состояние - флаг необходимости отображать дебаговые сообщения
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     ULProperty<bool, UArduinoControl, ptPubState> ShowDebug;
 
     int CurrentRow;
@@ -82,31 +89,50 @@ protected:
     void ResetPortChanged();
 
 public:
-    // Выделяет память для новой чистой копии объекта этого класса
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     virtual UArduinoControl* New(void);
 
     // --------------------------
-    // Скрытые методы управления счетом
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     // --------------------------
 protected:
     bool SetPortToConnect(const string& value);
 
 
-    /// Восстановление настроек по умолчанию и сброс процесса счета
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     virtual bool ADefault(void);
 
-    /// Обеспечивает сборку внутренней структуры объекта
-    /// после настройки параметров
-    /// Автоматически вызывает метод Reset() и выставляет Ready в true
-    /// в случае успешной сборки
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    /// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ Reset() пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Ready пїЅ true
+    /// пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     virtual bool ABuild(void);
 
-    /// Сброс процесса счета.
+    /// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
     virtual bool AReset(void);
 
-    /// Выполняет расчет этого объекта
-    virtual bool ACalculate(void);
-    // --------------------------
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+virtual bool ACalculate(void);
+
+// Modern C++20 thread-safe Arduino control
+// Thread-safe Arduino operations
+void SendCommandSafe(const std::string& command);
+std::string GetResponseSafe(void) const;
+void SetSensorLimitsSafe(double lower, double upper);
+
+// Modern move semantics
+UArduinoControl(UArduinoControl&& other) noexcept;
+UArduinoControl& operator=(UArduinoControl&& other) noexcept;
+
+// Modern smart pointer factory
+static std::shared_ptr<UArduinoControl> Create(void);
+
+// Modern hardware communication
+bool ConnectToArduinoSafe(const std::string& port);
+void DisconnectFromArduinoSafe(void);
+bool IsConnectedSafe(void) const;
+
+// --------------------------
 
 protected:
     virtual void AInit(void);

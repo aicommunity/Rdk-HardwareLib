@@ -12,6 +12,10 @@ namespace RDK {
     class RDK_LIB_TYPE UADC: public UNet
     {
     public:
+        // ����������� �� ���������
+        UADC() = default;
+        virtual ~UADC() = default;
+
         // --------------------------
         // Modern C++20 methods
         // --------------------------
