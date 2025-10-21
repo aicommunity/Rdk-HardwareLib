@@ -13,19 +13,15 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_SOURCE_DIR}/Rdk/Core/System
 )
 
-file(GLOB HW_SOURCES
+file(GLOB HARDWARE_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/*.cpp
 )
 
-target_sources(${TARGET_NAME} PRIVATE ${HW_SOURCES})
+target_sources(${TARGET_NAME}
+  PRIVATE ${HARDWARE_SOURCES}
+)
 
 target_compile_definitions(${TARGET_NAME} PUBLIC RDK_QT RDK_LIB_CVS_REVISION=0)
 
-find_package(Qt5 REQUIRED COMPONENTS Core SerialPort)
-target_link_libraries(${TARGET_NAME} PUBLIC Qt5::Core Qt5::SerialPort Threads::Threads rdk.static.qt Rdk-BasicLib.qt)
-
-
-
-
-
-
+find_package(Qt5 REQUIRED COMPONENTS Core)
+target_link_libraries(${TARGET_NAME} PUBLIC Qt5::Core Threads::Threads rdk.static.qt Rdk-BasicLib.qt)
