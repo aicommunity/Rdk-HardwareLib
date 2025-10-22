@@ -10,7 +10,7 @@
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
 #include "UArduinoConnect.h"
-#include "UEPtr.h"
+#include <memory>
 #include "ModernSmartPointers.h"
 #include <memory>
 #include <mutex>

@@ -11,7 +11,7 @@ UHardwareLibrary HardwareLibrary;
 
 
 // --------------------------
-// Конструкторы и деструкторы
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // --------------------------
 UHardwareLibrary::UHardwareLibrary(void)
  : ULibrary("HardwareLibrary","1.0", GetGlobalVersion())
@@ -20,24 +20,24 @@ UHardwareLibrary::UHardwareLibrary(void)
 // --------------------------
 
 // --------------------------
-// Методы заполенения бибилиотеки
+// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // --------------------------
-// Заполняет массив ClassSamples готовыми экземплярами образцов и их именами.
-// Не требуется предварительная очистка массива и уборка памяти.
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ ClassSamples пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+// пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
- UContainer *cont;
- cont=new UArduinoControl;
- cont->SetName("Arduino");  // Тут будут разные контейнеры под разные датчики/эффекторы
+ std::shared_ptr<UContainer> cont;
+ cont=std::make_shared<UArduinoControl>();
+ cont->SetName("Arduino");  //       /
  cont->Default();
  UploadClass("Arduino",cont);
 
- cont=new UADC;
+ cont=std::make_shared<UADC>();
  cont->SetName("ADC");
  cont->Default();
  UploadClass("ADC",cont);
 
- cont=new UDcControlDemo;
+ cont=std::make_shared<UDcControlDemo>();
  cont->SetName("DC");
  cont->Default();
  UploadClass("DC",cont);
