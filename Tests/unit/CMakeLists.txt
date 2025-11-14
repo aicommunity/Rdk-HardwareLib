@@ -7,6 +7,7 @@ find_package(GTest REQUIRED)
 # Create test executable for HardwareLib tests
 add_executable(RdkHardwareLibTests
     TestHardwareLibComponents.cpp
+    TestHardwareLibRegistration.cpp
     ${CMAKE_SOURCE_DIR}/Libraries/Libraries_con.cpp
 )
 
