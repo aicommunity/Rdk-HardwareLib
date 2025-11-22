@@ -32,13 +32,13 @@ bool UArduinoControl::SetPortToConnect(const string& value)
 {
     UnInit();
     Ready = false;
-    portchanged = true; // Устанавливаем флаг при изменении порта
+    portchanged = true; // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С„Р»Р°Рі РїСЂРё РёР·РјРµРЅРµРЅРёРё РїРѕСЂС‚Р°
     return true;
 }
 
-// Системные методы управления объектом
+// РЎРёСЃС‚РµРјРЅС‹Рµ РјРµС‚РѕРґС‹ СѓРїСЂР°РІР»РµРЅРёСЏ РѕР±СЉРµРєС‚РѕРј
 // --------------------------
-// Выделяет память для новой чистой копии объекта этого класса
+// Р’С‹РґРµР»СЏРµС‚ РїР°РјСЏС‚СЊ РґР»СЏ РЅРѕРІРѕР№ С‡РёСЃС‚РѕР№ РєРѕРїРёРё РѕР±СЉРµРєС‚Р° СЌС‚РѕРіРѕ РєР»Р°СЃСЃР°
 UArduinoControl* UArduinoControl::New(void)
 {
     return new UArduinoControl;
@@ -52,8 +52,8 @@ void UArduinoControl::AUnInit(void)
 {
     if(UArdConn)
     {
-        delete UArdConn;      // Освобождаем память
-        UArdConn = nullptr;   // Обнуляем указатель
+        delete UArdConn;      // РћСЃРІРѕР±РѕР¶РґР°РµРј РїР°РјСЏС‚СЊ
+        UArdConn = nullptr;   // РћР±РЅСѓР»СЏРµРј СѓРєР°Р·Р°С‚РµР»СЊ
     }
 }
 
@@ -62,10 +62,10 @@ bool UArduinoControl::ADefault(void)
     return true;
 }
 
-// Обеспечивает сборку внутренней структуры объекта
-// после настройки параметров
-// Автоматически вызывает метод Reset() и выставляет Ready в true
-// в случае успешной сборки
+// РћР±РµСЃРїРµС‡РёРІР°РµС‚ СЃР±РѕСЂРєСѓ РІРЅСѓС‚СЂРµРЅРЅРµР№ СЃС‚СЂСѓРєС‚СѓСЂС‹ РѕР±СЉРµРєС‚Р°
+// РїРѕСЃР»Рµ РЅР°СЃС‚СЂРѕР№РєРё РїР°СЂР°РјРµС‚СЂРѕРІ
+// РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё РІС‹Р·С‹РІР°РµС‚ РјРµС‚РѕРґ Reset() Рё РІС‹СЃС‚Р°РІР»СЏРµС‚ Ready РІ true
+// РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕР№ СЃР±РѕСЂРєРё
 bool UArduinoControl::ABuild(void)
 {
     portchanged = false;
@@ -73,14 +73,14 @@ bool UArduinoControl::ABuild(void)
     return true;
 }
 
-// Сброс процесса счета.
+// РЎР±СЂРѕСЃ РїСЂРѕС†РµСЃСЃР° СЃС‡РµС‚Р°.
 bool UArduinoControl::AReset(void)
 {
     SendCommandFlag = false;
     return true;
 }
 
-// Выполняет расчет этого объекта
+// Р’С‹РїРѕР»РЅСЏРµС‚ СЂР°СЃС‡РµС‚ СЌС‚РѕРіРѕ РѕР±СЉРµРєС‚Р°
 bool UArduinoControl::ACalculate(void)
 {
     string PortName = PortToConnect;

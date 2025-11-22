@@ -26,7 +26,7 @@ namespace RDK{
 // class UArduinoControl;
 
 struct DataPoint {
-    QVector<double> data; // Ôîğìàò: [timestamp, temperature, humidity, mfield]
+    QVector<double> data; // â€˜Ğ¾Ñ€Ğ¼Ğ°Ñ‚: [timestamp, temperature, humidity, mfield]
 };
 
 class UArduinoConnect: public QThread

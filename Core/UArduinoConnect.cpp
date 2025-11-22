@@ -4,7 +4,7 @@
 #include "UArduinoConnect.h"
 
 //#ifdef Q_OS_WIN
-// Аналоговые пины на Arduino UNO: A0=14, A1=15, ..., A5=19
+// РђРЅР°Р»РѕРіРѕРІС‹Рµ РїРёРЅС‹ РЅР° Arduino UNO: A0=14, A1=15, ..., A5=19
 #define A0 14
 #define A1 15
 #define A2 16
@@ -22,12 +22,12 @@ double UArduinoConnect::DateTime() {
 
     // int day = date.day();
     // int month = date.month();
-    // int year = date.year() % 100; // Последние две цифры года
+    // int year = date.year() % 100; // РџРѕСЃР»РµРґРЅРёРµ РґРІРµ С†РёС„СЂС‹ РіРѕРґР°
     int hour = time.hour();
     int minute = time.minute();
     int second = time.second();
 
-    // Формируем число в формате 291224143251
+    // Р¤РѕСЂРјРёСЂСѓРµРј С‡РёСЃР»Рѕ РІ С„РѕСЂРјР°С‚Рµ 291224143251
     double customDateTime = /*(day * 10000000000LL) +
                             (month * 100000000LL) +
                             (year * 1000000LL) +*/
@@ -43,7 +43,7 @@ void UArduinoConnect::InitSerialPort(string &PortName)
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     CurrentPortName = QString::fromStdString(PortName);
 
-    // Проверяем существование порта
+    // РџСЂРѕРІРµСЂСЏРµРј СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРµ РїРѕСЂС‚Р°
     bool portExists = false;
     for(const auto& port : ports) {
         if(port.portName() == CurrentPortName) {
@@ -70,7 +70,7 @@ void UArduinoConnect::InitSerialPort(string &PortName)
     qDebug() << "Arduino port is connected";
     connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoConnect::OnSerialPortRead);
 
-    // // Инициализация таймера только если порт открыт
+    // // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С‚Р°Р№РјРµСЂР° С‚РѕР»СЊРєРѕ РµСЃР»Рё РїРѕСЂС‚ РѕС‚РєСЂС‹С‚
     // WriteTimer = new QTimer(this);
     // connect(WriteTimer, &QTimer::timeout, this, &UArduinoConnect::CheckWrite);
     // WriteTimer->start(100);
@@ -268,16 +268,16 @@ UArduinoConnect::~UArduinoConnect() {
 
 bool  UArduinoConnect::UploadArduino(const QString &fileName)
 {
-    // Команда avrdude
-    //Пути к avrdude(загружает файл на микроконтроллер ардуины)
+    // РљРѕРјР°РЅРґР° avrdude
+    //РџСѓС‚Рё Рє avrdude(Р·Р°РіСЂСѓР¶Р°РµС‚ С„Р°Р№Р» РЅР° РјРёРєСЂРѕРєРѕРЅС‚СЂРѕР»Р»РµСЂ Р°СЂРґСѓРёРЅС‹)
     // C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17\bin\avrdude
     // C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino17\etc\avrdude.conf
-    //Пути к avr-gcc(компилирует код(если надо будет))
+    //РџСѓС‚Рё Рє avr-gcc(РєРѕРјРїРёР»РёСЂСѓРµС‚ РєРѕРґ(РµСЃР»Рё РЅР°РґРѕ Р±СѓРґРµС‚))
     //C:\Users\van15\AppData\Local\Arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\bin\avr-gcc
 
     QString avrdudeCommand = QString("avrdude -C avrdude.conf -v -patmega328p -carduino -P %1 -b 9600 -D -U flash:w:%2:i").arg(CurrentPortName).arg(fileName);
 
-    // // Запускаем avrdude через QProcess
+    // // Р—Р°РїСѓСЃРєР°РµРј avrdude С‡РµСЂРµР· QProcess
     QProcess process;
     process.start(avrdudeCommand);
     process.waitForFinished();

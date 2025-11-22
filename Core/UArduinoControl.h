@@ -22,46 +22,46 @@ protected:
     UEPtr<UArduinoConnect>UArdConn;
     // UArduinoConnect *UArdConn;
 
-public: //Входные и выходные параметры
+public: //   
 
-    //Параметр - нижняя граница входных данных
-    ULProperty<double, UArduinoControl, ptPubParameter> LowerSensorLimit;
+    // -    
+    UProperty<double, UArduinoControl, ptPubParameter> LowerSensorLimit;
 
-    //Параметр - верхняя граница входных данных
-    ULProperty<double, UArduinoControl, ptPubParameter> UpperSensorLimit;
+    // -    
+    UProperty<double, UArduinoControl, ptPubParameter> UpperSensorLimit;
 
-    //Параметр - имя порта для подключения
-    ULProperty<string, UArduinoControl, ptPubParameter> PortToConnect;
+    // -    
+    UProperty<string, UArduinoControl, ptPubParameter> PortToConnect;
 
-    //Параметр - команда, отправляемая на ардуино
-    UPropertyInputData<string, UArduinoControl, ptPubParameter | ptInput> Command;
+    // - ,   
+    UProperty<string, UArduinoControl, ptPubParameter | ptInput> Command;
 
-    //Параметр - количество отображаемых столбцов матрицы
-    ULProperty<int, UArduinoControl, ptPubParameter> MatrixCols;
+    // -    
+    UProperty<int, UArduinoControl, ptPubParameter> MatrixCols;
 
-    // Состояние - флаг необходимости отправить команду
-    ULProperty<bool, UArduinoControl, ptPubState> SendCommandFlag;
+    //  -    
+    UProperty<bool, UArduinoControl, ptPubState> SendCommandFlag;
 
-    // Состояние - флаг необходимости отправить команду
-    // ULProperty<bool, UArduinoControl, ptPubState> SendInputCommandFlag;
+    //  -    
+    // UProperty<bool, UArduinoControl, ptPubState> SendInputCommandFlag;
 
-    // Состояние - последняя команда, отправленная на ардуино
-    ULProperty<string, UArduinoControl, ptPubState> SentCommand;
+    //  -  ,   
+    UProperty<string, UArduinoControl, ptPubState> SentCommand;
 
-    // Команда, пришедшая от UDcControlDemo
-    UPropertyInputData<string, UArduinoControl, ptPubState | ptInput> InputCommand;
+    // ,   UDcControlDemo
+    UProperty<string, UArduinoControl, ptPubState | ptInput> InputCommand;
 
-    // Состояние - флаг необходимости забрать данные из буферов
-    ULProperty<bool, UArduinoControl, ptPubState> GetDataFromBuffers;
+    //  -      
+    UProperty<bool, UArduinoControl, ptPubState> GetDataFromBuffers;
 
-    //Матрица полученных значений
-    UPropertyOutputData<MDMatrix<double>, UArduinoControl, ptPubState> DoubleMatrixReadings;
+    //  
+    UProperty<MDMatrix<double>, UArduinoControl, ptPubState> DoubleMatrixReadings;
 
-    // Состояние - флаг необходимости забрать список пинов
-    ULProperty<bool, UArduinoControl, ptPubState> GetPinsInfo;
+    //  -     
+    UProperty<bool, UArduinoControl, ptPubState> GetPinsInfo;
 
-    // Состояние - флаг необходимости отображать дебаговые сообщения
-    ULProperty<bool, UArduinoControl, ptPubState> ShowDebug;
+    //  -     
+    UProperty<bool, UArduinoControl, ptPubState> ShowDebug;
 
     int CurrentRow;
     bool portchanged;
@@ -82,29 +82,29 @@ protected:
     void ResetPortChanged();
 
 public:
-    // Выделяет память для новой чистой копии объекта этого класса
+    //         
     virtual UArduinoControl* New(void);
 
     // --------------------------
-    // Скрытые методы управления счетом
+    //    
     // --------------------------
 protected:
     bool SetPortToConnect(const string& value);
 
 
-    /// Восстановление настроек по умолчанию и сброс процесса счета
+    ///        
     virtual bool ADefault(void);
 
-    /// Обеспечивает сборку внутренней структуры объекта
-    /// после настройки параметров
-    /// Автоматически вызывает метод Reset() и выставляет Ready в true
-    /// в случае успешной сборки
+    ///     
+    ///   
+    ///    Reset()   Ready  true
+    ///    
     virtual bool ABuild(void);
 
-    /// Сброс процесса счета.
+    ///   .
     virtual bool AReset(void);
 
-    /// Выполняет расчет этого объекта
+    ///    
     virtual bool ACalculate(void);
     // --------------------------
 
