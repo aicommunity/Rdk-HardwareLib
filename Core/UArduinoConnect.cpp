@@ -279,7 +279,12 @@ bool  UArduinoConnect::UploadArduino(const QString &fileName)
 
     // // Запускаем avrdude через QProcess
     QProcess process;
-    process.start(avrdudeCommand);
+    QStringList args = QProcess::splitCommand(avrdudeCommand);
+    if(!args.isEmpty())
+    {
+        QString program = args.takeFirst();
+        process.start(program, args);
+    }
     process.waitForFinished();
 
     return process.exitCode() == 0;
