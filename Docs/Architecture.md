@@ -10,10 +10,10 @@ Rdk-HardwareLib предоставляет компонентный интерф
 
 ```mermaid
 flowchart TB
-    UArduinoConnect[UArduinoConnect<br/>Подключение]
-    UArduinoControl[UArduinoControl<br/>Управление]
-    UAdcSensor[UAdcSensor<br/>Датчик ADC]
-    UDcControlDemo[UDcControlDemo<br/>Демо контроллер]
+    UArduinoConnect["UArduinoConnect (Подключение)"]
+    UArduinoControl["UArduinoControl (Управление)"]
+    UAdcSensor["UAdcSensor (Датчик_ADC)"]
+    UDcControlDemo["UDcControlDemo (Демо_контроллер)"]
     
     UArduinoConnect --> UArduinoControl
     UArduinoControl --> UAdcSensor
@@ -57,6 +57,20 @@ flowchart TB
 Rdk-HardwareLib provides a component interface for working with hardware through serial ports.
 
 ### Library Structure
+
+```mermaid
+flowchart TB
+    UArduinoConnect_EN["UArduinoConnect (Connection)"]
+    UArduinoControl_EN["UArduinoControl (Control)"]
+    UAdcSensor_EN["UAdcSensor (ADC_sensor)"]
+    UDcControlDemo_EN["UDcControlDemo (DC_demo)"]
+    
+    UArduinoConnect_EN --> UArduinoControl_EN
+    UArduinoControl_EN --> UAdcSensor_EN
+    UArduinoControl_EN --> UDcControlDemo_EN
+```
+
+The library is organized around a simple control chain: connect to the device, send/receive commands, read sensors, and drive actuators. Qt SerialPort is typically used under the hood for communication.
 
 ### Main Modules
 
