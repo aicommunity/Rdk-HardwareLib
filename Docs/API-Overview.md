@@ -44,7 +44,6 @@
 
 ### См. также
 
-- [Reports/05-Rdk-HardwareLib.md](../../../Reports/05-Rdk-HardwareLib.md) - детальное описание
 - Исходный код: `Libraries/Rdk-HardwareLib/Core/`
 
 ---
@@ -93,5 +92,4 @@ ADC sensor.
 
 ### See Also
 
-- [Reports/05-Rdk-HardwareLib.md](../../../Reports/05-Rdk-HardwareLib.md) - detailed description
 - Source code: `Libraries/Rdk-HardwareLib/Core/`

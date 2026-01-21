@@ -16,8 +16,8 @@
 
 ### Связь с корневой документацией
 
-Для обзорной информации см.:
-- [Docs/Libraries/Rdk-HardwareLib.md](../../Docs/Libraries/Rdk-HardwareLib.md) - обзор библиотеки
+Для обзорной информации см. корневую документацию проекта:
+- `Docs/Libraries/Rdk-HardwareLib.md` - обзор библиотеки (в корневом репозитории)
 
 ### Детальная документация
 
@@ -43,8 +43,8 @@ The library includes components for:
 
 ### Link to Root Documentation
 
-For overview information see:
-- [Docs/Libraries/Rdk-HardwareLib.md](../../Docs/Libraries/Rdk-HardwareLib.md) - library overview
+For overview information see root project documentation:
+- `Docs/Libraries/Rdk-HardwareLib.md` - library overview (in root repository)
 
 ### Detailed Documentation
 
