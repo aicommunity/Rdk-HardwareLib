@@ -1,0 +1,6 @@
+#ifndef HARDWARELIBCOMPONENTGUIREGISTRATION_H
+#define HARDWARELIBCOMPONENTGUIREGISTRATION_H
+
+void RegisterHardwareLibComponentGuiForms();
+
+#endif

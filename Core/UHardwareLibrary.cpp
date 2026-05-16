@@ -1,49 +1,43 @@
-#ifndef UHardwareLibrary_CPP
-#define UHardwareLibrary_CPP
-
 #include "UHardwareLibrary.h"
-#include <QDebug>
 
 namespace RDK {
 
 UHardwareLibrary HardwareLibrary;
 
-
-
-// --------------------------
-// Конструкторы и деструкторы
-// --------------------------
 UHardwareLibrary::UHardwareLibrary(void)
- : ULibrary("HardwareLibrary","1.0", GetGlobalVersion())
+    : ULibrary("HardwareLibrary", "2.0", GetGlobalVersion())
 {
 }
-// --------------------------
 
-// --------------------------
-// Методы заполенения бибилиотеки
-// --------------------------
-// Заполняет массив ClassSamples готовыми экземплярами образцов и их именами.
-// Не требуется предварительная очистка массива и уборка памяти.
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
- UContainer *cont;
- cont=new UArduinoControl;
- cont->SetName("Arduino");  // Тут будут разные контейнеры под разные датчики/эффекторы
- cont->Default();
- UploadClass("Arduino",cont);
+    Q_UNUSED(storage);
+    UContainer *cont;
 
- cont=new UADC;
- cont->SetName("ADC");
- cont->Default();
- UploadClass("ADC",cont);
+    cont = new UArduinoBoard;
+    cont->SetName("ArduinoBoard");
+    cont->Default();
+    UploadClass("ArduinoBoard", cont);
 
- cont=new UDcControlDemo;
- cont->SetName("DC");
- cont->Default();
- UploadClass("DC",cont);
+    cont = new UArduinoSensorSketch;
+    cont->SetName("ArduinoSensorSketch");
+    cont->Default();
+    UploadClass("ArduinoSensorSketch", cont);
+
+    cont = new UArduinoFirmata;
+    cont->SetName("ArduinoFirmata");
+    cont->Default();
+    UploadClass("ArduinoFirmata", cont);
+
+    cont = new UArduinoAdc;
+    cont->SetName("ArduinoAdc");
+    cont->Default();
+    UploadClass("ArduinoAdc", cont);
+
+    cont = new UArduinoDcDemo;
+    cont->SetName("ArduinoDcDemo");
+    cont->Default();
+    UploadClass("ArduinoDcDemo", cont);
 }
-// --------------------------
 
-}
-
-#endif
+} // namespace RDK

@@ -1,0 +1,26 @@
+#ifndef UARDUINOADC_H
+#define UARDUINOADC_H
+
+#include "../../../Rdk/Deploy/Include/rdk.h"
+
+namespace RDK {
+
+class RDK_LIB_TYPE UArduinoAdc : public UNet {
+public:
+    UProperty<string, UArduinoAdc, ptPubParameter> LinkedFirmataName;
+    UProperty<int, UArduinoAdc, ptPubParameter> AnalogPin;
+    UProperty<int, UArduinoAdc, ptPubState> AdcValue;
+    UProperty<bool, UArduinoAdc, ptPubState> ReadAdcFlag;
+
+    UArduinoAdc();
+    virtual ~UArduinoAdc();
+    UArduinoAdc* New() override;
+
+protected:
+    bool ADefault() override;
+    bool ACalculate() override;
+};
+
+} // namespace RDK
+
+#endif
