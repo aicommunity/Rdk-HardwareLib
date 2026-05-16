@@ -138,7 +138,8 @@ bool UArduinoBoard::EnsureConnected()
     }
 
     ConnectionState = ArduinoError;
-    LastError = "Failed to open serial port";
+    const QString err = s->lastError();
+    LastError = err.isEmpty() ? "Failed to open serial port" : err.toStdString();
     return false;
 }
 
@@ -175,8 +176,15 @@ void UArduinoBoard::RunUpload()
         UArduinoBoardProfileUtil::profileForKind(BoardProfile);
     const QString port = QString::fromStdString(*PortName);
 
+    const QMetaObject::Connection progressConn = QObject::connect(
+        Flasher,
+        &UArduinoFlasher::progressChanged,
+        Flasher,
+        [this](int percent) { UploadProgress = percent; });
+
     QString err;
     const bool ok = Flasher->flash(profile, port, hex, &err);
+    QObject::disconnect(progressConn);
     UploadProgress = ok ? 100 : 0;
     UploadLastResult = ok ? "ok" : err.toStdString();
 

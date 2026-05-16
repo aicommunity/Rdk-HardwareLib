@@ -1,10 +1,13 @@
 #include "UArduinoBoardDiagramWidget.h"
 
+#include "HardwareGuiHelpers.h"
+
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QPlainTextEdit>
 #include <QResizeEvent>
 #include <QVBoxLayout>
 
@@ -80,15 +83,15 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
     m_overlay = new UArduinoPinOverlay(m_diagramHost);
     connect(m_overlay, &UArduinoPinOverlay::pinClicked, this, &UArduinoBoardDiagramWidget::pinClicked);
 
-    m_statusLabel = new QLabel(this);
-    m_statusLabel->setWordWrap(true);
+    m_statusLog = HardwareGuiHelpers::createStatusLogWidget(this);
 
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(m_diagramHost, 1);
-    layout->addWidget(m_statusLabel);
+    layout->addWidget(m_statusLog);
     setMinimumHeight(220);
     reloadPinLayout();
     updateSvg();
+    layoutDiagram();
 }
 
 QString UArduinoBoardDiagramWidget::svgResourceForProfile() const
@@ -138,29 +141,45 @@ void UArduinoBoardDiagramWidget::updateSvg()
         pinInfo += (pinInfo.isEmpty() ? QString() : QStringLiteral("; "))
                    + tr("Selected: %1").arg(m_selectedPinId);
 
-    m_statusLabel->setText(QStringLiteral("%1 — %2%3%4")
-                               .arg(board,
-                                    status,
-                                    pinInfo.isEmpty() ? QString() : QStringLiteral("\n"),
-                                    pinInfo));
+    HardwareGuiHelpers::setStatusLogText(
+        m_statusLog,
+        QStringLiteral("%1 — %2%3%4").arg(board,
+                                          status,
+                                          pinInfo.isEmpty() ? QString() : QStringLiteral("\n"),
+                                          pinInfo));
+    layoutDiagram();
+}
+
+QSizeF UArduinoBoardDiagramWidget::diagramViewBoxSize() const
+{
+    return m_boardProfile == 1 ? QSizeF(500.0, 200.0) : QSizeF(400.0, 200.0);
+}
+
+void UArduinoBoardDiagramWidget::layoutDiagram()
+{
+    if (!m_diagramHost)
+        return;
+
+    const QRect host = m_diagramHost->rect();
+    const QSizeF scaled = diagramViewBoxSize().scaled(host.size(), Qt::KeepAspectRatio);
+    QRect geom(QPoint(0, 0), scaled.toSize());
+    geom.moveCenter(host.center());
+
+#if HARDWARELIB_HAS_QTSVG
+    if (m_svg)
+        m_svg->setGeometry(geom);
+#else
+    if (m_svgPlaceholder)
+        m_svgPlaceholder->setGeometry(geom);
+#endif
+    if (m_overlay)
+        m_overlay->setGeometry(geom);
 }
 
 void UArduinoBoardDiagramWidget::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
-    if (!m_diagramHost)
-        return;
-
-    const QRect r = m_diagramHost->rect();
-#if HARDWARELIB_HAS_QTSVG
-    if (m_svg)
-        m_svg->setGeometry(r);
-#else
-    if (m_svgPlaceholder)
-        m_svgPlaceholder->setGeometry(r);
-#endif
-    if (m_overlay)
-        m_overlay->setGeometry(r);
+    layoutDiagram();
 }
 
 int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int boardProfile)
@@ -184,6 +203,7 @@ void UArduinoBoardDiagramWidget::setBoardProfile(int profile)
     m_boardProfile = profile;
     reloadPinLayout();
     updateSvg();
+    layoutDiagram();
 }
 
 void UArduinoBoardDiagramWidget::setConnectionState(int state)

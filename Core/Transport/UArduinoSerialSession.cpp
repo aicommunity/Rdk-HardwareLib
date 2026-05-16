@@ -23,28 +23,15 @@ QStringList UArduinoSerialSession::availablePorts()
     return UArduinoSerialPortUtil::listAvailableDevicePaths();
 }
 
-bool UArduinoSerialSession::open(const QString& portName, int baudRate)
+QString UArduinoSerialSession::lastError() const
 {
-    close();
+    return m_lastError;
+}
 
-    const QString devicePath = UArduinoSerialPortUtil::normalizeDevicePath(portName);
-    if (devicePath.isEmpty()) {
-        emit errorOccurred(QStringLiteral("Port name is empty"));
+bool UArduinoSerialSession::tryOpenPort(const QString& devicePath, int baudRate)
+{
+    if (devicePath.isEmpty())
         return false;
-    }
-
-    bool portExists = false;
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
-        if (info.systemLocation() == devicePath || info.portName() == portName
-            || info.portName() == devicePath) {
-            portExists = true;
-            break;
-        }
-    }
-    if (!portExists) {
-        emit errorOccurred(QStringLiteral("Port not found: %1").arg(devicePath));
-        return false;
-    }
 
     m_port = new QSerialPort(devicePath, this);
     m_port->setBaudRate(baudRate);
@@ -53,18 +40,67 @@ bool UArduinoSerialSession::open(const QString& portName, int baudRate)
     m_port->setStopBits(QSerialPort::OneStop);
     m_port->setFlowControl(QSerialPort::NoFlowControl);
 
-    if (!m_port->open(QIODevice::ReadWrite)) {
-        const QString err = m_port->errorString();
-        delete m_port;
-        m_port = nullptr;
-        emit errorOccurred(QStringLiteral("Failed to open port: %1").arg(err));
+    if (m_port->open(QIODevice::ReadWrite)) {
+        connect(m_port, &QSerialPort::readyRead, this, &UArduinoSerialSession::onReadyRead);
+        return true;
+    }
+
+    QString err = QStringLiteral("Failed to open %1: %2").arg(devicePath, m_port->errorString());
+    if (m_port->error() == QSerialPort::PermissionError) {
+        err += QStringLiteral(
+            " — check dialout group (sudo usermod -aG dialout $USER) or close Arduino IDE / other apps using the port");
+    } else if (m_port->error() == QSerialPort::ResourceError) {
+        err += QStringLiteral(" — port may be busy or disconnected");
+    }
+
+    m_lastError = err;
+    delete m_port;
+    m_port = nullptr;
+    return false;
+}
+
+bool UArduinoSerialSession::open(const QString& portName, int baudRate)
+{
+    close();
+    m_lastError.clear();
+
+    const QString devicePath = UArduinoSerialPortUtil::normalizeDevicePath(portName);
+    if (devicePath.isEmpty()) {
+        m_lastError = QStringLiteral("Port name is empty");
+        emit errorOccurred(m_lastError);
         return false;
     }
 
-    connect(m_port, &QSerialPort::readyRead, this, &UArduinoSerialSession::onReadyRead);
-    if (showDebug)
-        qDebug() << "UArduinoSerialSession: opened" << portName << "@" << baudRate;
-    return true;
+    QSerialPortInfo info;
+    if (!UArduinoSerialPortUtil::portInfoForPath(portName, &info)) {
+        m_lastError = QStringLiteral("Port not found: %1").arg(devicePath);
+        emit errorOccurred(m_lastError);
+        return false;
+    }
+
+    QStringList candidates;
+    const QString preferred = UArduinoSerialPortUtil::preferredOpenName(portName);
+    if (!preferred.isEmpty())
+        candidates.append(preferred);
+    if (!info.systemLocation().isEmpty() && !candidates.contains(info.systemLocation()))
+        candidates.append(info.systemLocation());
+    const QString normalizedName = UArduinoSerialPortUtil::normalizeDevicePath(info.portName());
+    if (!normalizedName.isEmpty() && !candidates.contains(normalizedName))
+        candidates.append(normalizedName);
+    if (!candidates.contains(devicePath))
+        candidates.append(devicePath);
+
+    for (const QString& candidate : candidates) {
+        if (tryOpenPort(candidate, baudRate)) {
+            m_lastError.clear();
+            if (showDebug)
+                qDebug() << "UArduinoSerialSession: opened" << candidate << "@" << baudRate;
+            return true;
+        }
+        emit errorOccurred(m_lastError);
+    }
+
+    return false;
 }
 
 void UArduinoSerialSession::close()
@@ -82,6 +118,11 @@ void UArduinoSerialSession::close()
 bool UArduinoSerialSession::isOpen() const
 {
     return m_port && m_port->isOpen();
+}
+
+qint64 UArduinoSerialSession::bytesToWrite() const
+{
+    return m_port && m_port->isOpen() ? m_port->bytesToWrite() : 0;
 }
 
 qint64 UArduinoSerialSession::write(const QByteArray& data)

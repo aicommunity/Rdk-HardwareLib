@@ -4,9 +4,34 @@
 #include "../../../../../Rdk/Deploy/Include/rdk_init.h"
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
 
+#include <QColor>
+#include <QComboBox>
+#include <QPlainTextEdit>
 #include <QtSerialPort/QSerialPortInfo>
 
 namespace HardwareGuiHelpers {
+
+QPlainTextEdit* createStatusLogWidget(QWidget* parent)
+{
+    auto* edit = new QPlainTextEdit(parent);
+    edit->setReadOnly(true);
+    edit->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+    edit->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    edit->setTabChangesFocus(true);
+    edit->setMinimumHeight(72);
+    edit->setMaximumHeight(180);
+    edit->setPlaceholderText(QObject::tr("Status and log messages (Ctrl+C to copy selection)"));
+    return edit;
+}
+
+void setStatusLogText(QPlainTextEdit* widget, const QString& text)
+{
+    if (!widget)
+        return;
+    if (widget->toPlainText() == text)
+        return;
+    widget->setPlainText(text);
+}
 
 QString serialPortDevicePath(const QSerialPortInfo& info)
 {
@@ -22,6 +47,61 @@ QString serialPortDevicePath(const QSerialPortInfo& info)
 QStringList listSerialPortDevicePaths()
 {
     return RDK::UArduinoSerialPortUtil::listAvailableDevicePaths();
+}
+
+void populateSerialPortCombo(QComboBox* combo, const QString& selectDevicePath)
+{
+    if (!combo)
+        return;
+
+    QString selected = selectDevicePath;
+    if (selected.isEmpty())
+        selected = selectedSerialPortPath(combo);
+
+    combo->clear();
+    for (const RDK::UArduinoSerialPortEntry& entry : RDK::UArduinoSerialPortUtil::listPortsSorted()) {
+        combo->addItem(entry.displayLabel, entry.devicePath);
+        const int idx = combo->count() - 1;
+        if (!entry.likelyAttachedDevice)
+            combo->setItemData(idx, QColor(128, 128, 128), Qt::ForegroundRole);
+    }
+    selectSerialPortInCombo(combo, selected);
+}
+
+QString selectedSerialPortPath(const QComboBox* combo)
+{
+    if (!combo)
+        return QString();
+    const QVariant data = combo->currentData();
+    if (data.isValid() && !data.toString().isEmpty())
+        return data.toString();
+    return RDK::UArduinoSerialPortUtil::normalizeDevicePath(combo->currentText());
+}
+
+void selectSerialPortInCombo(QComboBox* combo, const QString& devicePath)
+{
+    if (!combo)
+        return;
+    if (devicePath.isEmpty()) {
+        if (combo->count() > 0)
+            combo->setCurrentIndex(0);
+        return;
+    }
+
+    const QString normalized = RDK::UArduinoSerialPortUtil::normalizeDevicePath(devicePath);
+    for (int i = 0; i < combo->count(); ++i) {
+        const QString itemPath = combo->itemData(i).toString();
+        if (itemPath == normalized || itemPath == devicePath) {
+            combo->setCurrentIndex(i);
+            return;
+        }
+    }
+
+    combo->insertItem(0,
+                      QObject::tr("%1 (not in list)").arg(normalized),
+                      normalized);
+    combo->setItemData(0, QColor(160, 120, 60), Qt::ForegroundRole);
+    combo->setCurrentIndex(0);
 }
 
 QString getProp(const UComponentGuiContext& ctx, const char* name)

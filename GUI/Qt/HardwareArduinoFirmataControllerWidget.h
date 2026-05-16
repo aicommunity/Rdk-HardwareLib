@@ -2,7 +2,7 @@
 #define HARDWAREARDUINOFIRMATACONTROLLERWIDGET_H
 
 #include <QComboBox>
-#include <QLabel>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSpinBox>
 
@@ -37,7 +37,7 @@ private:
     QSpinBox* m_pinSpin = nullptr;
     QComboBox* m_modeCombo = nullptr;
     QSpinBox* m_digitalValueSpin = nullptr;
-    QLabel* m_statusLabel = nullptr;
+    QPlainTextEdit* m_statusLog = nullptr;
 };
 
 #endif

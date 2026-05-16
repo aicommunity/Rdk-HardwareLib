@@ -6,9 +6,44 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 namespace RDK {
+
+namespace {
+
+QString enrichUploadError(const QString& avrdudeOutput)
+{
+    if (!avrdudeOutput.contains(QStringLiteral("Permission denied"), Qt::CaseInsensitive))
+        return avrdudeOutput.trimmed();
+
+    const QString hint = QStringLiteral(
+        "Cannot open serial port (permission denied).\n"
+        "On Linux, add your user to group dialout:\n"
+        "  sudo usermod -aG dialout $USER\n"
+        "Then log out and log in again, or run: newgrp dialout\n"
+        "Close Arduino IDE / serial monitors that may hold the port.\n\n"
+        "--- avrdude output ---\n");
+    return hint + avrdudeOutput.trimmed();
+}
+
+int parseUploadPercent(const QString& output)
+{
+    static const QRegularExpression percentPattern(QStringLiteral(R"((\d{1,3})\s*%)"));
+    int best = -1;
+    QRegularExpressionMatchIterator it = percentPattern.globalMatch(output);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch match = it.next();
+        bool ok = false;
+        const int value = match.captured(1).toInt(&ok);
+        if (ok)
+            best = qMax(best, qBound(0, value, 100));
+    }
+    return best;
+}
+
+} // namespace
 
 UArduinoFlasher::UArduinoFlasher(QObject* parent)
     : QObject(parent)
@@ -123,6 +158,20 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
     process.setArguments(QProcess::splitCommand(args));
     process.setProcessChannelMode(QProcess::MergedChannels);
 
+    QString accumulated;
+    auto reportProgress = [this, &accumulated](const QByteArray& chunk) {
+        if (chunk.isEmpty())
+            return;
+        accumulated += QString::fromUtf8(chunk);
+        const int percent = parseUploadPercent(accumulated);
+        if (percent >= 0)
+            emit progressChanged(qBound(10, percent, 99));
+    };
+
+    QObject::connect(&process, &QProcess::readyReadStandardOutput, [&process, reportProgress]() {
+        reportProgress(process.readAllStandardOutput());
+    });
+
     emit progressChanged(10);
     process.start();
     if (!process.waitForStarted(5000)) {
@@ -133,13 +182,15 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
         return false;
     }
 
-    emit progressChanged(50);
-    process.waitForFinished(-1);
-    emit progressChanged(100);
+    while (process.state() != QProcess::NotRunning) {
+        process.waitForReadyRead(200);
+        reportProgress(process.readAllStandardOutput());
+    }
+    reportProgress(process.readAllStandardOutput());
 
     const bool ok = process.exitCode() == 0;
-    const QString output = QString::fromUtf8(process.readAllStandardOutput());
-    const QString msg = ok ? QStringLiteral("ok") : output.trimmed();
+    emit progressChanged(ok ? 100 : 0);
+    const QString msg = ok ? QStringLiteral("ok") : enrichUploadError(accumulated);
     if (errorOut)
         *errorOut = msg;
     emit finished(ok, msg);

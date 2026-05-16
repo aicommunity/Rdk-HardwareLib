@@ -1,89 +1,119 @@
 # Примеры использования Rdk-HardwareLib
 
-## RU
+Сценарии через XML-модель и GUI NeuroModeler. Имена свойств совпадают с `Parameters_*.xml`.
 
-### Пример 1: Подключение к Arduino
+Тестовые проекты: `Bin/Configs/SpikeSamples/Hardware/`.
 
-```cpp
-// Создание компонента подключения
-auto arduinoConnect = storage->CreateComponent<UArduinoConnect>();
-arduinoConnect->PortName = "COM3"; // или "/dev/ttyUSB0" на Linux
-arduinoConnect->BaudRate = 9600;
-arduinoConnect->Build();
+## 1. ArduinoBoard — порт и прошивка
 
-// Подключение
-if (arduinoConnect->Connect()) {
-    // Arduino подключен
-}
+Фрагмент из `01-ArduinoBoard/Parameters_00.xml`:
+
+```xml
+<Board Class="ArduinoBoard">
+  <Parameters>
+    <PortName Type="std::string">/dev/ttyACM0</PortName>
+    <BaudRate Type="int">57600</BaudRate>
+    <BoardProfile Type="int">0</BoardProfile>
+    <ConnectOnBuild Type="bool">0</ConnectOnBuild>
+    <BundledFirmwareId Type="std::string">sensor_lab_v1</BundledFirmwareId>
+    <UploadFirmwareFlag Type="bool">0</UploadFirmwareFlag>
+  </Parameters>
+</Board>
 ```
 
-### Пример 2: Управление Arduino
+**GUI:** Refresh ports → выбрать порт → **Upload firmware** (устанавливает `UploadFirmwareFlag`, Calculate). Проверить `UploadProgress` = 100, `UploadLastResult` = `ok`.
 
-```cpp
-// Создание компонента управления
-auto arduinoControl = storage->CreateComponent<UArduinoControl>();
-arduinoControl->ArduinoConnection = arduinoConnect;
-arduinoControl->Build();
+**Linux:** группа `dialout` для доступа к `/dev/ttyACM0`.
 
-// Отправка команды
-arduinoControl->SendCommand("LED_ON");
+## 2. ArduinoSensorSketch — sensor_lab
+
+Добавьте `ArduinoSensorSketch` (может быть единственным компонентом с портом или после Board):
+
+```xml
+<SensorSketch Class="ArduinoSensorSketch">
+  <Parameters>
+    <PortName>/dev/ttyACM0</PortName>
+    <BaudRate>57600</BaudRate>
+    <ConnectOnBuild>1</ConnectOnBuild>
+    <GetDataFromBuffers>1</GetDataFromBuffers>
+  </Parameters>
+</SensorSketch>
 ```
 
-### Пример 3: Работа с датчиком
+**GUI presets:** `START READING`, `STOP READING`, `GET STATUS`, `GET PINS INFO`.
 
-```cpp
-// Создание компонента датчика ADC
-auto sensor = storage->CreateComponent<UAdcSensor>();
-sensor->ArduinoControl = arduinoControl;
-sensor->PinNumber = 0;
-sensor->Build();
+После `START READING` и Calculate с `GetDataFromBuffers` — матрица `DoubleMatrixReadings` заполняется (пакеты `0x01`).
 
-// Чтение значения
-sensor->Calculate();
-auto value = sensor->SensorValue;
+## 3. PROTO 2 (опционально)
+
+`ProtocolVersion` = 2 на sketch, переподключение — хост шлёт `PROTO 2`, прошивка отвечает `PROTO OK 2`. См. [Protocol.md](Protocol.md).
+
+Конфиг-пример: `06-ArduinoSensorSketch-Proto2/`.
+
+## 4. ArduinoFirmata — digital pin 13
+
+1. На `ArduinoBoard`: `BundledFirmwareId` = `standard_firmata`, upload.
+2. Компонент `ArduinoFirmata`, тот же `PortName`, `BaudRate` 57600, `ConnectOnBuild` true.
+3. Calculate → `FirmataReady` = true.
+4. **GUI:** клик по D13 на diagram → `SelectedPin` = 13 → Set pin mode / Write digital.
+
+Конфиг: `03-ArduinoFirmata/`.
+
+## 5. ArduinoAdc + ArduinoFirmata
+
+```xml
+<Firmata Class="ArduinoFirmata">
+  <Parameters>
+    <PortName>/dev/ttyACM0</PortName>
+    <ConnectOnBuild>1</ConnectOnBuild>
+  </Parameters>
+</Firmata>
+<Adc Class="ArduinoAdc">
+  <Parameters>
+    <LinkedFirmataName>Firmata</LinkedFirmataName>
+    <AnalogPin>0</AnalogPin>
+    <ReadAdcFlag>0</ReadAdcFlag>
+  </Parameters>
+</Adc>
 ```
 
----
+`LinkedFirmataName` — **имя узла** Firmata на схеме, не ClassName.
 
-## EN
+## 6. ArduinoDcDemo + ArduinoSensorSketch
 
-### Example 1: Connecting to Arduino
-
-```cpp
-// Creating connection component
-auto arduinoConnect = storage->CreateComponent<UArduinoConnect>();
-arduinoConnect->PortName = "COM3"; // or "/dev/ttyUSB0" on Linux
-arduinoConnect->BaudRate = 9600;
-arduinoConnect->Build();
-
-// Connecting
-if (arduinoConnect->Connect()) {
-    // Arduino connected
-}
+```xml
+<SensorSketch Class="ArduinoSensorSketch">
+  <Parameters>
+    <PortName>/dev/ttyACM0</PortName>
+    <ConnectOnBuild>1</ConnectOnBuild>
+  </Parameters>
+</SensorSketch>
+<DcDemo Class="ArduinoDcDemo">
+  <Parameters>
+    <LinkedSketchName>SensorSketch</LinkedSketchName>
+    <Command>START READING</Command>
+    <SendCommandFlag>0</SendCommandFlag>
+  </Parameters>
+</DcDemo>
 ```
 
-### Example 2: Arduino Control
+## 7. Миграция старого проекта
 
-```cpp
-// Creating control component
-auto arduinoControl = storage->CreateComponent<UArduinoControl>();
-arduinoControl->ArduinoConnection = arduinoConnect;
-arduinoControl->Build();
-
-// Sending command
-arduinoControl->SendCommand("LED_ON");
+```bash
+python3 Scripts/migrate_arduino_classnames.py Bin/Configs/MyProject
 ```
 
-### Example 3: Sensor Operations
+Замены: `Arduino` → `ArduinoSensorSketch`, `PortToConnect` → `PortName`, `ADC` → `ArduinoAdc`, `DC` → `ArduinoDcDemo`.
 
-```cpp
-// Creating ADC sensor component
-auto sensor = storage->CreateComponent<UAdcSensor>();
-sensor->ArduinoControl = arduinoControl;
-sensor->PinNumber = 0;
-sensor->Build();
+## 8. Сборка прошивки
 
-// Reading value
-sensor->Calculate();
-auto value = sensor->SensorValue;
+```bash
+./Scripts/build_arduino_firmware.sh
 ```
+
+См. [firmware_build.md](firmware_build.md), [Firmware/README.md](../Firmware/README.md).
+
+## См. также
+
+- [Component-Catalog.md](Component-Catalog.md)
+- [Components/](Components/)

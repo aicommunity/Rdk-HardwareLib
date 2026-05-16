@@ -1,43 +1,54 @@
 # Rdk-HardwareLib — Component Catalog
 
-Компоненты из `UHardwareLibrary.cpp`, сгруппированы по роли.
+Компоненты из [`UHardwareLibrary.cpp`](../Core/UHardwareLibrary.cpp).
 
-## Board / transport
+## Board / transport / protocol
 
-- **ArduinoBoard** (`UArduinoBoard`) — порт, прошивка (bundled HEX / custom path), avrdude upload, heartbeat, auto-reconnect.
-- **ArduinoSensorSketch** (`UArduinoSensorSketch`) — кастомный бинарный протокол (sensor_lab), команды, `DoubleMatrixReadings`.
-- **ArduinoFirmata** (`UArduinoFirmata`) — Firmata 2.x (in-tree `UArduinoFirmataClient`), pin mode / digital / analog.
+| ClassName | C++ | Документация |
+|-----------|-----|--------------|
+| `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
+| `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
+| `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 
-## Sensors / demos (phase 3)
+Внутренние (не в палитре Storage): `UArduinoCustomLink`, `UArduinoSerialSession`, `UArduinoFlasher`, `UArduinoBinaryStreamParser` — см. [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 
-- **ArduinoAdc** (`UArduinoAdc`) — чтение аналоговых значений через связанный sketch.
-- **ArduinoDcDemo** (`UArduinoDcDemo`) — DC demo: команды и скорость/ускорение из матрицы sketch.
+## Связанные компоненты
+
+| ClassName | C++ | Связь | Документация |
+|-----------|-----|-------|--------------|
+| `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
+| `ArduinoDcDemo` | `UArduinoDcDemo` | `LinkedSketchName` → `ArduinoSensorSketch` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)
 
-Target `Rdk-HardwareLib.gui`: pinout diagram (`UArduinoBoardDiagramWidget`, `UArduinoPinOverlay`), контроллеры Board / SensorSketch / Firmata.
+Target `Rdk-HardwareLib.gui`: diagram + контроллеры Board / SensorSketch / Firmata.
 
-Ресурсы: `GUI/Qt/Resources/boards/*.svg`, `*_pins.json`.
+См. [GUI.md](GUI.md). Ресурсы: `GUI/Qt/Resources/boards/*.svg`, `*_pins.json`.
 
 ## Firmware
 
-- `Firmware/manifest.json` — `sensor_lab_v1`, `standard_firmata`.
-- Исходник: `Firmware/sensor_lab/sensor_lab.ino` @ 57600.
-- Сборка HEX: `Scripts/build_arduino_firmware.sh` (требует `arduino-cli` и доступ к downloads.arduino.cc).
+| ID | Описание |
+|----|----------|
+| `sensor_lab_v1` | Custom sketch DHT/Hall/Servo @ 57600 |
+| `standard_firmata` | StandardFirmata Uno/Mega |
 
-## Миграция со старых имён
+- Манифест: [`Firmware/manifest.json`](../Firmware/manifest.json)
+- Сборка: [firmware_build.md](firmware_build.md)
+- Чеклист: [Firmware/README.md](../Firmware/README.md)
+
+## Миграция
 
 | Старое ClassName | Новое |
 |------------------|--------|
-| Arduino | ArduinoBoard + ArduinoSensorSketch (или ArduinoFirmata) |
-| ADC | ArduinoAdc |
-| DC | ArduinoDcDemo |
+| `Arduino` | `ArduinoBoard` + `ArduinoSensorSketch` (или `ArduinoFirmata`) |
+| `ADC` | `ArduinoAdc` |
+| `DC` | `ArduinoDcDemo` |
 
-Скрипт: `Scripts/migrate_arduino_classnames.py`.
+Скрипт: `Scripts/migrate_arduino_classnames.py`. Legacy: [Legacy/README.md](Legacy/README.md).
 
 ## См. также
 
 - [Architecture.md](Architecture.md)
-- [firmware_build.md](firmware_build.md)
+- [API-Overview.md](API-Overview.md)
+- [Usage-Examples.md](Usage-Examples.md)
 - [firmata_spike.md](firmata_spike.md)
-- Компонентные заметки в `Docs/Components/` (исторические диаграммы для `UArduinoControl` — см. заголовки файлов).

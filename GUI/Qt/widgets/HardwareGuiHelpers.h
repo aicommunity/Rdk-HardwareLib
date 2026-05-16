@@ -6,12 +6,21 @@
 
 #include "../../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 
+class QComboBox;
+class QPlainTextEdit;
 class QSerialPortInfo;
+class QWidget;
 
 namespace HardwareGuiHelpers {
 
+QPlainTextEdit* createStatusLogWidget(QWidget* parent);
+void setStatusLogText(QPlainTextEdit* widget, const QString& text);
+
 QString serialPortDevicePath(const QSerialPortInfo& info);
 QStringList listSerialPortDevicePaths();
+void populateSerialPortCombo(QComboBox* combo, const QString& selectDevicePath = QString());
+QString selectedSerialPortPath(const QComboBox* combo);
+void selectSerialPortInCombo(QComboBox* combo, const QString& devicePath);
 
 QString getProp(const UComponentGuiContext& ctx, const char* name);
 bool setProp(const UComponentGuiContext& ctx, const char* name, const QString& value);

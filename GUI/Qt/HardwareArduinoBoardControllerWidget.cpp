@@ -53,8 +53,7 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     connect(browseBtn, &QPushButton::clicked, this, &HardwareArduinoBoardControllerWidget::onBrowseHex);
 
     m_uploadProgress = new QProgressBar(this);
-    m_statusLabel = new QLabel(this);
-    m_statusLabel->setWordWrap(true);
+    m_statusLog = HardwareGuiHelpers::createStatusLogWidget(this);
 
     auto* connectBtn = new QPushButton(tr("Connect"), this);
     auto* disconnectBtn = new QPushButton(tr("Disconnect"), this);
@@ -91,7 +90,7 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     form->addRow(tr("HEX path:"), hexRow);
     form->addRow(tr("Upload:"), uploadBtn);
     form->addRow(QString(), m_uploadProgress);
-    form->addRow(QString(), m_statusLabel);
+    form->addRow(tr("Status / log:"), m_statusLog);
 
     auto* connRow = new QHBoxLayout();
     connRow->addWidget(connectBtn);
@@ -153,13 +152,9 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
     QSignalBlocker b10(m_heartbeatTimeoutSpin);
 
     const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    const QString portPath = port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
-    int portIdx = m_portCombo->findText(portPath);
-    if (portIdx < 0 && !portPath.isEmpty()) {
-        m_portCombo->addItem(portPath);
-        portIdx = m_portCombo->findText(portPath);
-    }
-    m_portCombo->setCurrentIndex(portIdx >= 0 ? portIdx : 0);
+    const QString portPath =
+        port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+    HardwareGuiHelpers::selectSerialPortInCombo(m_portCombo, portPath);
 
     const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
@@ -181,7 +176,8 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
     const int state = HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0);
     const QString err = HardwareGuiHelpers::getProp(m_context, "LastError");
     const QString uploadRes = HardwareGuiHelpers::getProp(m_context, "UploadLastResult");
-    m_statusLabel->setText(
+    HardwareGuiHelpers::setStatusLogText(
+        m_statusLog,
         tr("State: %1\nLast error: %2\nUpload: %3").arg(state).arg(err, uploadRes));
 
     updateDiagram();
@@ -189,7 +185,9 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
 
 void HardwareArduinoBoardControllerWidget::applyToModel()
 {
-    HardwareGuiHelpers::setProp(m_context, "PortName", m_portCombo->currentText());
+    HardwareGuiHelpers::setProp(m_context,
+                                "PortName",
+                                HardwareGuiHelpers::selectedSerialPortPath(m_portCombo));
     HardwareGuiHelpers::setProp(m_context, "BoardProfile",
                                 QString::number(m_boardProfileCombo->currentData().toInt()));
     HardwareGuiHelpers::setProp(m_context, "BaudRate", QString::number(m_baudSpin->value()));
@@ -220,18 +218,8 @@ void HardwareArduinoBoardControllerWidget::updateDiagram()
 
 void HardwareArduinoBoardControllerWidget::onRefreshPorts()
 {
-    const QString current = m_portCombo->currentText();
-    m_portCombo->clear();
-    for (const QString& path : HardwareGuiHelpers::listSerialPortDevicePaths())
-        m_portCombo->addItem(path);
-
-    int idx = m_portCombo->findText(current);
-    if (idx < 0 && !current.isEmpty()) {
-        const QString normalized = RDK::UArduinoSerialPortUtil::normalizeDevicePath(current);
-        idx = m_portCombo->findText(normalized);
-    }
-    if (idx >= 0)
-        m_portCombo->setCurrentIndex(idx);
+    const QString current = HardwareGuiHelpers::selectedSerialPortPath(m_portCombo);
+    HardwareGuiHelpers::populateSerialPortCombo(m_portCombo, current);
 }
 
 void HardwareArduinoBoardControllerWidget::onApply()

@@ -1,59 +1,65 @@
-# Rdk-HardwareLib - Документация
+# Rdk-HardwareLib — документация
 
 ## RU
 
 ### Назначение
 
-**Rdk-HardwareLib** предоставляет компоненты для работы с аппаратным обеспечением, в первую очередь с Arduino.
+**Rdk-HardwareLib** — компоненты NeuroModeler для работы с Arduino (Uno / Mega 2560) по USB serial: прошивка HEX, custom sketch `sensor_lab`, Standard Firmata, GUI pinout.
 
-### Краткий обзор
+### Компоненты (ClassName)
 
-Библиотека включает компоненты для:
-- Подключения к Arduino
-- Управления Arduino
-- Работы с датчиками
-- Демонстрационных контроллеров
+| ClassName | Назначение |
+|-----------|------------|
+| `ArduinoBoard` | Порт, avrdude upload, heartbeat, reconnect |
+| `ArduinoSensorSketch` | Протокол sensor_lab, команды, матрица показаний |
+| `ArduinoFirmata` | Firmata: pin mode / digital / analog |
+| `ArduinoAdc` | Чтение ADC через связанный `ArduinoFirmata` |
+| `ArduinoDcDemo` | DC demo через связанный `ArduinoSensorSketch` |
+
+Полный каталог: [Component-Catalog.md](Component-Catalog.md).
 
 ### Быстрый старт
 
-#### Подключение к Arduino
+1. Подключите плату, проверьте порт (`/dev/ttyACM0` на Linux).
+2. Добавьте пользователя в группу `dialout` (Linux): `sudo usermod -aG dialout $USER`, перелогиньтесь.
+3. В модели: компонент `ArduinoBoard` → `PortName`, `BaudRate` **57600**, `BundledFirmwareId` = `sensor_lab_v1`.
+4. В GUI: **Upload firmware**, затем `ArduinoSensorSketch` с `ConnectOnBuild` = true.
 
-```cpp
-// Создание компонента подключения
-auto arduino = storage->CreateComponent<UArduinoConnect>("Arduino");
-arduino->PortName = "COM3"; // или "/dev/ttyUSB0" на Linux
-arduino->BaudRate = 9600;
-arduino->Build();
+Тестовые конфиги: [Bin/Configs/SpikeSamples/Hardware/README.md](../../../Bin/Configs/SpikeSamples/Hardware/README.md).
 
-// Подключение
-if (arduino->Connect()) {
-    // Arduino подключен
-}
-```
+### Скорость и прошивки
 
-#### Чтение данных с датчика
+- Runtime baud: **57600** (sensor_lab и bundled Firmata).
+- Bundled HEX: `Firmware/manifest.json` — `sensor_lab_v1`, `standard_firmata`.
+- Сборка: [firmware_build.md](firmware_build.md), чеклист на железе: [Firmware/README.md](../Firmware/README.md).
 
-```cpp
-// Создание компонента датчика
-auto sensor = storage->CreateComponent<UAdcSensor>("Sensor");
-sensor->Arduino.AttachTo(&arduino->Output);
-sensor->Pin = 0;
-sensor->Build();
-sensor->Calculate();
-double value = sensor->Value();
-```
+### Миграция со старых имён
 
-### Связь с корневой документацией
+| Было | Стало |
+|------|--------|
+| `Arduino` | `ArduinoBoard` + `ArduinoSensorSketch` (или `ArduinoFirmata`) |
+| `ADC` | `ArduinoAdc` |
+| `DC` | `ArduinoDcDemo` |
 
-Для обзорной информации см. корневую документацию проекта:
-- `Docs/Libraries/Rdk-HardwareLib.md` - обзор библиотеки (в корневом репозитории)
+Скрипт: `Scripts/migrate_arduino_classnames.py`. Исторические документы: [Legacy/README.md](Legacy/README.md).
 
-### Детальная документация
+### Навигация
 
-- [Architecture.md](Architecture.md) - архитектура библиотеки
-- [Usage-Examples.md](Usage-Examples.md) - примеры использования
-- [API-Overview.md](API-Overview.md) - обзор API
-- [Component-Catalog.md](Component-Catalog.md) - каталог компонентов
+- [Architecture.md](Architecture.md) — иерархия классов и runtime
+- [API-Overview.md](API-Overview.md) — свойства компонентов
+- [Usage-Examples.md](Usage-Examples.md) — XML и сценарии
+- [Transport.md](Transport.md) — serial, avrdude, профили плат
+- [Protocol.md](Protocol.md) — бинарный протокол sensor_lab
+- [GUI.md](GUI.md) — NeuroModeler forms и diagram
+- [firmata_spike.md](firmata_spike.md) — scope Firmata MVP
+
+### Doxygen
+
+Markdown в `Docs/` — основное руководство. API из заголовков `Core/` — см. [DOXYGEN.md](DOXYGEN.md).
+
+### Корневая документация Nmsdk
+
+- [Docs/Libraries/Rdk-HardwareLib.md](../../../Docs/Libraries/Rdk-HardwareLib.md)
 
 ---
 
@@ -61,24 +67,16 @@ double value = sensor->Value();
 
 ### Purpose
 
-**Rdk-HardwareLib** provides components for working with hardware, primarily Arduino.
+**Rdk-HardwareLib** provides NeuroModeler components for Arduino boards over USB serial (firmware upload, sensor_lab, Firmata, GUI pinout).
 
-### Brief Overview
+### Components
 
-The library includes components for:
-- Arduino connection
-- Arduino control
-- Sensor operations
-- Demo controllers
+See [Component-Catalog.md](Component-Catalog.md) for `ArduinoBoard`, `ArduinoSensorSketch`, `ArduinoFirmata`, `ArduinoAdc`, `ArduinoDcDemo`.
 
-### Link to Root Documentation
+### Quick start
 
-For overview information see root project documentation:
-- `Docs/Libraries/Rdk-HardwareLib.md` - library overview (in root repository)
+Set `PortName`, `BaudRate` **57600**, flash via `ArduinoBoard`, then use `ArduinoSensorSketch` or `ArduinoFirmata`. Sample configs: `Bin/Configs/SpikeSamples/Hardware/`.
 
-### Detailed Documentation
+### Detailed docs
 
-- [Architecture.md](Architecture.md) - library architecture
-- [Usage-Examples.md](Usage-Examples.md) - usage examples
-- [API-Overview.md](API-Overview.md) - API overview
-- [Component-Catalog.md](Component-Catalog.md) - component catalog
+[Architecture.md](Architecture.md), [API-Overview.md](API-Overview.md), [Usage-Examples.md](Usage-Examples.md).

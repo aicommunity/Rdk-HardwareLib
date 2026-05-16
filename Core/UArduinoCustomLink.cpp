@@ -60,6 +60,8 @@ void UArduinoCustomLink::FlushCommandQueue()
         return;
 
     while (!CommandQueue.isEmpty()) {
+        if (Session->bytesToWrite() > 0)
+            return;
         const QByteArray line = CommandQueue.dequeue();
         Session->write(line);
         TxCommandCount = TxCommandCount + 1;

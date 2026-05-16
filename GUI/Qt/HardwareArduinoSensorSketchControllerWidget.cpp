@@ -92,8 +92,7 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     auto* root = new QVBoxLayout(this);
     root->addWidget(splitter);
 
-    for (const QString& path : HardwareGuiHelpers::listSerialPortDevicePaths())
-        m_portCombo->addItem(path);
+    HardwareGuiHelpers::populateSerialPortCombo(m_portCombo);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UComponentGuiContext& context)
@@ -109,7 +108,9 @@ QString HardwareArduinoSensorSketchControllerWidget::componentGuiId() const
 
 void HardwareArduinoSensorSketchControllerWidget::applyBoardFields()
 {
-    HardwareGuiHelpers::setProp(m_context, "PortName", m_portCombo->currentText());
+    HardwareGuiHelpers::setProp(m_context,
+                                "PortName",
+                                HardwareGuiHelpers::selectedSerialPortPath(m_portCombo));
     HardwareGuiHelpers::setProp(m_context, "BoardProfile",
                                 QString::number(m_boardProfileCombo->currentData().toInt()));
     HardwareGuiHelpers::setProp(m_context, "GetDataFromBuffers",
@@ -130,10 +131,9 @@ void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
     QSignalBlocker b4(m_getPinsInfoCheck);
 
     const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    const QString portPath = port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
-    if (m_portCombo->findText(portPath) < 0 && !portPath.isEmpty())
-        m_portCombo->addItem(portPath);
-    m_portCombo->setCurrentText(portPath);
+    const QString portPath =
+        port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+    HardwareGuiHelpers::selectSerialPortInCombo(m_portCombo, portPath);
 
     const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);

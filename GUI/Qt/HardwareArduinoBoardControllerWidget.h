@@ -3,8 +3,8 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
@@ -52,7 +52,7 @@ private:
     QComboBox* m_bundledFirmwareCombo = nullptr;
     QLineEdit* m_firmwarePathEdit = nullptr;
     QProgressBar* m_uploadProgress = nullptr;
-    QLabel* m_statusLabel = nullptr;
+    QPlainTextEdit* m_statusLog = nullptr;
     QPushButton* m_applyButton = nullptr;
     QPushButton* m_resetButton = nullptr;
     QPushButton* m_calculateButton = nullptr;

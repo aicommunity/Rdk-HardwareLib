@@ -127,7 +127,7 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
         }
         m_gotAnalogMapping = true;
     }
-    if (m_gotFirmware && m_gotCapability && !ready) {
+    if (m_gotFirmware && m_gotCapability && m_gotAnalogMapping && !ready) {
         ready = true;
         if (m_onReady)
             m_onReady();

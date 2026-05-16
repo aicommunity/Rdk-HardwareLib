@@ -1,95 +1,132 @@
 # Обзор API Rdk-HardwareLib
 
-## RU
+Краткий справочник свойств. Источник правды — заголовки в `Libraries/Rdk-HardwareLib/Core/`.
 
-### Основные классы
+## ConnectionState (`UArduinoBoard`)
 
-#### HardwareLib
+| Значение | Смысл |
+|----------|--------|
+| 0 | Disconnected |
+| 1 | Opening |
+| 2 | Connected |
+| 3 | Error |
 
-Главный класс библиотеки, наследник `ULibrary`.
+## ArduinoBoard (`UArduinoBoard`)
 
-#### UArduinoConnect
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `PortName` | string | `/dev/ttyACM0`, `COM3`, … |
+| `BaudRate` | int | По умолчанию **57600** |
+| `BoardProfile` | int | 0 = Uno, 1 = Mega 2560 |
+| `AutoReconnect` | bool | Retry при ошибке |
+| `ConnectOnBuild` | bool | `ABuild` → connect |
+| `ConnectionState` | int | readonly |
+| `LastError` | string | readonly |
+| `LastActivityMs` | double | readonly |
+| `HeartbeatEnabled` | bool | |
+| `HeartbeatIntervalMs` | int | |
+| `HeartbeatTimeoutMs` | int | |
+| `MissedHeartbeats` | int | readonly |
+| `RequestHealthCheck` | bool | edge |
+| `FirmwarePath` | string | Абсолютный путь к HEX |
+| `BundledFirmwareId` | string | `sensor_lab_v1`, `standard_firmata` |
+| `UploadFirmwareFlag` | bool | edge |
+| `UploadProgress` | int | 0–100 |
+| `UploadLastResult` | string | `ok` или лог avrdude |
+| `ShowDebug` | bool | Лог serial/parser |
 
-Подключение к Arduino.
+## ArduinoCustomLink (база sketch, не в палитре)
 
-**Основные свойства:**
-- `PortName` - имя порта (COM3, /dev/ttyUSB0)
-- `BaudRate` - скорость передачи данных
-- `IsConnected` - статус подключения
+Наследует `ArduinoBoard` + :
 
-**Основные методы:**
-- `Connect()` - подключение к Arduino
-- `Disconnect()` - отключение
+| Свойство | Тип |
+|----------|-----|
+| `Command` | string |
+| `SendCommandFlag` | bool |
+| `SentCommand` | string |
+| `InputCommand` | string |
+| `ProtocolVersion` | int | 1 = legacy, 2 = framed |
+| `RxFrameCount` | int |
+| `TxCommandCount` | int |
 
-#### UArduinoControl
+## ArduinoSensorSketch (`UArduinoSensorSketch`)
 
-Управление Arduino.
+| Свойство | Тип |
+|----------|-----|
+| `LowerSensorLimit` | double |
+| `UpperSensorLimit` | double |
+| `MatrixCols` | int |
+| `GetDataFromBuffers` | bool |
+| `DoubleMatrixReadings` | MDMatrix |
+| `GetPinsInfo` | bool |
+| `PinStatusJson` | string |
 
-**Основные свойства:**
-- `ArduinoConnection` - соединение с Arduino
-- `CommandQueue` - очередь команд
+## ArduinoFirmata (`UArduinoFirmata`)
 
-**Основные методы:**
-- `SendCommand(string)` - отправка команды
-- `ReadResponse()` - чтение ответа
+| Свойство | Тип |
+|----------|-----|
+| `FirmataReady` | bool |
+| `FirmataFirmwareVersion` | string |
+| `SelectedPin` | int |
+| `SelectedPinMode` | int |
+| `DigitalPinValue` | int |
+| `AnalogPinValue` | int |
+| `SetPinModeFlag` | bool |
+| `ReadAnalogFlag` | bool |
+| `WriteDigitalFlag` | bool |
 
-#### UAdcSensor
+Плюс все свойства `ArduinoBoard`. Default `BundledFirmwareId` = `standard_firmata`.
 
-Датчик ADC.
+## ArduinoAdc (`UArduinoAdc`)
 
-**Основные свойства:**
-- `ArduinoControl` - управление Arduino
-- `PinNumber` - номер пина
-- `SensorValue` - значение датчика
+| Свойство | Тип |
+|----------|-----|
+| `LinkedFirmataName` | string | Имя компонента `ArduinoFirmata` на canvas |
+| `AnalogPin` | int |
+| `AdcValue` | int | readonly |
+| `ReadAdcFlag` | bool | edge |
 
-### См. также
+Не открывает serial сам — только через Firmata.
 
-- Исходный код: `Libraries/Rdk-HardwareLib/Core/`
+## ArduinoDcDemo (`UArduinoDcDemo`)
 
----
+| Свойство | Тип |
+|----------|-----|
+| `LinkedSketchName` | string | Имя `ArduinoSensorSketch` |
+| `Command` | string |
+| `SendCommandFlag` | bool |
+| `SentCommand` | string |
+| `Speed` | float |
+| `Acceleration` | float |
+| `GetSpeed` | bool |
 
-## EN
+## Вспомогательные классы
 
-### Main Classes
+| Класс | Назначение |
+|-------|------------|
+| `UArduinoSerialSession` | QSerialPort wrapper |
+| `UArduinoFlasher` | avrdude via QProcess |
+| `UArduinoBoardProfile` | Uno/Mega avrdude args |
+| `UArduinoBinaryStreamParser` | RX framing |
+| `UArduinoFirmataClient` | Firmata MVP |
+| `UFirmwareManifest` | Resolve bundled hex |
 
-#### HardwareLib
+Подробнее: [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 
-Main library class, inherits from `ULibrary`.
+## UHardwareLibrary
 
-#### UArduinoConnect
+```cpp
+class UHardwareLibrary : public ULibrary {
+public:
+    void CreateClassSamples(UStorage* storage);
+};
+```
 
-Arduino connection.
+## GUI
 
-**Main Properties:**
-- `PortName` - port name (COM3, /dev/ttyUSB0)
-- `BaudRate` - baud rate
-- `IsConnected` - connection status
+Формы: `hw.arduino.board`, `hw.arduino.sensor_sketch`, `hw.arduino.firmata` — см. [GUI.md](GUI.md).
 
-**Main Methods:**
-- `Connect()` - connect to Arduino
-- `Disconnect()` - disconnect
+## См. также
 
-#### UArduinoControl
-
-Arduino control.
-
-**Main Properties:**
-- `ArduinoConnection` - Arduino connection
-- `CommandQueue` - command queue
-
-**Main Methods:**
-- `SendCommand(string)` - send command
-- `ReadResponse()` - read response
-
-#### UAdcSensor
-
-ADC sensor.
-
-**Main Properties:**
-- `ArduinoControl` - Arduino control
-- `PinNumber` - pin number
-- `SensorValue` - sensor value
-
-### See Also
-
-- Source code: `Libraries/Rdk-HardwareLib/Core/`
+- [Components/](Components/) — страницы по каждому ClassName
+- [Usage-Examples.md](Usage-Examples.md)

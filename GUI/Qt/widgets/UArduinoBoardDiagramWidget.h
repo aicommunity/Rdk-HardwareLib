@@ -8,6 +8,8 @@
 #include "UArduinoPinOverlay.h"
 
 class QLabel;
+class QPlainTextEdit;
+class QResizeEvent;
 
 #if __has_include(<QSvgWidget>)
 #include <QSvgWidget>
@@ -40,6 +42,8 @@ protected:
 private:
     void updateSvg();
     void reloadPinLayout();
+    void layoutDiagram();
+    QSizeF diagramViewBoxSize() const;
     QString svgResourceForProfile() const;
     QString pinsResourceForProfile() const;
 
@@ -57,7 +61,7 @@ private:
     QLabel* m_svgPlaceholder = nullptr;
 #endif
     UArduinoPinOverlay* m_overlay = nullptr;
-    QLabel* m_statusLabel = nullptr;
+    QPlainTextEdit* m_statusLog = nullptr;
 };
 
 #endif
