@@ -13,6 +13,7 @@ class UArduinoFlasher : public QObject {
 public:
     explicit UArduinoFlasher(QObject* parent = nullptr);
 
+    static QString locateAvrdudeBinary();
     static QString locateAvrdudeConf();
     static QString buildCommand(const UArduinoBoardProfile& profile,
                                 const QString& port,
@@ -28,8 +29,6 @@ signals:
     void progressChanged(int percent);
     void finished(bool success, const QString& message);
 
-private:
-    static QString locateAvrdudeBinary();
 };
 
 } // namespace RDK

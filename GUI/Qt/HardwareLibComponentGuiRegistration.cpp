@@ -1,5 +1,7 @@
 #include "HardwareLibComponentGuiRegistration.h"
 
+#include <QCoreApplication>
+
 #include "../../../../Rdk/GUI/Qt/UComponentFormRegistry.h"
 #include "HardwareArduinoBoardControllerWidget.h"
 #include "HardwareArduinoFirmataControllerWidget.h"
@@ -22,6 +24,9 @@ UComponentFormDescriptor MakeDescriptor(const QString& id,
 
 void RegisterHardwareLibComponentGuiForms()
 {
+    // Static lib: qrc object is not linked unless init is referenced from pulled .o files.
+    Q_INIT_RESOURCE(hardware_lib);
+
     UComponentFormRegistry& registry = UComponentFormRegistry::instance();
 
     registry.registerFormFactory(

@@ -9,6 +9,8 @@
 
 #include "widgets/HardwareGuiHelpers.h"
 
+#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+
 HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(QWidget* parent,
                                                                                RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
@@ -19,8 +21,8 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
             &HardwareArduinoFirmataControllerWidget::onDiagramPinClicked);
 
     m_portCombo = new QComboBox(this);
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
-        m_portCombo->addItem(info.portName());
+    for (const QString& path : HardwareGuiHelpers::listSerialPortDevicePaths())
+        m_portCombo->addItem(path);
 
     m_pinSpin = new QSpinBox(this);
     m_pinSpin->setRange(0, 69);
@@ -92,7 +94,11 @@ void HardwareArduinoFirmataControllerWidget::refreshFromModel(bool force)
     if (m_context.componentLongName.isEmpty())
         return;
 
-    m_portCombo->setCurrentText(HardwareGuiHelpers::getProp(m_context, "PortName"));
+    const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
+    const QString portPath = port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+    if (m_portCombo->findText(portPath) < 0 && !portPath.isEmpty())
+        m_portCombo->addItem(portPath);
+    m_portCombo->setCurrentText(portPath);
     const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     const int pin = HardwareGuiHelpers::getPropInt(m_context, "SelectedPin", 13);
     m_pinSpin->setValue(pin);

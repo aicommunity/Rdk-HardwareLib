@@ -6,7 +6,12 @@
 
 #include "../../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 
+class QSerialPortInfo;
+
 namespace HardwareGuiHelpers {
+
+QString serialPortDevicePath(const QSerialPortInfo& info);
+QStringList listSerialPortDevicePaths();
 
 QString getProp(const UComponentGuiContext& ctx, const char* name);
 bool setProp(const UComponentGuiContext& ctx, const char* name, const QString& value);

@@ -14,9 +14,28 @@
 
 namespace {
 
-QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resourcePath)
+QString resolveBundledPath(const QString& qrcPath, const QString& resourcesRelativePath)
 {
-    QFile file(resourcePath);
+    if (QFile::exists(qrcPath))
+        return qrcPath;
+
+    const QByteArray sdkRoot = qgetenv("NMSDK_ROOT");
+    if (!sdkRoot.isEmpty()) {
+        const QString devPath =
+            QString::fromLocal8Bit(sdkRoot)
+            + QStringLiteral("/Libraries/Rdk-HardwareLib/GUI/Qt/Resources/")
+            + resourcesRelativePath;
+        if (QFile::exists(devPath))
+            return devPath;
+    }
+    return qrcPath;
+}
+
+QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resourcePath,
+                                                            const QString& resourcesRelativePath)
+{
+    const QString path = resolveBundledPath(resourcePath, resourcesRelativePath);
+    QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return {};
 
@@ -86,7 +105,9 @@ QString UArduinoBoardDiagramWidget::pinsResourceForProfile() const
 
 void UArduinoBoardDiagramWidget::reloadPinLayout()
 {
-    m_overlay->setPins(loadPinsFromResource(pinsResourceForProfile()));
+    const QString pinsRel = m_boardProfile == 1 ? QStringLiteral("boards/mega2560_pins.json")
+                                                : QStringLiteral("boards/uno_pins.json");
+    m_overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel));
     m_overlay->setPinRoles(m_pinRoles);
     m_overlay->setHighlightedIds(m_highlightedPins);
     m_overlay->setSelectedId(m_selectedPinId);
@@ -96,7 +117,9 @@ void UArduinoBoardDiagramWidget::reloadPinLayout()
 void UArduinoBoardDiagramWidget::updateSvg()
 {
 #if HARDWARELIB_HAS_QTSVG
-    m_svg->load(svgResourceForProfile());
+    const QString svgRel = m_boardProfile == 1 ? QStringLiteral("boards/arduino_mega2560_pinout.svg")
+                                               : QStringLiteral("boards/arduino_uno_pinout.svg");
+    m_svg->load(resolveBundledPath(svgResourceForProfile(), svgRel));
 #endif
 
     QString status;

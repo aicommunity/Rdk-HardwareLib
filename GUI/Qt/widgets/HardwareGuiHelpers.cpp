@@ -2,8 +2,27 @@
 
 #include "../../../../../Rdk/Core/Math/MDMatrix.h"
 #include "../../../../../Rdk/Deploy/Include/rdk_init.h"
+#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+
+#include <QtSerialPort/QSerialPortInfo>
 
 namespace HardwareGuiHelpers {
+
+QString serialPortDevicePath(const QSerialPortInfo& info)
+{
+#if defined(Q_OS_WIN)
+    return info.portName();
+#else
+    if (!info.systemLocation().isEmpty())
+        return info.systemLocation();
+    return RDK::UArduinoSerialPortUtil::normalizeDevicePath(info.portName());
+#endif
+}
+
+QStringList listSerialPortDevicePaths()
+{
+    return RDK::UArduinoSerialPortUtil::listAvailableDevicePaths();
+}
 
 QString getProp(const UComponentGuiContext& ctx, const char* name)
 {

@@ -1,5 +1,7 @@
 #include "UArduinoFlasher.h"
 
+#include "UArduinoSerialPortUtil.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -15,7 +17,26 @@ UArduinoFlasher::UArduinoFlasher(QObject* parent)
 
 QString UArduinoFlasher::locateAvrdudeBinary()
 {
-    return QStandardPaths::findExecutable(QStringLiteral("avrdude"));
+    const QByteArray envBin = qgetenv("AVRDUDE");
+    if (!envBin.isEmpty() && QFileInfo::exists(QString::fromUtf8(envBin)))
+        return QFileInfo(QString::fromUtf8(envBin)).absoluteFilePath();
+
+    const QString inPath = QStandardPaths::findExecutable(QStringLiteral("avrdude"));
+    if (!inPath.isEmpty())
+        return inPath;
+
+    const QDir toolsRoot(QDir::homePath()
+                         + QStringLiteral("/.arduino15/packages/arduino/tools/avrdude"));
+    if (toolsRoot.exists()) {
+        const QStringList versions =
+            toolsRoot.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name | QDir::Reversed);
+        for (const QString& ver : versions) {
+            const QString candidate = toolsRoot.absoluteFilePath(ver + QStringLiteral("/bin/avrdude"));
+            if (QFileInfo::exists(candidate))
+                return candidate;
+        }
+    }
+    return QString();
 }
 
 QString UArduinoFlasher::locateAvrdudeConf()
@@ -24,11 +45,7 @@ QString UArduinoFlasher::locateAvrdudeConf()
     if (!env.isEmpty() && QFileInfo::exists(QString::fromUtf8(env)))
         return QString::fromUtf8(env);
 
-    const QStringList candidates = {
-        QStringLiteral("/etc/avrdude.conf"),
-        QDir::homePath() + QStringLiteral("/.arduino15/packages/arduino/tools/avrdude/6.3.0-arduino17/etc/avrdude.conf"),
-        QDir::homePath() + QStringLiteral("/.arduino15/packages/arduino/tools/avrdude/7.2.0-arduino.1/etc/avrdude.conf"),
-    };
+    const QStringList candidates = {QStringLiteral("/etc/avrdude.conf")};
     for (const QString& path : candidates) {
         if (QFileInfo::exists(path))
             return path;
@@ -36,10 +53,23 @@ QString UArduinoFlasher::locateAvrdudeConf()
 
     const QString avrdude = locateAvrdudeBinary();
     if (!avrdude.isEmpty()) {
-        const QDir dir = QFileInfo(avrdude).dir();
-        const QString sibling = dir.filePath(QStringLiteral("../etc/avrdude.conf"));
+        const QDir binDir = QFileInfo(avrdude).absoluteDir();
+        const QString sibling = binDir.absoluteFilePath(QStringLiteral("../etc/avrdude.conf"));
         if (QFileInfo::exists(sibling))
             return QFileInfo(sibling).absoluteFilePath();
+    }
+
+    const QDir toolsRoot(QDir::homePath()
+                         + QStringLiteral("/.arduino15/packages/arduino/tools/avrdude"));
+    if (toolsRoot.exists()) {
+        const QStringList versions =
+            toolsRoot.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name | QDir::Reversed);
+        for (const QString& ver : versions) {
+            const QString candidate =
+                toolsRoot.absoluteFilePath(ver + QStringLiteral("/etc/avrdude.conf"));
+            if (QFileInfo::exists(candidate))
+                return candidate;
+        }
     }
     return QString();
 }
@@ -64,7 +94,8 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
     const QString conf = locateAvrdudeConf();
 
     if (avrdude.isEmpty()) {
-        const QString msg = QStringLiteral("avrdude not found in PATH");
+        const QString msg =
+            QStringLiteral("avrdude not found (install avrdude or arduino:avr core via arduino-cli)");
         if (errorOut)
             *errorOut = msg;
         emit finished(false, msg);
@@ -85,7 +116,8 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
         return false;
     }
 
-    const QString args = buildCommand(profile, port, hexPath, conf);
+    const QString devicePort = UArduinoSerialPortUtil::normalizeDevicePath(port);
+    const QString args = buildCommand(profile, devicePort, hexPath, conf);
     QProcess process;
     process.setProgram(avrdude);
     process.setArguments(QProcess::splitCommand(args));

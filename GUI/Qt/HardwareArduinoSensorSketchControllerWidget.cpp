@@ -12,6 +12,8 @@
 
 #include "widgets/HardwareGuiHelpers.h"
 
+#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+
 namespace {
 
 QMap<QString, QString> defaultSensorPinRoles()
@@ -90,8 +92,8 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     auto* root = new QVBoxLayout(this);
     root->addWidget(splitter);
 
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
-        m_portCombo->addItem(info.portName());
+    for (const QString& path : HardwareGuiHelpers::listSerialPortDevicePaths())
+        m_portCombo->addItem(path);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UComponentGuiContext& context)
@@ -128,9 +130,10 @@ void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
     QSignalBlocker b4(m_getPinsInfoCheck);
 
     const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    if (m_portCombo->findText(port) < 0 && !port.isEmpty())
-        m_portCombo->addItem(port);
-    m_portCombo->setCurrentText(port);
+    const QString portPath = port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+    if (m_portCombo->findText(portPath) < 0 && !portPath.isEmpty())
+        m_portCombo->addItem(portPath);
+    m_portCombo->setCurrentText(portPath);
 
     const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);

@@ -12,6 +12,8 @@
 
 #include "widgets/HardwareGuiHelpers.h"
 
+#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+
 HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidget* parent,
                                                                            RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
@@ -151,10 +153,11 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
     QSignalBlocker b10(m_heartbeatTimeoutSpin);
 
     const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    int portIdx = m_portCombo->findText(port);
-    if (portIdx < 0 && !port.isEmpty()) {
-        m_portCombo->addItem(port);
-        portIdx = m_portCombo->findText(port);
+    const QString portPath = port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+    int portIdx = m_portCombo->findText(portPath);
+    if (portIdx < 0 && !portPath.isEmpty()) {
+        m_portCombo->addItem(portPath);
+        portIdx = m_portCombo->findText(portPath);
     }
     m_portCombo->setCurrentIndex(portIdx >= 0 ? portIdx : 0);
 
@@ -219,9 +222,14 @@ void HardwareArduinoBoardControllerWidget::onRefreshPorts()
 {
     const QString current = m_portCombo->currentText();
     m_portCombo->clear();
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
-        m_portCombo->addItem(info.portName());
-    const int idx = m_portCombo->findText(current);
+    for (const QString& path : HardwareGuiHelpers::listSerialPortDevicePaths())
+        m_portCombo->addItem(path);
+
+    int idx = m_portCombo->findText(current);
+    if (idx < 0 && !current.isEmpty()) {
+        const QString normalized = RDK::UArduinoSerialPortUtil::normalizeDevicePath(current);
+        idx = m_portCombo->findText(normalized);
+    }
     if (idx >= 0)
         m_portCombo->setCurrentIndex(idx);
 }

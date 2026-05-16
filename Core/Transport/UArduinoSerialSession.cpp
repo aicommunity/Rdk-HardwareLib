@@ -1,5 +1,7 @@
 #include "UArduinoSerialSession.h"
 
+#include "UArduinoSerialPortUtil.h"
+
 #include <QDebug>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
@@ -18,29 +20,33 @@ UArduinoSerialSession::~UArduinoSerialSession()
 
 QStringList UArduinoSerialSession::availablePorts()
 {
-    QStringList names;
-    for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
-        names.append(info.portName());
-    return names;
+    return UArduinoSerialPortUtil::listAvailableDevicePaths();
 }
 
 bool UArduinoSerialSession::open(const QString& portName, int baudRate)
 {
     close();
 
+    const QString devicePath = UArduinoSerialPortUtil::normalizeDevicePath(portName);
+    if (devicePath.isEmpty()) {
+        emit errorOccurred(QStringLiteral("Port name is empty"));
+        return false;
+    }
+
     bool portExists = false;
     for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
-        if (info.portName() == portName) {
+        if (info.systemLocation() == devicePath || info.portName() == portName
+            || info.portName() == devicePath) {
             portExists = true;
             break;
         }
     }
     if (!portExists) {
-        emit errorOccurred(QStringLiteral("Port not found: %1").arg(portName));
+        emit errorOccurred(QStringLiteral("Port not found: %1").arg(devicePath));
         return false;
     }
 
-    m_port = new QSerialPort(portName, this);
+    m_port = new QSerialPort(devicePath, this);
     m_port->setBaudRate(baudRate);
     m_port->setDataBits(QSerialPort::Data8);
     m_port->setParity(QSerialPort::NoParity);
