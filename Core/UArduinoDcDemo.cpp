@@ -72,10 +72,11 @@ bool UArduinoDcDemo::ACalculate()
             && sketch->DoubleMatrixReadings->GetCols() > 4) {
             const int row = qMax(0, sketch->DoubleMatrixReadings->GetRows() - 1);
             Speed = static_cast<float>(sketch->DoubleMatrixReadings(row, 4));
+            if (sketch->DoubleMatrixReadings->GetCols() > 5)
+                Acceleration = static_cast<float>(sketch->DoubleMatrixReadings(row, 5));
         }
         GetSpeed = false;
     }
-    Q_UNUSED(Acceleration);
     return true;
 }
 

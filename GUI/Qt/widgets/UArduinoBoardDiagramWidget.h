@@ -1,8 +1,11 @@
 #ifndef UARDUINOBOARDDIAGRAMWIDGET_H
 #define UARDUINOBOARDDIAGRAMWIDGET_H
 
+#include <QMap>
 #include <QStringList>
 #include <QWidget>
+
+#include "UArduinoPinOverlay.h"
 
 class QLabel;
 
@@ -22,19 +25,38 @@ public:
     void setBoardProfile(int profile);
     void setConnectionState(int state);
     void setHighlightedPins(const QStringList& pins);
+    void setPinRoles(const QMap<QString, QString>& roles);
+    void setSelectedPinId(const QString& pinId);
+    void setInteractive(bool interactive);
+
+    static int firmataPinFromLabel(const QString& pinId, int boardProfile);
+
+signals:
+    void pinClicked(const QString& pinId);
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
     void updateSvg();
+    void reloadPinLayout();
     QString svgResourceForProfile() const;
+    QString pinsResourceForProfile() const;
 
     int m_boardProfile = 0;
     int m_connectionState = 0;
     QStringList m_highlightedPins;
+    QMap<QString, QString> m_pinRoles;
+    QString m_selectedPinId;
+    bool m_interactive = false;
+
+    QWidget* m_diagramHost = nullptr;
 #if HARDWARELIB_HAS_QTSVG
     QSvgWidget* m_svg = nullptr;
 #else
     QLabel* m_svgPlaceholder = nullptr;
 #endif
+    UArduinoPinOverlay* m_overlay = nullptr;
     QLabel* m_statusLabel = nullptr;
 };
 

@@ -30,6 +30,18 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     m_baudSpin->setRange(9600, 250000);
     m_baudSpin->setValue(57600);
 
+    m_connectOnBuildCheck = new QCheckBox(tr("Connect on build"), this);
+    m_autoReconnectCheck = new QCheckBox(tr("Auto reconnect"), this);
+    m_heartbeatEnabledCheck = new QCheckBox(tr("Heartbeat enabled"), this);
+    m_heartbeatIntervalSpin = new QSpinBox(this);
+    m_heartbeatIntervalSpin->setRange(500, 60000);
+    m_heartbeatIntervalSpin->setSuffix(tr(" ms"));
+    m_heartbeatIntervalSpin->setValue(3000);
+    m_heartbeatTimeoutSpin = new QSpinBox(this);
+    m_heartbeatTimeoutSpin->setRange(1000, 120000);
+    m_heartbeatTimeoutSpin->setSuffix(tr(" ms"));
+    m_heartbeatTimeoutSpin->setValue(10000);
+
     m_bundledFirmwareCombo = new QComboBox(this);
     m_bundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
     m_bundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
@@ -65,6 +77,11 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     form->addRow(tr("Port:"), portRow);
     form->addRow(tr("Board:"), m_boardProfileCombo);
     form->addRow(tr("Baud rate:"), m_baudSpin);
+    form->addRow(QString(), m_connectOnBuildCheck);
+    form->addRow(QString(), m_autoReconnectCheck);
+    form->addRow(QString(), m_heartbeatEnabledCheck);
+    form->addRow(tr("Heartbeat interval:"), m_heartbeatIntervalSpin);
+    form->addRow(tr("Heartbeat timeout:"), m_heartbeatTimeoutSpin);
     form->addRow(tr("Bundled firmware:"), m_bundledFirmwareCombo);
     auto* hexRow = new QHBoxLayout();
     hexRow->addWidget(m_firmwarePathEdit, 1);
@@ -127,6 +144,11 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
     QSignalBlocker b3(m_baudSpin);
     QSignalBlocker b4(m_bundledFirmwareCombo);
     QSignalBlocker b5(m_firmwarePathEdit);
+    QSignalBlocker b6(m_connectOnBuildCheck);
+    QSignalBlocker b7(m_autoReconnectCheck);
+    QSignalBlocker b8(m_heartbeatEnabledCheck);
+    QSignalBlocker b9(m_heartbeatIntervalSpin);
+    QSignalBlocker b10(m_heartbeatTimeoutSpin);
 
     const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
     int portIdx = m_portCombo->findText(port);
@@ -139,6 +161,11 @@ void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
     const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
     m_baudSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "BaudRate", 57600));
+    m_connectOnBuildCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "ConnectOnBuild", true));
+    m_autoReconnectCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "AutoReconnect", false));
+    m_heartbeatEnabledCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "HeartbeatEnabled", true));
+    m_heartbeatIntervalSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "HeartbeatIntervalMs", 3000));
+    m_heartbeatTimeoutSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "HeartbeatTimeoutMs", 10000));
 
     const QString bundled = HardwareGuiHelpers::getProp(m_context, "BundledFirmwareId");
     const int bundledIdx = m_bundledFirmwareCombo->findData(bundled);
@@ -163,6 +190,19 @@ void HardwareArduinoBoardControllerWidget::applyToModel()
     HardwareGuiHelpers::setProp(m_context, "BoardProfile",
                                 QString::number(m_boardProfileCombo->currentData().toInt()));
     HardwareGuiHelpers::setProp(m_context, "BaudRate", QString::number(m_baudSpin->value()));
+    HardwareGuiHelpers::setProp(m_context, "ConnectOnBuild",
+                                m_connectOnBuildCheck->isChecked() ? QStringLiteral("1")
+                                                                   : QStringLiteral("0"));
+    HardwareGuiHelpers::setProp(m_context, "AutoReconnect",
+                                m_autoReconnectCheck->isChecked() ? QStringLiteral("1")
+                                                                  : QStringLiteral("0"));
+    HardwareGuiHelpers::setProp(m_context, "HeartbeatEnabled",
+                                m_heartbeatEnabledCheck->isChecked() ? QStringLiteral("1")
+                                                                     : QStringLiteral("0"));
+    HardwareGuiHelpers::setProp(m_context, "HeartbeatIntervalMs",
+                                QString::number(m_heartbeatIntervalSpin->value()));
+    HardwareGuiHelpers::setProp(m_context, "HeartbeatTimeoutMs",
+                                QString::number(m_heartbeatTimeoutSpin->value()));
     HardwareGuiHelpers::setProp(m_context, "BundledFirmwareId",
                                 m_bundledFirmwareCombo->currentData().toString());
     HardwareGuiHelpers::setProp(m_context, "FirmwarePath", m_firmwarePathEdit->text());
@@ -208,16 +248,16 @@ void HardwareArduinoBoardControllerWidget::onCalculate()
 
 void HardwareArduinoBoardControllerWidget::onConnect()
 {
+    m_connectOnBuildCheck->setChecked(true);
     applyToModel();
-    HardwareGuiHelpers::setProp(m_context, "ConnectOnBuild", QStringLiteral("1"));
     HardwareGuiHelpers::envCalculate(m_context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoBoardControllerWidget::onDisconnect()
 {
+    m_connectOnBuildCheck->setChecked(false);
     applyToModel();
-    HardwareGuiHelpers::setProp(m_context, "ConnectOnBuild", QStringLiteral("0"));
     HardwareGuiHelpers::setProp(m_context, "PortName", QString());
     HardwareGuiHelpers::envCalculate(m_context);
     refreshFromModel(true);

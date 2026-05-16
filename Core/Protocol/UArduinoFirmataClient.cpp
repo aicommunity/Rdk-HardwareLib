@@ -14,6 +14,8 @@ constexpr uint8_t kEndSysex = 0xF7;
 constexpr uint8_t kFirmwareVersion = 0x79;
 constexpr uint8_t kCapabilityResponse = 0x6C;
 constexpr uint8_t kCapabilityQuery = 0x6B;
+constexpr uint8_t kAnalogMappingQuery = 0x69;
+constexpr uint8_t kAnalogMappingResponse = 0x6A;
 }
 
 void UArduinoFirmataClient::reset()
@@ -23,8 +25,10 @@ void UArduinoFirmataClient::reset()
     m_sysexBuffer.clear();
     m_inSysex = false;
     m_analogValues.clear();
+    m_analogChannelByPin.clear();
     m_gotFirmware = false;
     m_gotCapability = false;
+    m_gotAnalogMapping = false;
 }
 
 void UArduinoFirmataClient::writeBytes(UArduinoSerialSession* session, const QByteArray& bytes)
@@ -47,7 +51,23 @@ bool UArduinoFirmataClient::startHandshake(UArduinoSerialSession* session)
     cap.append(char(kCapabilityQuery));
     cap.append(char(kEndSysex));
     writeBytes(session, cap);
+    queryAnalogMapping(session);
     return true;
+}
+
+bool UArduinoFirmataClient::queryAnalogMapping(UArduinoSerialSession* session)
+{
+    QByteArray msg;
+    msg.append(char(kStartSysex));
+    msg.append(char(kAnalogMappingQuery));
+    msg.append(char(kEndSysex));
+    writeBytes(session, msg);
+    return true;
+}
+
+int UArduinoFirmataClient::analogChannelForPin(int pin) const
+{
+    return m_analogChannelByPin.value(pin, pin);
 }
 
 bool UArduinoFirmataClient::setPinMode(UArduinoSerialSession* session, int pin, int mode)
@@ -98,6 +118,14 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
         m_gotFirmware = true;
     } else if (cmd == kCapabilityResponse) {
         m_gotCapability = true;
+    } else if (cmd == kAnalogMappingResponse) {
+        m_analogChannelByPin.clear();
+        for (int pin = 0; pin < sysex.size(); ++pin) {
+            const uint8_t channel = static_cast<uint8_t>(sysex[pin]);
+            if (channel != 127)
+                m_analogChannelByPin[pin] = channel;
+        }
+        m_gotAnalogMapping = true;
     }
     if (m_gotFirmware && m_gotCapability && !ready) {
         ready = true;

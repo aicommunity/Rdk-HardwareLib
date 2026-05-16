@@ -50,7 +50,7 @@ QString UArduinoFlasher::buildCommand(const UArduinoBoardProfile& profile,
                                       const QString& confPath)
 {
     return QStringLiteral("-C\"%1\" -v -p%2 -c%3 -P%4 -b%5 -D -Uflash:w:\"%6\":i")
-        .arg(confPath, profile.mcu, profile.programmer, port)
+        .arg(confPath, profile.mcu, profile.protocol, port)
         .arg(profile.uploadBaud)
         .arg(hexPath);
 }

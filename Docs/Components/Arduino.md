@@ -1,10 +1,12 @@
 # Arduino — управление подключением к Arduino (Rdk-HardwareLib)
 
+> **Устарело:** `UArduinoControl` / ClassName `Arduino` заменены на `UArduinoBoard`, `UArduinoSensorSketch`, `UArduinoFirmata` и др. Актуальный каталог: [Component-Catalog.md](../Component-Catalog.md). Ниже — историческая документация.
+
 ## RU
 
 ### Назначение
 
-**Класс**: `UArduinoControl` — компонент управления подключением к плате Arduino через последовательный порт.  
+**Класс (исторический)**: `UArduinoControl` — компонент управления подключением к плате Arduino через последовательный порт.  
 **Регистрация**: `UHardwareLibrary.cpp` → `UploadClass("Arduino", ...)`.  
 **Storage-инстансы**: `ClassName = "Arduino"` в `Bin/Configs/*/Model_*.xml`.
 

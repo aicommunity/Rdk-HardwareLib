@@ -30,6 +30,7 @@ private slots:
     void onCalculate();
     void onSendCommand();
     void onPresetCommand();
+    void onGetPinsInfoToggled(bool checked);
 
 private:
     void applyBoardFields();
@@ -43,6 +44,7 @@ private:
     QListWidget* m_presetsList = nullptr;
     QTableWidget* m_matrixTable = nullptr;
     QCheckBox* m_getDataCheck = nullptr;
+    QCheckBox* m_getPinsInfoCheck = nullptr;
     QPushButton* m_applyButton = nullptr;
     QPushButton* m_resetButton = nullptr;
     QPushButton* m_calculateButton = nullptr;

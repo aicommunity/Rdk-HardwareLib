@@ -2,73 +2,42 @@
 
 Компоненты из `UHardwareLibrary.cpp`, сгруппированы по роли.
 
-## Connection / Controller
+## Board / transport
 
-- **Arduino** (`UArduinoControl`) — компонент управления подключением к плате Arduino через последовательный порт. Позволяет отправлять команды на Arduino, получать данные с датчиков, управлять пинами и обрабатывать данные через буферы. Использует `UArduinoConnect` для работы с последовательным портом.
-  
-  **Документация**: [`Arduino`](Components/Arduino.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием свойств, методов и примерами использования.
+- **ArduinoBoard** (`UArduinoBoard`) — порт, прошивка (bundled HEX / custom path), avrdude upload, heartbeat, auto-reconnect.
+- **ArduinoSensorSketch** (`UArduinoSensorSketch`) — кастомный бинарный протокол (sensor_lab), команды, `DoubleMatrixReadings`.
+- **ArduinoFirmata** (`UArduinoFirmata`) — Firmata 2.x (in-tree `UArduinoFirmataClient`), pin mode / digital / analog.
 
-## Sensors
+## Sensors / demos (phase 3)
 
-- **ADC** (`UADC`) — компонент для работы с аналоговыми датчиками через ADC (Analog-to-Digital Converter) Arduino. Позволяет читать значения с аналоговых входов, выполнять калибровку датчиков и преобразование значений.
-  
-  **Документация**: [`ADC`](Components/ADC.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием предполагаемого интерфейса и примерами использования.
-  
-  **Примечание:** Текущая реализация компонента минимальна (пустой класс). Документация описывает предполагаемый интерфейс на основе архитектуры библиотеки.
+- **ArduinoAdc** (`UArduinoAdc`) — чтение аналоговых значений через связанный sketch.
+- **ArduinoDcDemo** (`UArduinoDcDemo`) — DC demo: команды и скорость/ускорение из матрицы sketch.
 
-## Actuators
+## GUI (NeuroModeler)
 
-- **DC** (`UDcControlDemo`) — демонстрационный компонент для управления DC-двигателем через Arduino. Позволяет отправлять команды управления двигателем (скорость, направление), получать обратную связь по скорости и ускорению. Использует `UArduinoControl` для отправки команд на Arduino.
-  
-  **Документация**: [`DC`](Components/DC.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием свойств, методов и примерами использования.
+Target `Rdk-HardwareLib.gui`: pinout diagram (`UArduinoBoardDiagramWidget`, `UArduinoPinOverlay`), контроллеры Board / SensorSketch / Firmata.
 
-## Вспомогательные классы
+Ресурсы: `GUI/Qt/Resources/boards/*.svg`, `*_pins.json`.
 
-- **ArduinoConnect** (`UArduinoConnect`) — вспомогательный класс для работы с последовательным портом Arduino. Не является Storage-компонентом, используется внутри `UArduinoControl` для низкоуровневой работы с последовательным портом.
-  
-  **Документация**: [`ArduinoConnect`](Components/ArduinoConnect.md) — полная документация с UML-диаграммами, описанием протокола обмена данными, методов и примеров использования.
+## Firmware
 
-## Вспомогательные классы
+- `Firmware/manifest.json` — `sensor_lab_v1`, `standard_firmata`.
+- Исходник: `Firmware/sensor_lab/sensor_lab.ino` @ 57600.
+- Сборка HEX: `Scripts/build_arduino_firmware.sh` (требует `arduino-cli` и доступ к downloads.arduino.cc).
 
-- **ArduinoConnect** (`UArduinoConnect`) — вспомогательный класс для работы с последовательным портом Arduino. Не является Storage-компонентом, используется внутри `UArduinoControl` для низкоуровневой работы с последовательным портом.
-  
-  **Документация**: [`ArduinoConnect`](Components/ArduinoConnect.md) — полная документация с UML-диаграммами, описанием протокола обмена данными, методов и примеров использования.
+## Миграция со старых имён
 
-## Статус документации
+| Старое ClassName | Новое |
+|------------------|--------|
+| Arduino | ArduinoBoard + ArduinoSensorSketch (или ArduinoFirmata) |
+| ADC | ArduinoAdc |
+| DC | ArduinoDcDemo |
 
-Все компоненты библиотеки Rdk-HardwareLib имеют полную документацию, включающую:
-
-- ✅ UML-диаграмма классов (Class Diagram)
-- ✅ UML-диаграмма последовательности (Sequence Diagram)
-- ✅ UML-диаграмма состояний (State Diagram)
-- ✅ UML-диаграмма активности (Activity Diagram)
-- ✅ UML-диаграмма компонентов (Component Diagram)
-- ✅ Детальное описание всех свойств
-- ✅ Детальное описание всех методов
-- ✅ Примеры использования в C++
-- ✅ Примеры XML-конфигураций
-- ✅ Документация на русском и английском языках
-
-**Всего документировано:**
-- 3 Storage-компонента (Arduino, ADC, DC)
-- 1 вспомогательный класс (ArduinoConnect)
-
-**Всего документировано:**
-- 3 Storage-компонента (Arduino, ADC, DC)
-- 1 вспомогательный класс (ArduinoConnect)
-
-## Использование в конфигурациях
-
-Примечание: в `Bin/Configs` явных ссылок на компоненты Rdk-HardwareLib немного. При описании акцент сделан на настройку портов/скоростей и типовые сценарии подключения. Примеры конфигураций созданы на основе структуры компонентов и архитектуры библиотеки.
-
-## Связи между компонентами
-
-- `UArduinoControl` использует `UArduinoConnect` (композиция) для работы с последовательным портом
-- `UDcControlDemo` использует `UArduinoControl` (композиция) для отправки команд на Arduino
-- `UADC` использует `UArduinoControl` (зависимость) для получения данных с датчиков
+Скрипт: `Scripts/migrate_arduino_classnames.py`.
 
 ## См. также
 
-- [Architecture.md](Architecture.md) — архитектура библиотеки
-- [API-Overview.md](API-Overview.md) — обзор API
-- [Usage-Examples.md](Usage-Examples.md) — примеры использования
+- [Architecture.md](Architecture.md)
+- [firmware_build.md](firmware_build.md)
+- [firmata_spike.md](firmata_spike.md)
+- Компонентные заметки в `Docs/Components/` (исторические диаграммы для `UArduinoControl` — см. заголовки файлов).

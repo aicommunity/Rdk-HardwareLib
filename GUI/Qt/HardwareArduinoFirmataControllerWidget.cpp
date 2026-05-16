@@ -14,6 +14,9 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     : UVisualControllerWidget(parent, app)
 {
     m_diagram = new UArduinoBoardDiagramWidget(this);
+    m_diagram->setInteractive(true);
+    connect(m_diagram, &UArduinoBoardDiagramWidget::pinClicked, this,
+            &HardwareArduinoFirmataControllerWidget::onDiagramPinClicked);
 
     m_portCombo = new QComboBox(this);
     for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
@@ -49,7 +52,7 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
 
     auto* form = new QFormLayout();
     form->addRow(tr("Port:"), m_portCombo);
-    form->addRow(tr("Pin:"), m_pinSpin);
+    form->addRow(tr("Pin (Firmata #):"), m_pinSpin);
     form->addRow(tr("Mode:"), m_modeCombo);
     form->addRow(tr("Digital value:"), m_digitalValueSpin);
     auto* row = new QHBoxLayout();
@@ -60,6 +63,7 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     form->addRow(QString(), applyBtn);
     form->addRow(QString(), calcBtn);
     form->addRow(tr("Status:"), m_statusLabel);
+    form->addRow(QString(), new QLabel(tr("Click a pin on the diagram to select it."), this));
 
     auto* right = new QWidget(this);
     right->setLayout(form);
@@ -89,17 +93,39 @@ void HardwareArduinoFirmataControllerWidget::refreshFromModel(bool force)
         return;
 
     m_portCombo->setCurrentText(HardwareGuiHelpers::getProp(m_context, "PortName"));
-    m_pinSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "SelectedPin", 13));
+    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
+    const int pin = HardwareGuiHelpers::getPropInt(m_context, "SelectedPin", 13);
+    m_pinSpin->setValue(pin);
     m_digitalValueSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "DigitalPinValue", 0));
 
-    m_diagram->setBoardProfile(HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0));
+    m_diagram->setBoardProfile(profile);
     m_diagram->setConnectionState(HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0));
+    m_diagram->setSelectedPinId(firmataPinToLabel(pin, profile));
 
     const bool ready = HardwareGuiHelpers::getPropBool(m_context, "FirmataReady", false);
     const QString ver = HardwareGuiHelpers::getProp(m_context, "FirmataFirmwareVersion");
     const int analog = HardwareGuiHelpers::getPropInt(m_context, "AnalogPinValue", 0);
     m_statusLabel->setText(
         tr("Firmata ready: %1\nVersion: %2\nAnalog: %3").arg(ready ? tr("yes") : tr("no"), ver).arg(analog));
+}
+
+QString HardwareArduinoFirmataControllerWidget::firmataPinToLabel(int pin, int boardProfile) const
+{
+    Q_UNUSED(boardProfile);
+    if (pin >= 14)
+        return QStringLiteral("A%1").arg(pin - 14);
+    return QStringLiteral("D%1").arg(pin);
+}
+
+void HardwareArduinoFirmataControllerWidget::onDiagramPinClicked(const QString& pinId)
+{
+    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
+    const int pin = UArduinoBoardDiagramWidget::firmataPinFromLabel(pinId, profile);
+    if (pin < 0)
+        return;
+    m_pinSpin->setValue(pin);
+    m_diagram->setSelectedPinId(pinId);
+    onApply();
 }
 
 void HardwareArduinoFirmataControllerWidget::onApply()

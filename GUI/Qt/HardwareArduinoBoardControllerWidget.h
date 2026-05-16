@@ -1,6 +1,7 @@
 #ifndef HARDWAREARDUINOBOARDCONTROLLERWIDGET_H
 #define HARDWAREARDUINOBOARDCONTROLLERWIDGET_H
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -42,6 +43,11 @@ private:
     UArduinoBoardDiagramWidget* m_diagram = nullptr;
     QComboBox* m_portCombo = nullptr;
     QComboBox* m_boardProfileCombo = nullptr;
+    QCheckBox* m_connectOnBuildCheck = nullptr;
+    QCheckBox* m_autoReconnectCheck = nullptr;
+    QCheckBox* m_heartbeatEnabledCheck = nullptr;
+    QSpinBox* m_heartbeatIntervalSpin = nullptr;
+    QSpinBox* m_heartbeatTimeoutSpin = nullptr;
     QSpinBox* m_baudSpin = nullptr;
     QComboBox* m_bundledFirmwareCombo = nullptr;
     QLineEdit* m_firmwarePathEdit = nullptr;

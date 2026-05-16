@@ -26,8 +26,11 @@ private slots:
     void onSetPinMode();
     void onWriteDigital();
     void onReadAnalog();
+    void onDiagramPinClicked(const QString& pinId);
 
 private:
+    QString firmataPinToLabel(int pin, int boardProfile) const;
+
     UComponentGuiContext m_context;
     UArduinoBoardDiagramWidget* m_diagram = nullptr;
     QComboBox* m_portCombo = nullptr;

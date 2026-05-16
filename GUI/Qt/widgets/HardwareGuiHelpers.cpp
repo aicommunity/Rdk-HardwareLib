@@ -1,5 +1,6 @@
 #include "HardwareGuiHelpers.h"
 
+#include "../../../../../Rdk/Core/Math/MDMatrix.h"
 #include "../../../../../Rdk/Deploy/Include/rdk_init.h"
 
 namespace HardwareGuiHelpers {
@@ -33,6 +34,36 @@ bool getPropBool(const UComponentGuiContext& ctx, const char* name, bool default
     if (v.isEmpty())
         return defaultValue;
     return v == QLatin1String("1") || v.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0;
+}
+
+bool getMatrixPreview(const UComponentGuiContext& ctx,
+                      const char* propertyName,
+                      const int maxRows,
+                      const int maxCols,
+                      QVector<QVector<double>>* outRows)
+{
+    if (!outRows || ctx.componentLongName.isEmpty())
+        return false;
+    outRows->clear();
+
+    const void* raw = MModel_GetComponentPropertyData(ctx.channelIndex,
+                                                     ctx.componentLongName.toUtf8().constData(),
+                                                     propertyName);
+    const auto* matrix = static_cast<const RDK::MDMatrix<double>*>(raw);
+    if (!matrix || matrix->GetRows() <= 0 || matrix->GetCols() <= 0)
+        return false;
+
+    const int rows = qMin(matrix->GetRows(), maxRows);
+    const int cols = qMin(matrix->GetCols(), maxCols);
+    outRows->reserve(rows);
+    for (int r = 0; r < rows; ++r) {
+        QVector<double> row;
+        row.reserve(cols);
+        for (int c = 0; c < cols; ++c)
+            row.append(matrix->operator()(r, c));
+        outRows->append(row);
+    }
+    return true;
 }
 
 void envReset(const UComponentGuiContext& ctx)

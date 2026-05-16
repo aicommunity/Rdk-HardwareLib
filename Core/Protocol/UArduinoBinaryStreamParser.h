@@ -17,11 +17,11 @@ public:
     void feed(const QByteArray& data, const FrameCallback& onFrame);
 
     static double legacyTimestamp();
+    static uint8_t crc8Maxim(const QByteArray& data, int len);
 
 private:
     void feedLegacyV1(const QByteArray& data, const FrameCallback& onFrame);
     void feedFramedV2(const QByteArray& data, const FrameCallback& onFrame);
-    static uint8_t crc8Maxim(const QByteArray& data, int len);
 
     QByteArray m_v2Buffer;
     int m_protocolVersion = 1;
