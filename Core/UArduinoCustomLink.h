@@ -36,9 +36,11 @@ protected:
     void EnqueueCommand(const string& command);
     void FlushCommandQueue();
     void ProcessIncoming();
+    void NegotiateProtocol();
 
     UArduinoBinaryStreamParser Parser;
     QQueue<QByteArray> CommandQueue;
+    bool ProtocolNegotiated = false;
 };
 
 } // namespace RDK

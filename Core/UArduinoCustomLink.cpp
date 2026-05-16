@@ -28,7 +28,20 @@ bool UArduinoCustomLink::ADefault()
     RxFrameCount = 0;
     TxCommandCount = 0;
     Parser.setProtocolVersion(1);
+    ProtocolNegotiated = false;
     return true;
+}
+
+void UArduinoCustomLink::NegotiateProtocol()
+{
+    if (ProtocolNegotiated || ConnectionState != ArduinoConnected)
+        return;
+
+    if (ProtocolVersion >= 2)
+        EnqueueCommand("PROTO 2");
+
+    ProtocolNegotiated = true;
+    Parser.setProtocolVersion(ProtocolVersion);
 }
 
 void UArduinoCustomLink::EnqueueCommand(const string& command)
@@ -82,6 +95,10 @@ void UArduinoCustomLink::OnHealthCheck()
 
 void UArduinoCustomLink::OnBoardCalculate()
 {
+    if (ConnectionState != ArduinoConnected)
+        ProtocolNegotiated = false;
+    else
+        NegotiateProtocol();
     ProcessIncoming();
     FlushCommandQueue();
 }
@@ -102,6 +119,8 @@ bool UArduinoCustomLink::ACalculate()
         SendCommandFlag = false;
     }
 
+    if (ConnectionState == ArduinoConnected)
+        NegotiateProtocol();
     ProcessIncoming();
     FlushCommandQueue();
     return true;

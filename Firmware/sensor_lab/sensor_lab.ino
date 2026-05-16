@@ -14,6 +14,32 @@ int numPins = 0;
 bool readingEnabled = true;
 int dhtPin = DEFAULT_DHTPIN;
 bool servoRunning = false;
+uint8_t protocolVersion = 1;
+
+uint8_t crc8Maxim(const uint8_t* data, int len) {
+  uint8_t crc = 0;
+  for (int i = 0; i < len; ++i) {
+    crc ^= data[i];
+    for (int b = 0; b < 8; ++b)
+      crc = (crc & 1) ? (uint8_t)((crc >> 1) ^ 0x8C) : (uint8_t)(crc >> 1);
+  }
+  return crc;
+}
+
+void writeFramedV2(uint8_t type, const uint8_t* payload, uint16_t len) {
+  uint8_t header[4] = {0xAA, type, (uint8_t)(len & 0xFF), (uint8_t)((len >> 8) & 0xFF)};
+  Serial.write(header, 4);
+  if (len > 0)
+    Serial.write(payload, len);
+  uint8_t frame[4 + 64];
+  int frameLen = 4;
+  memcpy(frame, header, 4);
+  if (len > 0 && len <= 64) {
+    memcpy(frame + 4, payload, len);
+    frameLen += len;
+  }
+  Serial.write(crc8Maxim(frame, frameLen));
+}
 
 int targetAngle = 90;
 int currentAngle = 90;
@@ -82,6 +108,15 @@ void loop() {
         mainDelay = newDelay;
     } else if (command == "GET STATUS") {
       sendStatusPacket();
+    } else if (command.startsWith("PROTO ")) {
+      int ver = command.substring(6).toInt();
+      if (ver >= 2) {
+        protocolVersion = 2;
+        Serial.println(F("PROTO OK 2"));
+      } else {
+        protocolVersion = 1;
+        Serial.println(F("PROTO OK 1"));
+      }
     }
   }
 
@@ -110,6 +145,14 @@ void loop() {
 }
 
 void sendPinConfigPacket() {
+  if (protocolVersion >= 2) {
+    uint8_t body[32];
+    body[0] = (uint8_t)numPins;
+    for (int i = 0; i < numPins && i < 31; i++)
+      body[1 + i] = (uint8_t)analogPins[i];
+    writeFramedV2(0x02, body, 1 + numPins);
+    return;
+  }
   Serial.write(0x02);
   Serial.write((uint8_t)numPins);
   for (int i = 0; i < numPins; i++)
@@ -117,6 +160,20 @@ void sendPinConfigPacket() {
 }
 
 void sendStatusPacket() {
+  if (protocolVersion >= 2) {
+    uint8_t body[32];
+    int idx = 0;
+    body[idx++] = (uint8_t)numPins;
+    if (analogPins) {
+      for (int i = 0; i < numPins && idx < 28; i++)
+        body[idx++] = (uint8_t)analogPins[i];
+    }
+    body[idx++] = (uint8_t)HALLPIN;
+    body[idx++] = (uint8_t)dhtPin;
+    body[idx++] = (uint8_t)SERVOPIN;
+    writeFramedV2(0x04, body, idx);
+    return;
+  }
   Serial.write(0x04);
   Serial.write((uint8_t)numPins);
   if (analogPins) {
@@ -144,6 +201,17 @@ void sendSensorData() {
   else
     hallStatus = (hallValue > 512) ? 1.0f : 0.0f;
 
+  if (protocolVersion >= 2) {
+    uint8_t body[2 + 4 * sizeof(float)];
+    body[0] = errorFlags;
+    body[1] = 4;
+    memcpy(body + 2, &temperature, sizeof(float));
+    memcpy(body + 2 + sizeof(float), &humidity, sizeof(float));
+    memcpy(body + 2 + 2 * sizeof(float), &hallStatus, sizeof(float));
+    memcpy(body + 2 + 3 * sizeof(float), &currentSpeed, sizeof(float));
+    writeFramedV2(0x01, body, sizeof(body));
+    return;
+  }
   Serial.write(0x01);
   Serial.write(errorFlags);
   Serial.write((uint8_t)4);
