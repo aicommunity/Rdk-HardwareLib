@@ -37,13 +37,13 @@ private slots:
 private:
     void refreshMatrixPreview();
 
-    UComponentGuiContext m_context;
-    UArduinoBoardDiagramWidget* m_diagram = nullptr;
-    QTabWidget* m_tabs = nullptr;
-    HardwareArduinoBoardPanelWidget* m_boardPanel = nullptr;
-    QLineEdit* m_commandEdit = nullptr;
-    QListWidget* m_presetsList = nullptr;
-    QTableWidget* m_matrixTable = nullptr;
+    UComponentGuiContext Context;
+    UArduinoBoardDiagramWidget* Diagram = nullptr;
+    QTabWidget* Tabs = nullptr;
+    HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    QLineEdit* CommandEdit = nullptr;
+    QListWidget* PresetsList = nullptr;
+    QTableWidget* MatrixTable = nullptr;
 };
 
 #endif

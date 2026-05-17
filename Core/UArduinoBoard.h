@@ -80,7 +80,7 @@ protected:
     void HeartbeatTick();
     void TouchActivity();
     UArduinoSerialSession* session();
-    QString resolveHexPath() const;
+    QString ResolveHexPath() const;
 
     void SyncDerivedStates();
     void ProcessBoardEdges();

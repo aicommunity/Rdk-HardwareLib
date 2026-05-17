@@ -43,7 +43,7 @@ bool UArduinoDcDemo::AReset()
     return UArduinoCustomLink::AReset();
 }
 
-bool UArduinoDcDemo::delegateToLinkedSketch()
+bool UArduinoDcDemo::DelegateToLinkedSketch()
 {
     if (LinkedSketchName->empty())
         return false;
@@ -62,8 +62,8 @@ bool UArduinoDcDemo::delegateToLinkedSketch()
             "LinkedSketchName is deprecated; use a single ArduinoDcDemo node with PortName";
     }
 
-    const bool sendRequested = (SendCommand || SendCommandFlag) && !Command->empty();
-    if (sendRequested) {
+    const bool send_requested = (SendCommand || SendCommandFlag) && !Command->empty();
+    if (send_requested) {
         sketch->Command = Command;
         sketch->SendCommand = true;
         SentCommand = Command;
@@ -92,22 +92,22 @@ void UArduinoDcDemo::OnBinaryFrame(uint8_t type, const QByteArray& payload)
     if (type != 0x01 || payload.size() < 2)
         return;
 
-    const uint8_t paramCount = static_cast<uint8_t>(payload[1]);
-    if (payload.size() < 2 + paramCount * static_cast<int>(sizeof(float)))
+    const uint8_t param_count = static_cast<uint8_t>(payload[1]);
+    if (payload.size() < 2 + param_count * static_cast<int>(sizeof(float)))
         return;
 
     float values[5] = {0, 0, 0, 0, 0};
-    for (int i = 0; i < paramCount && i < 5; ++i)
+    for (int i = 0; i < param_count && i < 5; ++i)
         memcpy(&values[i], payload.constData() + 2 + i * sizeof(float), sizeof(float));
 
     // Legacy 0x01 layout: t, h, hall, speed[, acceleration]
-    if (paramCount >= 5) {
+    if (param_count >= 5) {
         CachedSpeed = values[3];
         CachedAcceleration = values[4];
-    } else if (paramCount >= 4) {
+    } else if (param_count >= 4) {
         CachedSpeed = values[3];
         CachedAcceleration = 0.f;
-    } else if (paramCount >= 1) {
+    } else if (param_count >= 1) {
         CachedSpeed = values[0];
         CachedAcceleration = 0.f;
     }
@@ -125,7 +125,7 @@ void UArduinoDcDemo::ProcessDcDemoEdges()
 bool UArduinoDcDemo::ACalculate()
 {
     if (!LinkedSketchName->empty())
-        return delegateToLinkedSketch();
+        return DelegateToLinkedSketch();
 
     ProcessDcDemoEdges();
     return UArduinoCustomLink::ACalculate();

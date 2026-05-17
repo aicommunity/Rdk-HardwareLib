@@ -8,7 +8,7 @@
 namespace RDK {
 
 struct USensorDataPoint {
-    QVector<double> data;
+    QVector<double> Data;
 };
 
 class RDK_LIB_TYPE UArduinoSensorSketch : public UArduinoCustomLink {
@@ -42,9 +42,13 @@ protected:
 
     void ProcessSketchEdges();
     void PutDataToMatrix();
-    void FillSensorBuffer(double timestamp, uint8_t paramCount,
-                          float t, float h, float hall, float speed);
-    void runPresetCommand(const char* text);
+    void FillSensorBuffer(double timestamp,
+                          uint8_t param_count,
+                          float temperature,
+                          float humidity,
+                          float hall_value,
+                          float speed_value);
+    void RunPresetCommand(const char* text);
     static QString pinToString(int pin);
 
     QVector<USensorDataPoint> DataBuffer;

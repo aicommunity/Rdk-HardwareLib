@@ -37,7 +37,7 @@ classDiagram
 
 | Компонент | Поток | Поведение |
 |-----------|-------|-----------|
-| `UArduinoSerialSession` | поток владельца `QObject` (обычно Qt main / engine app) | `readyRead` только дописывает `m_rxBuffer` под mutex; `bytesReceived` **не подключён** в HardwareLib |
+| `UArduinoSerialSession` | поток владельца `QObject` (обычно Qt main / engine app) | `readyRead` только дописывает `RxBuffer` под mutex; `bytesReceived` **не подключён** в HardwareLib |
 | `UArduinoBoard::ACalculate` | Engine | `takeReceivedBytes()` → parse → свойства |
 | `UArduinoFlasher::flash` | синхронно из `RunUpload` в `ACalculate` | прогресс пишет `UploadProgress` в том же потоке |
 

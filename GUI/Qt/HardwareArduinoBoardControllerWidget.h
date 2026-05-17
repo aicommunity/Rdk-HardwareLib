@@ -20,9 +20,9 @@ public:
 private:
     void updateDiagram();
 
-    UComponentGuiContext m_context;
-    UArduinoBoardDiagramWidget* m_diagram = nullptr;
-    HardwareArduinoBoardPanelWidget* m_boardPanel = nullptr;
+    UComponentGuiContext Context;
+    UArduinoBoardDiagramWidget* Diagram = nullptr;
+    HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
 };
 
 #endif

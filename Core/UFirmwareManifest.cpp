@@ -35,20 +35,20 @@ QString UFirmwareManifest::firmwareRoot()
         .absolutePath();
 }
 
-QString UFirmwareManifest::resolveBundledHex(const QString& bundledId, int boardProfileInt)
+QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, int board_profile_int)
 {
-    return resolveBundledHex(bundledId,
+    return resolveBundledHex(bundled_id,
                            UArduinoBoardProfileUtil::boardKindToManifestKey(
-                               UArduinoBoardProfileUtil::profileForKind(boardProfileInt).kind));
+                               UArduinoBoardProfileUtil::profileForKind(board_profile_int).kind));
 }
 
-QString UFirmwareManifest::resolveBundledHex(const QString& bundledId, const QString& boardKey)
+QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, const QString& board_key)
 {
-    if (bundledId.isEmpty())
+    if (bundled_id.isEmpty())
         return QString();
 
-    const QString manifestPath = QDir(firmwareRoot()).filePath(QStringLiteral("manifest.json"));
-    QFile file(manifestPath);
+    const QString manifest_path = QDir(firmwareRoot()).filePath(QStringLiteral("manifest.json"));
+    QFile file(manifest_path);
     if (!file.open(QIODevice::ReadOnly))
         return QString();
 
@@ -56,14 +56,14 @@ QString UFirmwareManifest::resolveBundledHex(const QString& bundledId, const QSt
     const QJsonArray bundled = doc.object().value(QStringLiteral("bundled")).toArray();
     for (const QJsonValue& entryVal : bundled) {
         const QJsonObject entry = entryVal.toObject();
-        if (entry.value(QStringLiteral("id")).toString() != bundledId)
+        if (entry.value(QStringLiteral("id")).toString() != bundled_id)
             continue;
         const QJsonObject boards = entry.value(QStringLiteral("boards")).toObject();
-        const QJsonObject board = boards.value(boardKey).toObject();
-        const QString hexRel = board.value(QStringLiteral("hex")).toString();
-        if (hexRel.isEmpty())
+        const QJsonObject board = boards.value(board_key).toObject();
+        const QString hex_rel = board.value(QStringLiteral("hex")).toString();
+        if (hex_rel.isEmpty())
             return QString();
-        return QDir(firmwareRoot()).filePath(hexRel);
+        return QDir(firmwareRoot()).filePath(hex_rel);
     }
     return QString();
 }

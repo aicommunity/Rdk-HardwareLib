@@ -102,13 +102,13 @@ void UArduinoFirmata::ProcessFirmata()
     TouchActivity();
     LastHealthResponseMs = LastActivityMs;
     FirmataClient.processIncoming(data);
-    FirmataReady = FirmataClient.ready;
-    FirmataFirmwareVersion = FirmataClient.firmwareVersion.toStdString();
+    FirmataReady = FirmataClient.HandshakeReady;
+    FirmataFirmwareVersion = FirmataClient.FirmwareVersion.toStdString();
 }
 
 void UArduinoFirmata::RunFirmataActions()
 {
-    if (!Session || !Session->isOpen() || !FirmataClient.ready)
+    if (!Session || !Session->isOpen() || !FirmataClient.HandshakeReady)
         return;
 
     if (SetPinModeFlag) {

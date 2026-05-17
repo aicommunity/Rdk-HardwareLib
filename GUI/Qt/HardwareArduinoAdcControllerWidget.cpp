@@ -9,19 +9,19 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
                                                                        RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
-    m_linkedEdit = new QLineEdit(this);
-    m_pinSpin = new QSpinBox(this);
-    m_pinSpin->setRange(0, 15);
-    m_valueLabel = new QLabel(tr("Adc value: —"), this);
+    LinkedEdit = new QLineEdit(this);
+    PinSpin = new QSpinBox(this);
+    PinSpin->setRange(0, 15);
+    ValueLabel = new QLabel(tr("Adc value: —"), this);
 
     auto* readBtn = new QPushButton(tr("Read ADC"), this);
     connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoAdcControllerWidget::onReadAdc);
 
     auto* form = new QFormLayout();
-    form->addRow(tr("Linked Firmata:"), m_linkedEdit);
-    form->addRow(tr("Analog pin:"), m_pinSpin);
+    form->addRow(tr("Linked Firmata:"), LinkedEdit);
+    form->addRow(tr("Analog pin:"), PinSpin);
     form->addRow(QString(), readBtn);
-    form->addRow(QString(), m_valueLabel);
+    form->addRow(QString(), ValueLabel);
 
     auto* root = new QVBoxLayout(this);
     root->addLayout(form);
@@ -29,7 +29,7 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
 
 void HardwareArduinoAdcControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
-    m_context = context;
+    Context = context;
     refreshFromModel(true);
 }
 
@@ -41,18 +41,18 @@ QString HardwareArduinoAdcControllerWidget::componentGuiId() const
 void HardwareArduinoAdcControllerWidget::refreshFromModel(bool force)
 {
     Q_UNUSED(force);
-    if (m_context.componentLongName.isEmpty())
+    if (Context.componentLongName.isEmpty())
         return;
-    m_linkedEdit->setText(HardwareGuiHelpers::getProp(m_context, "LinkedFirmataName"));
-    m_pinSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "AnalogPin", 0));
-    m_valueLabel->setText(
-        tr("Adc value: %1").arg(HardwareGuiHelpers::getPropInt(m_context, "AdcValue", 0)));
+    LinkedEdit->setText(HardwareGuiHelpers::getProp(Context, "LinkedFirmataName"));
+    PinSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "AnalogPin", 0));
+    ValueLabel->setText(
+        tr("Adc value: %1").arg(HardwareGuiHelpers::getPropInt(Context, "AdcValue", 0)));
 }
 
 void HardwareArduinoAdcControllerWidget::onReadAdc()
 {
-    HardwareGuiHelpers::setProp(m_context, "LinkedFirmataName", m_linkedEdit->text());
-    HardwareGuiHelpers::setProp(m_context, "AnalogPin", QString::number(m_pinSpin->value()));
-    HardwareGuiHelpers::pulseEdge(m_context, "ReadAdcFlag");
+    HardwareGuiHelpers::setProp(Context, "LinkedFirmataName", LinkedEdit->text());
+    HardwareGuiHelpers::setProp(Context, "AnalogPin", QString::number(PinSpin->value()));
+    HardwareGuiHelpers::pulseEdge(Context, "ReadAdcFlag");
     refreshFromModel(true);
 }

@@ -12,12 +12,12 @@ class UArduinoSerialSession;
 
 class UArduinoFirmataClient {
 public:
-    bool ready = false;
-    QString firmwareVersion;
+    bool HandshakeReady = false;
+    QString FirmwareVersion;
 
     void reset();
     void processIncoming(const QByteArray& data);
-    void onReady(std::function<void()> cb) { m_onReady = std::move(cb); }
+    void onReady(std::function<void()> cb) { OnReadyCallback = std::move(cb); }
 
     bool startHandshake(UArduinoSerialSession* session);
     bool setPinMode(UArduinoSerialSession* session, int pin, int mode);
@@ -32,14 +32,14 @@ private:
     void handleSysex(const QByteArray& sysex);
     void writeBytes(UArduinoSerialSession* session, const QByteArray& bytes);
 
-    QByteArray m_sysexBuffer;
-    bool m_inSysex = false;
-    QMap<int, int> m_analogValues;
-    QMap<int, int> m_analogChannelByPin;
-    std::function<void()> m_onReady;
-    bool m_gotFirmware = false;
-    bool m_gotCapability = false;
-    bool m_gotAnalogMapping = false;
+    QByteArray SysexBuffer;
+    bool InSysex = false;
+    QMap<int, int> AnalogValues;
+    QMap<int, int> AnalogChannelByPin;
+    std::function<void()> OnReadyCallback;
+    bool GotFirmware = false;
+    bool GotCapability = false;
+    bool GotAnalogMapping = false;
 };
 
 } // namespace RDK

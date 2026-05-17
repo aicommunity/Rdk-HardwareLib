@@ -31,7 +31,7 @@ public:
     void setSelectedPinId(const QString& pinId);
     void setInteractive(bool interactive);
 
-    static int firmataPinFromLabel(const QString& pinId, int boardProfile);
+    static int firmataPinFromLabel(const QString& pinId, int board_profile);
 
 signals:
     void pinClicked(const QString& pinId);
@@ -47,21 +47,21 @@ private:
     QString svgResourceForProfile() const;
     QString pinsResourceForProfile() const;
 
-    int m_boardProfile = 0;
-    int m_connectionState = 0;
-    QStringList m_highlightedPins;
-    QMap<QString, QString> m_pinRoles;
-    QString m_selectedPinId;
-    bool m_interactive = false;
+    int BoardProfileValue = 0;
+    int ConnectionStateValue = 0;
+    QStringList HighlightedPins;
+    QMap<QString, QString> PinRoles;
+    QString SelectedPinId;
+    bool Interactive = false;
 
-    QWidget* m_diagramHost = nullptr;
+    QWidget* DiagramHost = nullptr;
 #if HARDWARELIB_HAS_QTSVG
-    QSvgWidget* m_svg = nullptr;
+    QSvgWidget* SvgWidget = nullptr;
 #else
-    QLabel* m_svgPlaceholder = nullptr;
+    QLabel* SvgPlaceholder = nullptr;
 #endif
-    UArduinoPinOverlay* m_overlay = nullptr;
-    QPlainTextEdit* m_statusLog = nullptr;
+    UArduinoPinOverlay* Overlay = nullptr;
+    QPlainTextEdit* StatusLog = nullptr;
 };
 
 #endif

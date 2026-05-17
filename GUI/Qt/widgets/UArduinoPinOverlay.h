@@ -10,10 +10,10 @@ class UArduinoPinOverlay : public QWidget {
     Q_OBJECT
 public:
     struct PinRegion {
-        QString id;
-        QString label;
-        QRectF normalizedRect;
-        QString role;
+        QString Id;
+        QString Label;
+        QRectF NormalizedRect;
+        QString Role;
     };
 
     explicit UArduinoPinOverlay(QWidget* parent = nullptr);
@@ -34,11 +34,11 @@ protected:
 private:
     QString pinAt(const QPoint& pos) const;
 
-    QVector<PinRegion> m_pins;
-    QMap<QString, QString> m_roles;
-    QStringList m_highlighted;
-    QString m_selectedId;
-    bool m_interactive = false;
+    QVector<PinRegion> Pins;
+    QMap<QString, QString> Roles;
+    QStringList HighlightedIds;
+    QString SelectedId;
+    bool Interactive = false;
 };
 
 #endif

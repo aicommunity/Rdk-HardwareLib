@@ -14,41 +14,41 @@
 HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent)
     : QWidget(parent)
 {
-    m_portCombo = new QComboBox(this);
+    PortCombo = new QComboBox(this);
     auto* refreshPortsBtn = new QPushButton(tr("Refresh"), this);
     connect(refreshPortsBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onRefreshPorts);
 
-    m_boardProfileCombo = new QComboBox(this);
-    m_boardProfileCombo->addItem(tr("Arduino Uno"), 0);
-    m_boardProfileCombo->addItem(tr("Arduino Mega 2560"), 1);
+    BoardProfileCombo = new QComboBox(this);
+    BoardProfileCombo->addItem(tr("Arduino Uno"), 0);
+    BoardProfileCombo->addItem(tr("Arduino Mega 2560"), 1);
 
-    m_baudSpin = new QSpinBox(this);
-    m_baudSpin->setRange(9600, 250000);
-    m_baudSpin->setValue(57600);
+    BaudSpin = new QSpinBox(this);
+    BaudSpin->setRange(9600, 250000);
+    BaudSpin->setValue(57600);
 
-    m_connectOnBuildCheck = new QCheckBox(tr("Connect on build"), this);
-    m_autoReconnectCheck = new QCheckBox(tr("Auto reconnect"), this);
-    m_heartbeatEnabledCheck = new QCheckBox(tr("Heartbeat enabled"), this);
-    m_showDebugCheck = new QCheckBox(tr("Show debug"), this);
-    m_heartbeatIntervalSpin = new QSpinBox(this);
-    m_heartbeatIntervalSpin->setRange(500, 60000);
-    m_heartbeatIntervalSpin->setSuffix(tr(" ms"));
-    m_heartbeatIntervalSpin->setValue(3000);
-    m_heartbeatTimeoutSpin = new QSpinBox(this);
-    m_heartbeatTimeoutSpin->setRange(1000, 120000);
-    m_heartbeatTimeoutSpin->setSuffix(tr(" ms"));
-    m_heartbeatTimeoutSpin->setValue(10000);
+    ConnectOnBuildCheck = new QCheckBox(tr("Connect on build"), this);
+    AutoReconnectCheck = new QCheckBox(tr("Auto reconnect"), this);
+    HeartbeatEnabledCheck = new QCheckBox(tr("Heartbeat enabled"), this);
+    ShowDebugCheck = new QCheckBox(tr("Show debug"), this);
+    HeartbeatIntervalSpin = new QSpinBox(this);
+    HeartbeatIntervalSpin->setRange(500, 60000);
+    HeartbeatIntervalSpin->setSuffix(tr(" ms"));
+    HeartbeatIntervalSpin->setValue(3000);
+    HeartbeatTimeoutSpin = new QSpinBox(this);
+    HeartbeatTimeoutSpin->setRange(1000, 120000);
+    HeartbeatTimeoutSpin->setSuffix(tr(" ms"));
+    HeartbeatTimeoutSpin->setValue(10000);
 
-    m_bundledFirmwareCombo = new QComboBox(this);
-    m_bundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
-    m_bundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
+    BundledFirmwareCombo = new QComboBox(this);
+    BundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
+    BundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
 
-    m_firmwarePathEdit = new QLineEdit(this);
+    FirmwarePathEdit = new QLineEdit(this);
     auto* browseBtn = new QPushButton(tr("Browse…"), this);
     connect(browseBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseHex);
 
-    m_uploadProgress = new QProgressBar(this);
-    m_statusLog = HardwareGuiHelpers::createStatusLogWidget(this);
+    UploadProgress = new QProgressBar(this);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this);
 
     auto* connectBtn = new QPushButton(tr("Connect"), this);
     auto* disconnectBtn = new QPushButton(tr("Disconnect"), this);
@@ -70,25 +70,25 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     auto* form = new QFormLayout();
     auto* portRow = new QHBoxLayout();
-    portRow->addWidget(m_portCombo, 1);
+    portRow->addWidget(PortCombo, 1);
     portRow->addWidget(refreshPortsBtn);
     form->addRow(tr("Port:"), portRow);
-    form->addRow(tr("Board:"), m_boardProfileCombo);
-    form->addRow(tr("Baud rate:"), m_baudSpin);
-    form->addRow(QString(), m_connectOnBuildCheck);
-    form->addRow(QString(), m_autoReconnectCheck);
-    form->addRow(QString(), m_heartbeatEnabledCheck);
-    form->addRow(QString(), m_showDebugCheck);
-    form->addRow(tr("Heartbeat interval:"), m_heartbeatIntervalSpin);
-    form->addRow(tr("Heartbeat timeout:"), m_heartbeatTimeoutSpin);
-    form->addRow(tr("Bundled firmware:"), m_bundledFirmwareCombo);
+    form->addRow(tr("Board:"), BoardProfileCombo);
+    form->addRow(tr("Baud rate:"), BaudSpin);
+    form->addRow(QString(), ConnectOnBuildCheck);
+    form->addRow(QString(), AutoReconnectCheck);
+    form->addRow(QString(), HeartbeatEnabledCheck);
+    form->addRow(QString(), ShowDebugCheck);
+    form->addRow(tr("Heartbeat interval:"), HeartbeatIntervalSpin);
+    form->addRow(tr("Heartbeat timeout:"), HeartbeatTimeoutSpin);
+    form->addRow(tr("Bundled firmware:"), BundledFirmwareCombo);
     auto* hexRow = new QHBoxLayout();
-    hexRow->addWidget(m_firmwarePathEdit, 1);
+    hexRow->addWidget(FirmwarePathEdit, 1);
     hexRow->addWidget(browseBtn);
     form->addRow(tr("HEX path:"), hexRow);
     form->addRow(tr("Upload:"), uploadBtn);
-    form->addRow(QString(), m_uploadProgress);
-    form->addRow(tr("Status / log:"), m_statusLog);
+    form->addRow(QString(), UploadProgress);
+    form->addRow(tr("Status / log:"), StatusLog);
 
     auto* connRow = new QHBoxLayout();
     connRow->addWidget(connectBtn);
@@ -117,55 +117,55 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
 void HardwareArduinoBoardPanelWidget::setContext(const UComponentGuiContext& context)
 {
-    m_context = context;
+    Context = context;
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::refreshFromModel()
 {
-    if (m_context.componentLongName.isEmpty())
+    if (Context.componentLongName.isEmpty())
         return;
 
-    QSignalBlocker b1(m_portCombo);
-    QSignalBlocker b2(m_boardProfileCombo);
-    QSignalBlocker b3(m_baudSpin);
-    QSignalBlocker b4(m_bundledFirmwareCombo);
-    QSignalBlocker b5(m_firmwarePathEdit);
-    QSignalBlocker b6(m_connectOnBuildCheck);
-    QSignalBlocker b7(m_autoReconnectCheck);
-    QSignalBlocker b8(m_heartbeatEnabledCheck);
-    QSignalBlocker b9(m_heartbeatIntervalSpin);
-    QSignalBlocker b10(m_heartbeatTimeoutSpin);
-    QSignalBlocker b11(m_showDebugCheck);
+    QSignalBlocker b1(PortCombo);
+    QSignalBlocker b2(BoardProfileCombo);
+    QSignalBlocker b3(BaudSpin);
+    QSignalBlocker b4(BundledFirmwareCombo);
+    QSignalBlocker b5(FirmwarePathEdit);
+    QSignalBlocker b6(ConnectOnBuildCheck);
+    QSignalBlocker b7(AutoReconnectCheck);
+    QSignalBlocker b8(HeartbeatEnabledCheck);
+    QSignalBlocker b9(HeartbeatIntervalSpin);
+    QSignalBlocker b10(HeartbeatTimeoutSpin);
+    QSignalBlocker b11(ShowDebugCheck);
 
-    const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    const QString portPath =
+    const QString port = HardwareGuiHelpers::getProp(Context, "PortName");
+    const QString port_path =
         port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
-    HardwareGuiHelpers::selectSerialPortInCombo(m_portCombo, portPath);
+    HardwareGuiHelpers::selectSerialPortInCombo(PortCombo, port_path);
 
-    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
-    m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
-    m_baudSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "BaudRate", 57600));
-    m_connectOnBuildCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "ConnectOnBuild", true));
-    m_autoReconnectCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "AutoReconnect", false));
-    m_heartbeatEnabledCheck->setChecked(
-        HardwareGuiHelpers::getPropBool(m_context, "HeartbeatEnabled", true));
-    m_showDebugCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "ShowDebug", false));
-    m_heartbeatIntervalSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "HeartbeatIntervalMs", 3000));
-    m_heartbeatTimeoutSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "HeartbeatTimeoutMs", 10000));
+    const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
+    BoardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
+    BaudSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "BaudRate", 57600));
+    ConnectOnBuildCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "ConnectOnBuild", true));
+    AutoReconnectCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "AutoReconnect", false));
+    HeartbeatEnabledCheck->setChecked(
+        HardwareGuiHelpers::getPropBool(Context, "HeartbeatEnabled", true));
+    ShowDebugCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "ShowDebug", false));
+    HeartbeatIntervalSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "HeartbeatIntervalMs", 3000));
+    HeartbeatTimeoutSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "HeartbeatTimeoutMs", 10000));
 
-    const QString bundled = HardwareGuiHelpers::getProp(m_context, "BundledFirmwareId");
-    const int bundledIdx = m_bundledFirmwareCombo->findData(bundled);
-    m_bundledFirmwareCombo->setCurrentIndex(bundledIdx >= 0 ? bundledIdx : 0);
-    m_firmwarePathEdit->setText(HardwareGuiHelpers::getProp(m_context, "FirmwarePath"));
-    m_uploadProgress->setValue(HardwareGuiHelpers::getPropInt(m_context, "UploadProgress", 0));
+    const QString bundled = HardwareGuiHelpers::getProp(Context, "BundledFirmwareId");
+    const int bundledIdx = BundledFirmwareCombo->findData(bundled);
+    BundledFirmwareCombo->setCurrentIndex(bundledIdx >= 0 ? bundledIdx : 0);
+    FirmwarePathEdit->setText(HardwareGuiHelpers::getProp(Context, "FirmwarePath"));
+    UploadProgress->setValue(HardwareGuiHelpers::getPropInt(Context, "UploadProgress", 0));
 
-    const bool connected = HardwareGuiHelpers::getPropBool(m_context, "IsConnected", false);
-    const bool hasError = HardwareGuiHelpers::getPropBool(m_context, "HasError", false);
-    const QString err = HardwareGuiHelpers::getProp(m_context, "LastError");
-    const QString uploadRes = HardwareGuiHelpers::getProp(m_context, "UploadLastResult");
+    const bool connected = HardwareGuiHelpers::getPropBool(Context, "IsConnected", false);
+    const bool hasError = HardwareGuiHelpers::getPropBool(Context, "HasError", false);
+    const QString err = HardwareGuiHelpers::getProp(Context, "LastError");
+    const QString uploadRes = HardwareGuiHelpers::getProp(Context, "UploadLastResult");
     HardwareGuiHelpers::setStatusLogText(
-        m_statusLog,
+        StatusLog,
         tr("Connected: %1\nHas error: %2\nLast error: %3\nUpload: %4")
             .arg(connected ? tr("yes") : tr("no"))
             .arg(hasError ? tr("yes") : tr("no"))
@@ -174,91 +174,91 @@ void HardwareArduinoBoardPanelWidget::refreshFromModel()
 
 void HardwareArduinoBoardPanelWidget::applyToModel()
 {
-    HardwareGuiHelpers::setProp(m_context,
+    HardwareGuiHelpers::setProp(Context,
                                 "PortName",
-                                HardwareGuiHelpers::selectedSerialPortPath(m_portCombo));
-    HardwareGuiHelpers::setProp(m_context, "BoardProfile",
-                                QString::number(m_boardProfileCombo->currentData().toInt()));
-    HardwareGuiHelpers::setProp(m_context, "BaudRate", QString::number(m_baudSpin->value()));
-    HardwareGuiHelpers::setProp(m_context, "ConnectOnBuild",
-                                m_connectOnBuildCheck->isChecked() ? QStringLiteral("1")
+                                HardwareGuiHelpers::selectedSerialPortPath(PortCombo));
+    HardwareGuiHelpers::setProp(Context, "BoardProfile",
+                                QString::number(BoardProfileCombo->currentData().toInt()));
+    HardwareGuiHelpers::setProp(Context, "BaudRate", QString::number(BaudSpin->value()));
+    HardwareGuiHelpers::setProp(Context, "ConnectOnBuild",
+                                ConnectOnBuildCheck->isChecked() ? QStringLiteral("1")
                                                                    : QStringLiteral("0"));
-    HardwareGuiHelpers::setProp(m_context, "AutoReconnect",
-                                m_autoReconnectCheck->isChecked() ? QStringLiteral("1")
+    HardwareGuiHelpers::setProp(Context, "AutoReconnect",
+                                AutoReconnectCheck->isChecked() ? QStringLiteral("1")
                                                                   : QStringLiteral("0"));
-    HardwareGuiHelpers::setProp(m_context, "HeartbeatEnabled",
-                                m_heartbeatEnabledCheck->isChecked() ? QStringLiteral("1")
+    HardwareGuiHelpers::setProp(Context, "HeartbeatEnabled",
+                                HeartbeatEnabledCheck->isChecked() ? QStringLiteral("1")
                                                                      : QStringLiteral("0"));
-    HardwareGuiHelpers::setProp(m_context, "ShowDebug",
-                                m_showDebugCheck->isChecked() ? QStringLiteral("1")
+    HardwareGuiHelpers::setProp(Context, "ShowDebug",
+                                ShowDebugCheck->isChecked() ? QStringLiteral("1")
                                                               : QStringLiteral("0"));
-    HardwareGuiHelpers::setProp(m_context, "HeartbeatIntervalMs",
-                                QString::number(m_heartbeatIntervalSpin->value()));
-    HardwareGuiHelpers::setProp(m_context, "HeartbeatTimeoutMs",
-                                QString::number(m_heartbeatTimeoutSpin->value()));
-    HardwareGuiHelpers::setProp(m_context, "BundledFirmwareId",
-                                m_bundledFirmwareCombo->currentData().toString());
-    HardwareGuiHelpers::setProp(m_context, "FirmwarePath", m_firmwarePathEdit->text());
+    HardwareGuiHelpers::setProp(Context, "HeartbeatIntervalMs",
+                                QString::number(HeartbeatIntervalSpin->value()));
+    HardwareGuiHelpers::setProp(Context, "HeartbeatTimeoutMs",
+                                QString::number(HeartbeatTimeoutSpin->value()));
+    HardwareGuiHelpers::setProp(Context, "BundledFirmwareId",
+                                BundledFirmwareCombo->currentData().toString());
+    HardwareGuiHelpers::setProp(Context, "FirmwarePath", FirmwarePathEdit->text());
 }
 
 void HardwareArduinoBoardPanelWidget::onRefreshPorts()
 {
-    const QString current = HardwareGuiHelpers::selectedSerialPortPath(m_portCombo);
-    HardwareGuiHelpers::populateSerialPortCombo(m_portCombo, current);
+    const QString current = HardwareGuiHelpers::selectedSerialPortPath(PortCombo);
+    HardwareGuiHelpers::populateSerialPortCombo(PortCombo, current);
 }
 
 void HardwareArduinoBoardPanelWidget::onApply()
 {
     applyToModel();
-    HardwareGuiHelpers::envReset(m_context);
+    HardwareGuiHelpers::envReset(Context);
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onReset()
 {
-    HardwareGuiHelpers::envReset(m_context);
+    HardwareGuiHelpers::envReset(Context);
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onCalculate()
 {
     applyToModel();
-    HardwareGuiHelpers::envCalculate(m_context);
+    HardwareGuiHelpers::envCalculate(Context);
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onConnect()
 {
     applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "Connect");
+    HardwareGuiHelpers::pulseEdge(Context, "Connect");
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onDisconnect()
 {
     applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "Disconnect");
+    HardwareGuiHelpers::pulseEdge(Context, "Disconnect");
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onReconnect()
 {
     applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "Reconnect");
+    HardwareGuiHelpers::pulseEdge(Context, "Reconnect");
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onHealthCheck()
 {
     applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "RequestHealthCheck");
+    HardwareGuiHelpers::pulseEdge(Context, "RequestHealthCheck");
     refreshFromModel();
 }
 
 void HardwareArduinoBoardPanelWidget::onUpload()
 {
     applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "UploadFirmware");
+    HardwareGuiHelpers::pulseEdge(Context, "UploadFirmware");
     refreshFromModel();
 }
 
@@ -267,5 +267,5 @@ void HardwareArduinoBoardPanelWidget::onBrowseHex()
     const QString path = QFileDialog::getOpenFileName(this, tr("Select HEX file"), QString(),
                                                       tr("Intel HEX (*.hex);;All (*)"));
     if (!path.isEmpty())
-        m_firmwarePathEdit->setText(path);
+        FirmwarePathEdit->setText(path);
 }

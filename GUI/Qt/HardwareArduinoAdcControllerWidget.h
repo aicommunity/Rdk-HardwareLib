@@ -23,10 +23,10 @@ private slots:
     void onReadAdc();
 
 private:
-    UComponentGuiContext m_context;
-    QLineEdit* m_linkedEdit = nullptr;
-    QSpinBox* m_pinSpin = nullptr;
-    QLabel* m_valueLabel = nullptr;
+    UComponentGuiContext Context;
+    QLineEdit* LinkedEdit = nullptr;
+    QSpinBox* PinSpin = nullptr;
+    QLabel* ValueLabel = nullptr;
 };
 
 #endif

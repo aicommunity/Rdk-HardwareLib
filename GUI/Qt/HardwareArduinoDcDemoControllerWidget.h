@@ -29,11 +29,11 @@ private slots:
     void onPreset(const QString& command);
 
 private:
-    UComponentGuiContext m_context;
-    QTabWidget* m_tabs = nullptr;
-    HardwareArduinoBoardPanelWidget* m_boardPanel = nullptr;
-    QLineEdit* m_commandEdit = nullptr;
-    QLabel* m_speedLabel = nullptr;
+    UComponentGuiContext Context;
+    QTabWidget* Tabs = nullptr;
+    HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    QLineEdit* CommandEdit = nullptr;
+    QLabel* SpeedLabel = nullptr;
 };
 
 #endif

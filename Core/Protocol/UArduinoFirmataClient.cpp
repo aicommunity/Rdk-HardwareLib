@@ -20,15 +20,15 @@ constexpr uint8_t kAnalogMappingResponse = 0x6A;
 
 void UArduinoFirmataClient::reset()
 {
-    ready = false;
-    firmwareVersion.clear();
-    m_sysexBuffer.clear();
-    m_inSysex = false;
-    m_analogValues.clear();
-    m_analogChannelByPin.clear();
-    m_gotFirmware = false;
-    m_gotCapability = false;
-    m_gotAnalogMapping = false;
+    HandshakeReady = false;
+    FirmwareVersion.clear();
+    SysexBuffer.clear();
+    InSysex = false;
+    AnalogValues.clear();
+    AnalogChannelByPin.clear();
+    GotFirmware = false;
+    GotCapability = false;
+    GotAnalogMapping = false;
 }
 
 void UArduinoFirmataClient::writeBytes(UArduinoSerialSession* session, const QByteArray& bytes)
@@ -67,7 +67,7 @@ bool UArduinoFirmataClient::queryAnalogMapping(UArduinoSerialSession* session)
 
 int UArduinoFirmataClient::analogChannelForPin(int pin) const
 {
-    return m_analogChannelByPin.value(pin, pin);
+    return AnalogChannelByPin.value(pin, pin);
 }
 
 bool UArduinoFirmataClient::setPinMode(UArduinoSerialSession* session, int pin, int mode)
@@ -103,7 +103,7 @@ bool UArduinoFirmataClient::reportAnalog(UArduinoSerialSession* session, int pin
 
 int UArduinoFirmataClient::analogValue(int pin) const
 {
-    return m_analogValues.value(pin, 0);
+    return AnalogValues.value(pin, 0);
 }
 
 void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
@@ -112,25 +112,25 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
         return;
     const uint8_t cmd = static_cast<uint8_t>(sysex[0]);
     if (cmd == kFirmwareVersion && sysex.size() >= 3) {
-        firmwareVersion = QStringLiteral("%1.%2")
+        FirmwareVersion = QStringLiteral("%1.%2")
                               .arg(static_cast<uint8_t>(sysex[1]))
                               .arg(static_cast<uint8_t>(sysex[2]));
-        m_gotFirmware = true;
+        GotFirmware = true;
     } else if (cmd == kCapabilityResponse) {
-        m_gotCapability = true;
+        GotCapability = true;
     } else if (cmd == kAnalogMappingResponse) {
-        m_analogChannelByPin.clear();
+        AnalogChannelByPin.clear();
         for (int pin = 0; pin < sysex.size(); ++pin) {
             const uint8_t channel = static_cast<uint8_t>(sysex[pin]);
             if (channel != 127)
-                m_analogChannelByPin[pin] = channel;
+                AnalogChannelByPin[pin] = channel;
         }
-        m_gotAnalogMapping = true;
+        GotAnalogMapping = true;
     }
-    if (m_gotFirmware && m_gotCapability && m_gotAnalogMapping && !ready) {
-        ready = true;
-        if (m_onReady)
-            m_onReady();
+    if (GotFirmware && GotCapability && GotAnalogMapping && !HandshakeReady) {
+        HandshakeReady = true;
+        if (OnReadyCallback)
+            OnReadyCallback();
     }
 }
 
@@ -140,7 +140,7 @@ void UArduinoFirmataClient::handleMessage(uint8_t status, uint8_t data1, uint8_t
     if (cmd == kAnalogMessage) {
         const int pin = status & 0x0F;
         const int value = (data1 & 0x7F) | ((data2 & 0x7F) << 7);
-        m_analogValues[pin] = value;
+        AnalogValues[pin] = value;
     }
 }
 
@@ -149,16 +149,16 @@ void UArduinoFirmataClient::processIncoming(const QByteArray& data)
     for (int i = 0; i < data.size(); ++i) {
         const uint8_t b = static_cast<uint8_t>(data[i]);
         if (b == kStartSysex) {
-            m_inSysex = true;
-            m_sysexBuffer.clear();
+            InSysex = true;
+            SysexBuffer.clear();
             continue;
         }
-        if (m_inSysex) {
+        if (InSysex) {
             if (b == kEndSysex) {
-                m_inSysex = false;
-                handleSysex(m_sysexBuffer);
+                InSysex = false;
+                handleSysex(SysexBuffer);
             } else {
-                m_sysexBuffer.append(char(b));
+                SysexBuffer.append(char(b));
             }
             continue;
         }

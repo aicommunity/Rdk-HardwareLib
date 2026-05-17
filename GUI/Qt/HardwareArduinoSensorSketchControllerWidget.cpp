@@ -26,27 +26,27 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
-    m_diagram = new UArduinoBoardDiagramWidget(this);
-    m_diagram->setPinRoles(defaultSensorPinRoles());
-    m_diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
+    Diagram = new UArduinoBoardDiagramWidget(this);
+    Diagram->setPinRoles(defaultSensorPinRoles());
+    Diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
 
     auto* sensorPage = new QWidget(this);
-    m_commandEdit = new QLineEdit(sensorPage);
+    CommandEdit = new QLineEdit(sensorPage);
     auto* sendBtn = new QPushButton(tr("Send"), sensorPage);
     connect(sendBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onSendCommand);
 
-    m_presetsList = new QListWidget(sensorPage);
-    m_presetsList->addItems({QStringLiteral("START READING"),
+    PresetsList = new QListWidget(sensorPage);
+    PresetsList->addItems({QStringLiteral("START READING"),
                               QStringLiteral("STOP READING"),
                               QStringLiteral("ROTATE"),
                               QStringLiteral("STOP ROTATE"),
                               QStringLiteral("GET STATUS"),
                               QStringLiteral("GET PINS INFO")});
-    connect(m_presetsList, &QListWidget::itemDoubleClicked, this,
+    connect(PresetsList, &QListWidget::itemDoubleClicked, this,
             &HardwareArduinoSensorSketchControllerWidget::onPresetCommand);
 
-    m_matrixTable = new QTableWidget(0, 0, sensorPage);
-    m_matrixTable->horizontalHeader()->setStretchLastSection(true);
+    MatrixTable = new QTableWidget(0, 0, sensorPage);
+    MatrixTable->horizontalHeader()->setStretchLastSection(true);
 
     auto* getDataBtn = new QPushButton(tr("Get data from buffers"), sensorPage);
     auto* getPinsBtn = new QPushButton(tr("Get pins info"), sensorPage);
@@ -62,15 +62,15 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
 
     auto* form = new QFormLayout();
     auto* cmdRow = new QHBoxLayout();
-    cmdRow->addWidget(m_commandEdit, 1);
+    cmdRow->addWidget(CommandEdit, 1);
     cmdRow->addWidget(sendBtn);
     form->addRow(tr("Command:"), cmdRow);
-    form->addRow(tr("Presets:"), m_presetsList);
+    form->addRow(tr("Presets:"), PresetsList);
     auto* edgeRow = new QHBoxLayout();
     edgeRow->addWidget(getDataBtn);
     edgeRow->addWidget(getPinsBtn);
     form->addRow(tr("Actions:"), edgeRow);
-    form->addRow(tr("Readings:"), m_matrixTable);
+    form->addRow(tr("Readings:"), MatrixTable);
     auto* btnRow = new QHBoxLayout();
     btnRow->addWidget(applyBtn);
     btnRow->addWidget(resetBtn);
@@ -78,14 +78,14 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     form->addRow(QString(), btnRow);
     sensorPage->setLayout(form);
 
-    m_boardPanel = new HardwareArduinoBoardPanelWidget(this);
-    m_tabs = new QTabWidget(this);
-    m_tabs->addTab(sensorPage, tr("Sensor"));
-    m_tabs->addTab(m_boardPanel, tr("Board"));
+    BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    Tabs = new QTabWidget(this);
+    Tabs->addTab(sensorPage, tr("Sensor"));
+    Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(m_diagram);
-    splitter->addWidget(m_tabs);
+    splitter->addWidget(Diagram);
+    splitter->addWidget(Tabs);
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 2);
 
@@ -95,8 +95,8 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
 
 void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
-    m_context = context;
-    m_boardPanel->setContext(context);
+    Context = context;
+    BoardPanel->setContext(context);
     refreshFromModel(true);
 }
 
@@ -108,92 +108,92 @@ QString HardwareArduinoSensorSketchControllerWidget::componentGuiId() const
 void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
 {
     Q_UNUSED(force);
-    if (m_context.componentLongName.isEmpty())
+    if (Context.componentLongName.isEmpty())
         return;
 
-    m_boardPanel->refreshFromModel();
-    m_commandEdit->setText(HardwareGuiHelpers::getProp(m_context, "Command"));
+    BoardPanel->refreshFromModel();
+    CommandEdit->setText(HardwareGuiHelpers::getProp(Context, "Command"));
 
-    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
-    m_diagram->setBoardProfile(profile);
-    m_diagram->setConnectionState(HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0));
-    m_diagram->setPinRoles(defaultSensorPinRoles());
-    m_diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
+    const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
+    Diagram->setBoardProfile(profile);
+    Diagram->setConnectionState(HardwareGuiHelpers::getPropInt(Context, "ConnectionState", 0));
+    Diagram->setPinRoles(defaultSensorPinRoles());
+    Diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
     refreshMatrixPreview();
 }
 
 void HardwareArduinoSensorSketchControllerWidget::refreshMatrixPreview()
 {
     QVector<QVector<double>> rows;
-    if (!HardwareGuiHelpers::getMatrixPreview(m_context, "DoubleMatrixReadings", 16, 12, &rows)) {
-        m_matrixTable->clear();
-        m_matrixTable->setRowCount(0);
-        m_matrixTable->setColumnCount(0);
+    if (!HardwareGuiHelpers::getMatrixPreview(Context, "DoubleMatrixReadings", 16, 12, &rows)) {
+        MatrixTable->clear();
+        MatrixTable->setRowCount(0);
+        MatrixTable->setColumnCount(0);
         return;
     }
 
-    const int colCount = rows.isEmpty() ? 0 : rows.first().size();
-    m_matrixTable->setRowCount(rows.size());
-    m_matrixTable->setColumnCount(colCount);
+    const int col_count = rows.isEmpty() ? 0 : rows.first().size();
+    MatrixTable->setRowCount(rows.size());
+    MatrixTable->setColumnCount(col_count);
     for (int r = 0; r < rows.size(); ++r) {
         for (int c = 0; c < rows[r].size(); ++c)
-            m_matrixTable->setItem(r, c, new QTableWidgetItem(QString::number(rows[r][c], 'g', 4)));
+            MatrixTable->setItem(r, c, new QTableWidgetItem(QString::number(rows[r][c], 'g', 4)));
     }
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onApply()
 {
-    HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::envReset(m_context);
+    HardwareGuiHelpers::setProp(Context, "Command", CommandEdit->text());
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::envReset(Context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onReset()
 {
-    HardwareGuiHelpers::envReset(m_context);
+    HardwareGuiHelpers::envReset(Context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onCalculate()
 {
-    HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::envCalculate(m_context);
+    HardwareGuiHelpers::setProp(Context, "Command", CommandEdit->text());
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::envCalculate(Context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onSendCommand()
 {
-    HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "SendCommand");
+    HardwareGuiHelpers::setProp(Context, "Command", CommandEdit->text());
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(Context, "SendCommand");
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onGetData()
 {
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "GetDataFromBuffers");
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(Context, "GetDataFromBuffers");
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onGetPinsInfo()
 {
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "GetPinsInfo");
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(Context, "GetPinsInfo");
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onPresetCommand()
 {
-    if (!m_presetsList->currentItem())
+    if (!PresetsList->currentItem())
         return;
-    const QString text = m_presetsList->currentItem()->text();
+    const QString text = PresetsList->currentItem()->text();
     if (text == QStringLiteral("GET PINS INFO")) {
         onGetPinsInfo();
         return;
     }
-    m_commandEdit->setText(text);
+    CommandEdit->setText(text);
     onSendCommand();
 }

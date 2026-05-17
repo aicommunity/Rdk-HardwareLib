@@ -26,7 +26,7 @@ protected:
 
     void OnBinaryFrame(uint8_t type, const QByteArray& payload) override;
     void ProcessDcDemoEdges();
-    bool delegateToLinkedSketch();
+    bool DelegateToLinkedSketch();
 
     float CachedSpeed = 0.f;
     float CachedAcceleration = 0.f;

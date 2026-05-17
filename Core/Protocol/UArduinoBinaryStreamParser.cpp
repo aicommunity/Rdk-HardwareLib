@@ -28,7 +28,7 @@ void UArduinoBinaryStreamParser::feed(const QByteArray& data, const FrameCallbac
 {
     if (data.isEmpty() || !onFrame)
         return;
-    if (m_protocolVersion >= 2)
+    if (ProtocolVersionValue >= 2)
         feedFramedV2(data, onFrame);
     else
         feedLegacyV1(data, onFrame);
@@ -38,97 +38,97 @@ void UArduinoBinaryStreamParser::feedLegacyV1(const QByteArray& data, const Fram
 {
     const char* ptr = data.constData();
     int index = 0;
-    const int dataSize = data.size();
+    const int data_size = data.size();
 
-    while (index < dataSize) {
-        const uint8_t packetId = static_cast<uint8_t>(ptr[index++]);
+    while (index < data_size) {
+        const uint8_t packet_id = static_cast<uint8_t>(ptr[index++]);
 
-        if (packetId == 0x01) {
-            if (index + 2 > dataSize)
+        if (packet_id == 0x01) {
+            if (index + 2 > data_size)
                 break;
-            const uint8_t errorFlags = static_cast<uint8_t>(ptr[index++]);
-            const uint8_t paramCount = static_cast<uint8_t>(ptr[index++]);
-            const int requiredBytes = paramCount * static_cast<int>(sizeof(float));
-            if (index + requiredBytes > dataSize)
+            const uint8_t error_flags = static_cast<uint8_t>(ptr[index++]);
+            const uint8_t param_count = static_cast<uint8_t>(ptr[index++]);
+            const int required_bytes = param_count * static_cast<int>(sizeof(float));
+            if (index + required_bytes > data_size)
                 break;
 
             QByteArray payload;
-            payload.append(char(errorFlags));
-            payload.append(char(paramCount));
-            payload.append(ptr + index, requiredBytes);
-            index += requiredBytes;
-            onFrame(packetId, payload);
-        } else if (packetId == 0x02) {
-            if (index + 1 > dataSize)
+            payload.append(char(error_flags));
+            payload.append(char(param_count));
+            payload.append(ptr + index, required_bytes);
+            index += required_bytes;
+            onFrame(packet_id, payload);
+        } else if (packet_id == 0x02) {
+            if (index + 1 > data_size)
                 break;
-            const uint8_t pinCount = static_cast<uint8_t>(ptr[index++]);
-            if (index + pinCount > dataSize)
+            const uint8_t pin_count = static_cast<uint8_t>(ptr[index++]);
+            if (index + pin_count > data_size)
                 break;
             QByteArray payload;
-            payload.append(char(pinCount));
-            payload.append(ptr + index, pinCount);
-            index += pinCount;
-            onFrame(packetId, payload);
-        } else if (packetId == 0x03) {
-            if (index + 1 > dataSize)
+            payload.append(char(pin_count));
+            payload.append(ptr + index, pin_count);
+            index += pin_count;
+            onFrame(packet_id, payload);
+        } else if (packet_id == 0x03) {
+            if (index + 1 > data_size)
                 break;
             QByteArray payload;
             payload.append(ptr[index++]);
-            onFrame(packetId, payload);
-        } else if (packetId == 0x04) {
-            if (index + 1 > dataSize)
+            onFrame(packet_id, payload);
+        } else if (packet_id == 0x04) {
+            if (index + 1 > data_size)
                 break;
-            const uint8_t analogPinCount = static_cast<uint8_t>(ptr[index++]);
-            const int need = analogPinCount + 2;
-            if (index + need > dataSize)
+            const uint8_t analog_pin_count = static_cast<uint8_t>(ptr[index++]);
+            const int need = analog_pin_count + 2;
+            if (index + need > data_size)
                 break;
             QByteArray payload;
-            payload.append(char(analogPinCount));
+            payload.append(char(analog_pin_count));
             payload.append(ptr + index, need);
             index += need;
-            onFrame(packetId, payload);
+            onFrame(packet_id, payload);
         } else {
-            if (m_debug)
-                qDebug() << "UArduinoBinaryStreamParser: unknown packet" << packetId;
+            if (DebugEnabled)
+                qDebug() << "UArduinoBinaryStreamParser: unknown packet" << packet_id;
         }
     }
 }
 
 void UArduinoBinaryStreamParser::feedFramedV2(const QByteArray& data, const FrameCallback& onFrame)
 {
-    m_v2Buffer.append(data);
+    V2Buffer.append(data);
     const int kHeader = 4;
     const int kCrc = 1;
 
-    while (m_v2Buffer.size() >= kHeader + kCrc) {
-        int start = m_v2Buffer.indexOf(char(0xAA));
+    while (V2Buffer.size() >= kHeader + kCrc) {
+        int start = V2Buffer.indexOf(char(0xAA));
         if (start < 0) {
-            m_v2Buffer.clear();
+            V2Buffer.clear();
             return;
         }
         if (start > 0)
-            m_v2Buffer.remove(0, start);
+            V2Buffer.remove(0, start);
 
-        if (m_v2Buffer.size() < kHeader + kCrc)
+        if (V2Buffer.size() < kHeader + kCrc)
             return;
 
-        const uint8_t type = static_cast<uint8_t>(m_v2Buffer[1]);
+        const uint8_t type = static_cast<uint8_t>(V2Buffer[1]);
         const uint16_t len = qFromLittleEndian<uint16_t>(
-            reinterpret_cast<const uchar*>(m_v2Buffer.constData() + 2));
-        const int frameLen = kHeader + len + kCrc;
-        if (m_v2Buffer.size() < frameLen)
+            reinterpret_cast<const uchar*>(V2Buffer.constData() + 2));
+        const int frame_len = kHeader + len + kCrc;
+        if (V2Buffer.size() < frame_len)
             return;
 
-        const QByteArray frame = m_v2Buffer.left(frameLen);
-        const uint8_t expectedCrc = crc8Maxim(frame, kHeader + len);
-        const uint8_t actualCrc = static_cast<uint8_t>(frame[kHeader + len]);
-        if (expectedCrc != actualCrc) {
-            m_v2Buffer.remove(0, 1);
+        const QByteArray frame = V2Buffer.left(frame_len);
+        const uint8_t expected_crc = crc8Maxim(frame, kHeader + len);
+        const uint8_t actual_crc = static_cast<uint8_t>(frame[kHeader + len]);
+        if (expected_crc != actual_crc) {
+            V2Buffer.remove(0, 1);
             continue;
         }
 
         onFrame(type, frame.mid(kHeader, len));
-        m_v2Buffer.remove(0, frameLen);
+        V2Buffer.remove(0, frame_len);
     }
 }
 

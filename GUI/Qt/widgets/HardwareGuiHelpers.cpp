@@ -49,20 +49,20 @@ QStringList listSerialPortDevicePaths()
     return RDK::UArduinoSerialPortUtil::listAvailableDevicePaths();
 }
 
-void populateSerialPortCombo(QComboBox* combo, const QString& selectDevicePath)
+void populateSerialPortCombo(QComboBox* combo, const QString& select_device_path)
 {
     if (!combo)
         return;
 
-    QString selected = selectDevicePath;
+    QString selected = select_device_path;
     if (selected.isEmpty())
         selected = selectedSerialPortPath(combo);
 
     combo->clear();
     for (const RDK::UArduinoSerialPortEntry& entry : RDK::UArduinoSerialPortUtil::listPortsSorted()) {
-        combo->addItem(entry.displayLabel, entry.devicePath);
+        combo->addItem(entry.DisplayLabel, entry.DevicePath);
         const int idx = combo->count() - 1;
-        if (!entry.likelyAttachedDevice)
+        if (!entry.LikelyAttachedDevice)
             combo->setItemData(idx, QColor(128, 128, 128), Qt::ForegroundRole);
     }
     selectSerialPortInCombo(combo, selected);
@@ -78,20 +78,20 @@ QString selectedSerialPortPath(const QComboBox* combo)
     return RDK::UArduinoSerialPortUtil::normalizeDevicePath(combo->currentText());
 }
 
-void selectSerialPortInCombo(QComboBox* combo, const QString& devicePath)
+void selectSerialPortInCombo(QComboBox* combo, const QString& device_path)
 {
     if (!combo)
         return;
-    if (devicePath.isEmpty()) {
+    if (device_path.isEmpty()) {
         if (combo->count() > 0)
             combo->setCurrentIndex(0);
         return;
     }
 
-    const QString normalized = RDK::UArduinoSerialPortUtil::normalizeDevicePath(devicePath);
+    const QString normalized = RDK::UArduinoSerialPortUtil::normalizeDevicePath(device_path);
     for (int i = 0; i < combo->count(); ++i) {
-        const QString itemPath = combo->itemData(i).toString();
-        if (itemPath == normalized || itemPath == devicePath) {
+        const QString item_path = combo->itemData(i).toString();
+        if (item_path == normalized || item_path == device_path) {
             combo->setCurrentIndex(i);
             return;
         }
@@ -120,47 +120,47 @@ bool setProp(const UComponentGuiContext& ctx, const char* name, const QString& v
                                             value.toUtf8().constData()) == 0;
 }
 
-int getPropInt(const UComponentGuiContext& ctx, const char* name, int defaultValue)
+int getPropInt(const UComponentGuiContext& ctx, const char* name, int default_value)
 {
     bool ok = false;
     const int v = getProp(ctx, name).toInt(&ok);
-    return ok ? v : defaultValue;
+    return ok ? v : default_value;
 }
 
-bool getPropBool(const UComponentGuiContext& ctx, const char* name, bool defaultValue)
+bool getPropBool(const UComponentGuiContext& ctx, const char* name, bool default_value)
 {
     const QString v = getProp(ctx, name);
     if (v.isEmpty())
-        return defaultValue;
+        return default_value;
     return v == QLatin1String("1") || v.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0;
 }
 
 bool getMatrixPreview(const UComponentGuiContext& ctx,
-                      const char* propertyName,
-                      const int maxRows,
-                      const int maxCols,
-                      QVector<QVector<double>>* outRows)
+                      const char* property_name,
+                      const int max_rows,
+                      const int max_cols,
+                      QVector<QVector<double>>* out_rows)
 {
-    if (!outRows || ctx.componentLongName.isEmpty())
+    if (!out_rows || ctx.componentLongName.isEmpty())
         return false;
-    outRows->clear();
+    out_rows->clear();
 
     const void* raw = MModel_GetComponentPropertyData(ctx.channelIndex,
                                                      ctx.componentLongName.toUtf8().constData(),
-                                                     propertyName);
+                                                     property_name);
     const auto* matrix = static_cast<const RDK::MDMatrix<double>*>(raw);
     if (!matrix || matrix->GetRows() <= 0 || matrix->GetCols() <= 0)
         return false;
 
-    const int rows = qMin(matrix->GetRows(), maxRows);
-    const int cols = qMin(matrix->GetCols(), maxCols);
-    outRows->reserve(rows);
+    const int rows = qMin(matrix->GetRows(), max_rows);
+    const int cols = qMin(matrix->GetCols(), max_cols);
+    out_rows->reserve(rows);
     for (int r = 0; r < rows; ++r) {
         QVector<double> row;
         row.reserve(cols);
         for (int c = 0; c < cols; ++c)
             row.append(matrix->operator()(r, c));
-        outRows->append(row);
+        out_rows->append(row);
     }
     return true;
 }
@@ -175,9 +175,9 @@ void envCalculate(const UComponentGuiContext& ctx)
     MEnv_Calculate(ctx.channelIndex, ctx.componentLongName.toUtf8().constData());
 }
 
-void pulseEdge(const UComponentGuiContext& ctx, const char* edgeName)
+void pulseEdge(const UComponentGuiContext& ctx, const char* edge_name)
 {
-    setProp(ctx, edgeName, QStringLiteral("1"));
+    setProp(ctx, edge_name, QStringLiteral("1"));
     envCalculate(ctx);
 }
 

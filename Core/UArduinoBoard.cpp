@@ -203,7 +203,7 @@ bool UArduinoBoard::EnsureConnected()
 
     ConnectionState = ArduinoOpening;
     UArduinoSerialSession* s = session();
-    s->showDebug = ShowDebug;
+    s->ShowDebug = ShowDebug;
     const QString port = QString::fromStdString(*PortName);
     if (s->open(port, BaudRate)) {
         ConnectionState = ArduinoConnected;
@@ -227,7 +227,7 @@ void UArduinoBoard::CloseConnection()
     ConnectionState = ArduinoDisconnected;
 }
 
-QString UArduinoBoard::resolveHexPath() const
+QString UArduinoBoard::ResolveHexPath() const
 {
     if (!FirmwarePath->empty())
         return QString::fromStdString(*FirmwarePath);
@@ -236,7 +236,7 @@ QString UArduinoBoard::resolveHexPath() const
 
 void UArduinoBoard::RunUpload()
 {
-    const QString hex = resolveHexPath();
+    const QString hex = ResolveHexPath();
     if (hex.isEmpty()) {
         UploadLastResult = "No firmware path resolved";
         UploadProgress = 0;

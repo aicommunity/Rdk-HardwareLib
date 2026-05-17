@@ -17,7 +17,7 @@ struct UArduinoBoardProfile {
 
 class UArduinoBoardProfileUtil {
 public:
-    static UArduinoBoardProfile profileForKind(int boardProfileInt);
+    static UArduinoBoardProfile profileForKind(int board_profile_int);
     static UArduinoBoardProfile profileForKind(UArduinoBoardKind kind);
     static QString boardKindToManifestKey(UArduinoBoardKind kind);
 };

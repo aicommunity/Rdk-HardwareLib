@@ -17,27 +17,27 @@
 
 namespace {
 
-QString resolveBundledPath(const QString& qrcPath, const QString& resourcesRelativePath)
+QString resolveBundledPath(const QString& qrc_path, const QString& resources_relative_path)
 {
-    if (QFile::exists(qrcPath))
-        return qrcPath;
+    if (QFile::exists(qrc_path))
+        return qrc_path;
 
-    const QByteArray sdkRoot = qgetenv("NMSDK_ROOT");
-    if (!sdkRoot.isEmpty()) {
-        const QString devPath =
-            QString::fromLocal8Bit(sdkRoot)
+    const QByteArray sdk_root = qgetenv("NMSDK_ROOT");
+    if (!sdk_root.isEmpty()) {
+        const QString dev_path =
+            QString::fromLocal8Bit(sdk_root)
             + QStringLiteral("/Libraries/Rdk-HardwareLib/GUI/Qt/Resources/")
-            + resourcesRelativePath;
-        if (QFile::exists(devPath))
-            return devPath;
+            + resources_relative_path;
+        if (QFile::exists(dev_path))
+            return dev_path;
     }
-    return qrcPath;
+    return qrc_path;
 }
 
-QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resourcePath,
-                                                            const QString& resourcesRelativePath)
+QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resource_path,
+                                                            const QString& resources_relative_path)
 {
-    const QString path = resolveBundledPath(resourcePath, resourcesRelativePath);
+    const QString path = resolveBundledPath(resource_path, resources_relative_path);
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
         return {};
@@ -54,9 +54,9 @@ QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resou
         if (rect.size() < 4)
             continue;
         UArduinoPinOverlay::PinRegion region;
-        region.id = o.value(QStringLiteral("id")).toString();
-        region.label = o.value(QStringLiteral("label")).toString(region.id);
-        region.normalizedRect = QRectF(rect.at(0).toDouble(),
+        region.Id = o.value(QStringLiteral("id")).toString();
+        region.Label = o.value(QStringLiteral("label")).toString(region.Id);
+        region.NormalizedRect = QRectF(rect.at(0).toDouble(),
                                        rect.at(1).toDouble(),
                                        rect.at(2).toDouble(),
                                        rect.at(3).toDouble());
@@ -70,24 +70,24 @@ QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resou
 UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
     : QWidget(parent)
 {
-    m_diagramHost = new QWidget(this);
-    m_diagramHost->setMinimumHeight(160);
+    DiagramHost = new QWidget(this);
+    DiagramHost->setMinimumHeight(160);
 
 #if HARDWARELIB_HAS_QTSVG
-    m_svg = new QSvgWidget(m_diagramHost);
+    SvgWidget = new QSvgWidget(DiagramHost);
 #else
-    m_svgPlaceholder = new QLabel(tr("Board diagram (install Qt Svg)"), m_diagramHost);
-    m_svgPlaceholder->setAlignment(Qt::AlignCenter);
+    SvgPlaceholder = new QLabel(tr("Board diagram (install Qt Svg)"), DiagramHost);
+    SvgPlaceholder->setAlignment(Qt::AlignCenter);
 #endif
 
-    m_overlay = new UArduinoPinOverlay(m_diagramHost);
-    connect(m_overlay, &UArduinoPinOverlay::pinClicked, this, &UArduinoBoardDiagramWidget::pinClicked);
+    Overlay = new UArduinoPinOverlay(DiagramHost);
+    connect(Overlay, &UArduinoPinOverlay::pinClicked, this, &UArduinoBoardDiagramWidget::pinClicked);
 
-    m_statusLog = HardwareGuiHelpers::createStatusLogWidget(this);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this);
 
     auto* layout = new QVBoxLayout(this);
-    layout->addWidget(m_diagramHost, 1);
-    layout->addWidget(m_statusLog);
+    layout->addWidget(DiagramHost, 1);
+    layout->addWidget(StatusLog);
     setMinimumHeight(220);
     reloadPinLayout();
     updateSvg();
@@ -96,53 +96,53 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
 
 QString UArduinoBoardDiagramWidget::svgResourceForProfile() const
 {
-    return m_boardProfile == 1 ? QStringLiteral(":/boards/arduino_mega2560_pinout.svg")
+    return BoardProfileValue == 1 ? QStringLiteral(":/boards/arduino_mega2560_pinout.svg")
                                : QStringLiteral(":/boards/arduino_uno_pinout.svg");
 }
 
 QString UArduinoBoardDiagramWidget::pinsResourceForProfile() const
 {
-    return m_boardProfile == 1 ? QStringLiteral(":/boards/mega2560_pins.json")
+    return BoardProfileValue == 1 ? QStringLiteral(":/boards/mega2560_pins.json")
                                : QStringLiteral(":/boards/uno_pins.json");
 }
 
 void UArduinoBoardDiagramWidget::reloadPinLayout()
 {
-    const QString pinsRel = m_boardProfile == 1 ? QStringLiteral("boards/mega2560_pins.json")
+    const QString pinsRel = BoardProfileValue == 1 ? QStringLiteral("boards/mega2560_pins.json")
                                                 : QStringLiteral("boards/uno_pins.json");
-    m_overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel));
-    m_overlay->setPinRoles(m_pinRoles);
-    m_overlay->setHighlightedIds(m_highlightedPins);
-    m_overlay->setSelectedId(m_selectedPinId);
-    m_overlay->setInteractive(m_interactive);
+    Overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel));
+    Overlay->setPinRoles(PinRoles);
+    Overlay->setHighlightedIds(HighlightedPins);
+    Overlay->setSelectedId(SelectedPinId);
+    Overlay->setInteractive(Interactive);
 }
 
 void UArduinoBoardDiagramWidget::updateSvg()
 {
 #if HARDWARELIB_HAS_QTSVG
-    const QString svgRel = m_boardProfile == 1 ? QStringLiteral("boards/arduino_mega2560_pinout.svg")
+    const QString svgRel = BoardProfileValue == 1 ? QStringLiteral("boards/arduino_mega2560_pinout.svg")
                                                : QStringLiteral("boards/arduino_uno_pinout.svg");
-    m_svg->load(resolveBundledPath(svgResourceForProfile(), svgRel));
+    SvgWidget->load(resolveBundledPath(svgResourceForProfile(), svgRel));
 #endif
 
     QString status;
-    switch (m_connectionState) {
+    switch (ConnectionStateValue) {
     case 1: status = tr("Opening…"); break;
     case 2: status = tr("Connected"); break;
     case 3: status = tr("Error"); break;
     default: status = tr("Disconnected"); break;
     }
 
-    const QString board = m_boardProfile == 1 ? QStringLiteral("Mega 2560") : QStringLiteral("Uno");
+    const QString board = BoardProfileValue == 1 ? QStringLiteral("Mega 2560") : QStringLiteral("Uno");
     QString pinInfo;
-    if (!m_highlightedPins.isEmpty())
-        pinInfo = tr("Pins: %1").arg(m_highlightedPins.join(QStringLiteral(", ")));
-    if (!m_selectedPinId.isEmpty())
+    if (!HighlightedPins.isEmpty())
+        pinInfo = tr("Pins: %1").arg(HighlightedPins.join(QStringLiteral(", ")));
+    if (!SelectedPinId.isEmpty())
         pinInfo += (pinInfo.isEmpty() ? QString() : QStringLiteral("; "))
-                   + tr("Selected: %1").arg(m_selectedPinId);
+                   + tr("Selected: %1").arg(SelectedPinId);
 
     HardwareGuiHelpers::setStatusLogText(
-        m_statusLog,
+        StatusLog,
         QStringLiteral("%1 — %2%3%4").arg(board,
                                           status,
                                           pinInfo.isEmpty() ? QString() : QStringLiteral("\n"),
@@ -152,28 +152,28 @@ void UArduinoBoardDiagramWidget::updateSvg()
 
 QSizeF UArduinoBoardDiagramWidget::diagramViewBoxSize() const
 {
-    return m_boardProfile == 1 ? QSizeF(500.0, 200.0) : QSizeF(400.0, 200.0);
+    return BoardProfileValue == 1 ? QSizeF(500.0, 200.0) : QSizeF(400.0, 200.0);
 }
 
 void UArduinoBoardDiagramWidget::layoutDiagram()
 {
-    if (!m_diagramHost)
+    if (!DiagramHost)
         return;
 
-    const QRect host = m_diagramHost->rect();
+    const QRect host = DiagramHost->rect();
     const QSizeF scaled = diagramViewBoxSize().scaled(host.size(), Qt::KeepAspectRatio);
     QRect geom(QPoint(0, 0), scaled.toSize());
     geom.moveCenter(host.center());
 
 #if HARDWARELIB_HAS_QTSVG
-    if (m_svg)
-        m_svg->setGeometry(geom);
+    if (SvgWidget)
+        SvgWidget->setGeometry(geom);
 #else
-    if (m_svgPlaceholder)
-        m_svgPlaceholder->setGeometry(geom);
+    if (SvgPlaceholder)
+        SvgPlaceholder->setGeometry(geom);
 #endif
-    if (m_overlay)
-        m_overlay->setGeometry(geom);
+    if (Overlay)
+        Overlay->setGeometry(geom);
 }
 
 void UArduinoBoardDiagramWidget::resizeEvent(QResizeEvent* event)
@@ -182,9 +182,9 @@ void UArduinoBoardDiagramWidget::resizeEvent(QResizeEvent* event)
     layoutDiagram();
 }
 
-int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int boardProfile)
+int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int board_profile)
 {
-    Q_UNUSED(boardProfile);
+    Q_UNUSED(board_profile);
     if (pinId.startsWith(QLatin1String("D"), Qt::CaseInsensitive)) {
         bool ok = false;
         const int n = pinId.mid(1).toInt(&ok);
@@ -200,7 +200,7 @@ int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int bo
 
 void UArduinoBoardDiagramWidget::setBoardProfile(int profile)
 {
-    m_boardProfile = profile;
+    BoardProfileValue = profile;
     reloadPinLayout();
     updateSvg();
     layoutDiagram();
@@ -208,32 +208,32 @@ void UArduinoBoardDiagramWidget::setBoardProfile(int profile)
 
 void UArduinoBoardDiagramWidget::setConnectionState(int state)
 {
-    m_connectionState = state;
+    ConnectionStateValue = state;
     updateSvg();
 }
 
 void UArduinoBoardDiagramWidget::setHighlightedPins(const QStringList& pins)
 {
-    m_highlightedPins = pins;
-    m_overlay->setHighlightedIds(m_highlightedPins);
+    HighlightedPins = pins;
+    Overlay->setHighlightedIds(HighlightedPins);
     updateSvg();
 }
 
 void UArduinoBoardDiagramWidget::setPinRoles(const QMap<QString, QString>& roles)
 {
-    m_pinRoles = roles;
-    m_overlay->setPinRoles(m_pinRoles);
+    PinRoles = roles;
+    Overlay->setPinRoles(PinRoles);
 }
 
 void UArduinoBoardDiagramWidget::setSelectedPinId(const QString& pinId)
 {
-    m_selectedPinId = pinId;
-    m_overlay->setSelectedId(m_selectedPinId);
+    SelectedPinId = pinId;
+    Overlay->setSelectedId(SelectedPinId);
     updateSvg();
 }
 
 void UArduinoBoardDiagramWidget::setInteractive(bool interactive)
 {
-    m_interactive = interactive;
-    m_overlay->setInteractive(interactive);
+    Interactive = interactive;
+    Overlay->setInteractive(interactive);
 }

@@ -54,7 +54,7 @@ CRC-8/MAXIM по байтам от `0xAA` включительно до конц
 
 ## Firmata (отдельный транспорт)
 
-Не через `UArduinoBinaryStreamParser`. Клиент: `UArduinoFirmataClient`.  
+Не через `UArduinoBinaryStreamParser`. Клиент: `UArduinoFirmataClient` (внутренний флаг `HandshakeReady` после firmware/capability/analog mapping; не путать с `UModule::Ready`).  
 См. [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md), [firmata_spike.md](firmata_spike.md).
 
 ## См. также

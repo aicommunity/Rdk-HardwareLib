@@ -34,20 +34,20 @@ private slots:
     void onBrowseHex();
 
 private:
-    UComponentGuiContext m_context;
-    QComboBox* m_portCombo = nullptr;
-    QComboBox* m_boardProfileCombo = nullptr;
-    QCheckBox* m_connectOnBuildCheck = nullptr;
-    QCheckBox* m_autoReconnectCheck = nullptr;
-    QCheckBox* m_heartbeatEnabledCheck = nullptr;
-    QCheckBox* m_showDebugCheck = nullptr;
-    QSpinBox* m_heartbeatIntervalSpin = nullptr;
-    QSpinBox* m_heartbeatTimeoutSpin = nullptr;
-    QSpinBox* m_baudSpin = nullptr;
-    QComboBox* m_bundledFirmwareCombo = nullptr;
-    QLineEdit* m_firmwarePathEdit = nullptr;
-    QProgressBar* m_uploadProgress = nullptr;
-    QPlainTextEdit* m_statusLog = nullptr;
+    UComponentGuiContext Context;
+    QComboBox* PortCombo = nullptr;
+    QComboBox* BoardProfileCombo = nullptr;
+    QCheckBox* ConnectOnBuildCheck = nullptr;
+    QCheckBox* AutoReconnectCheck = nullptr;
+    QCheckBox* HeartbeatEnabledCheck = nullptr;
+    QCheckBox* ShowDebugCheck = nullptr;
+    QSpinBox* HeartbeatIntervalSpin = nullptr;
+    QSpinBox* HeartbeatTimeoutSpin = nullptr;
+    QSpinBox* BaudSpin = nullptr;
+    QComboBox* BundledFirmwareCombo = nullptr;
+    QLineEdit* FirmwarePathEdit = nullptr;
+    QProgressBar* UploadProgress = nullptr;
+    QPlainTextEdit* StatusLog = nullptr;
 };
 
 #endif

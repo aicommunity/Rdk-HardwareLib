@@ -62,7 +62,7 @@
 **Файлы:** `UFirmwareManifest.{h,cpp}`
 
 - `firmwareRoot()` — `RDK_HARDWARE_FIRMWARE_DIR`, рядом с приложением, `NMSDK_SOURCE_DIR`
-- `resolveBundledHex(bundledId, boardProfile)` — путь к `.hex` из `manifest.json`
+- `resolveBundledHex(bundled_id, board_profile_int)` / `resolveBundledHex(bundled_id, board_key)` — путь к `.hex` из `manifest.json`
 
 ## См. также
 

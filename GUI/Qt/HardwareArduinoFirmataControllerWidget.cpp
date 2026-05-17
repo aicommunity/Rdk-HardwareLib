@@ -13,26 +13,26 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
                                                                                RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
-    m_diagram = new UArduinoBoardDiagramWidget(this);
-    m_diagram->setInteractive(true);
-    connect(m_diagram, &UArduinoBoardDiagramWidget::pinClicked, this,
+    Diagram = new UArduinoBoardDiagramWidget(this);
+    Diagram->setInteractive(true);
+    connect(Diagram, &UArduinoBoardDiagramWidget::pinClicked, this,
             &HardwareArduinoFirmataControllerWidget::onDiagramPinClicked);
 
     auto* firmataPage = new QWidget(this);
-    m_pinSpin = new QSpinBox(firmataPage);
-    m_pinSpin->setRange(0, 69);
-    m_pinSpin->setValue(13);
+    PinSpin = new QSpinBox(firmataPage);
+    PinSpin->setRange(0, 69);
+    PinSpin->setValue(13);
 
-    m_modeCombo = new QComboBox(firmataPage);
-    m_modeCombo->addItem(tr("Input"), 0);
-    m_modeCombo->addItem(tr("Output"), 1);
-    m_modeCombo->addItem(tr("Analog"), 2);
-    m_modeCombo->addItem(tr("PWM"), 3);
+    ModeCombo = new QComboBox(firmataPage);
+    ModeCombo->addItem(tr("Input"), 0);
+    ModeCombo->addItem(tr("Output"), 1);
+    ModeCombo->addItem(tr("Analog"), 2);
+    ModeCombo->addItem(tr("PWM"), 3);
 
-    m_digitalValueSpin = new QSpinBox(firmataPage);
-    m_digitalValueSpin->setRange(0, 1);
+    DigitalValueSpin = new QSpinBox(firmataPage);
+    DigitalValueSpin->setRange(0, 1);
 
-    m_statusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage);
 
     auto* setModeBtn = new QPushButton(tr("Set pin mode"), firmataPage);
     auto* writeBtn = new QPushButton(tr("Write digital"), firmataPage);
@@ -49,9 +49,9 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onCalculate);
 
     auto* form = new QFormLayout();
-    form->addRow(tr("Pin (Firmata #):"), m_pinSpin);
-    form->addRow(tr("Mode:"), m_modeCombo);
-    form->addRow(tr("Digital value:"), m_digitalValueSpin);
+    form->addRow(tr("Pin (Firmata #):"), PinSpin);
+    form->addRow(tr("Mode:"), ModeCombo);
+    form->addRow(tr("Digital value:"), DigitalValueSpin);
     auto* row = new QHBoxLayout();
     row->addWidget(setModeBtn);
     row->addWidget(writeBtn);
@@ -60,18 +60,18 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     form->addRow(QString(), restartBtn);
     form->addRow(QString(), applyBtn);
     form->addRow(QString(), calcBtn);
-    form->addRow(tr("Status:"), m_statusLog);
+    form->addRow(tr("Status:"), StatusLog);
     form->addRow(QString(), new QLabel(tr("Click a pin on the diagram to select it."), firmataPage));
     firmataPage->setLayout(form);
 
-    m_boardPanel = new HardwareArduinoBoardPanelWidget(this);
-    m_tabs = new QTabWidget(this);
-    m_tabs->addTab(firmataPage, tr("Firmata"));
-    m_tabs->addTab(m_boardPanel, tr("Board"));
+    BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    Tabs = new QTabWidget(this);
+    Tabs->addTab(firmataPage, tr("Firmata"));
+    Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(m_diagram);
-    splitter->addWidget(m_tabs);
+    splitter->addWidget(Diagram);
+    splitter->addWidget(Tabs);
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 2);
 
@@ -81,8 +81,8 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
 
 void HardwareArduinoFirmataControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
-    m_context = context;
-    m_boardPanel->setContext(context);
+    Context = context;
+    BoardPanel->setContext(context);
     refreshFromModel(true);
 }
 
@@ -94,36 +94,36 @@ QString HardwareArduinoFirmataControllerWidget::componentGuiId() const
 void HardwareArduinoFirmataControllerWidget::refreshFromModel(bool force)
 {
     Q_UNUSED(force);
-    if (m_context.componentLongName.isEmpty())
+    if (Context.componentLongName.isEmpty())
         return;
 
-    m_boardPanel->refreshFromModel();
+    BoardPanel->refreshFromModel();
 
-    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
-    const int pin = HardwareGuiHelpers::getPropInt(m_context, "SelectedPin", 13);
-    m_pinSpin->setValue(pin);
-    m_digitalValueSpin->setValue(HardwareGuiHelpers::getPropInt(m_context, "DigitalPinValue", 0));
+    const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
+    const int pin = HardwareGuiHelpers::getPropInt(Context, "SelectedPin", 13);
+    PinSpin->setValue(pin);
+    DigitalValueSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "DigitalPinValue", 0));
 
-    m_diagram->setBoardProfile(profile);
-    m_diagram->setConnectionState(HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0));
-    m_diagram->setSelectedPinId(firmataPinToLabel(pin, profile));
+    Diagram->setBoardProfile(profile);
+    Diagram->setConnectionState(HardwareGuiHelpers::getPropInt(Context, "ConnectionState", 0));
+    Diagram->setSelectedPinId(firmataPinToLabel(pin, profile));
 
-    const bool ready = HardwareGuiHelpers::getPropBool(m_context, "IsFirmataReady", false);
-    const bool linkReady = HardwareGuiHelpers::getPropBool(m_context, "IsLinkReady", false);
-    const QString ver = HardwareGuiHelpers::getProp(m_context, "FirmataFirmwareVersion");
-    const int analog = HardwareGuiHelpers::getPropInt(m_context, "AnalogPinValue", 0);
+    const bool firmata_ready = HardwareGuiHelpers::getPropBool(Context, "IsFirmataReady", false);
+    const bool link_ready = HardwareGuiHelpers::getPropBool(Context, "IsLinkReady", false);
+    const QString ver = HardwareGuiHelpers::getProp(Context, "FirmataFirmwareVersion");
+    const int analog = HardwareGuiHelpers::getPropInt(Context, "AnalogPinValue", 0);
     HardwareGuiHelpers::setStatusLogText(
-        m_statusLog,
+        StatusLog,
         tr("Firmata ready: %1\nLink ready: %2\nVersion: %3\nAnalog: %4")
-            .arg(ready ? tr("yes") : tr("no"))
-            .arg(linkReady ? tr("yes") : tr("no"))
+            .arg(firmata_ready ? tr("yes") : tr("no"))
+            .arg(link_ready ? tr("yes") : tr("no"))
             .arg(ver)
             .arg(analog));
 }
 
-QString HardwareArduinoFirmataControllerWidget::firmataPinToLabel(int pin, int boardProfile) const
+QString HardwareArduinoFirmataControllerWidget::firmataPinToLabel(int pin, int board_profile) const
 {
-    Q_UNUSED(boardProfile);
+    Q_UNUSED(board_profile);
     if (pin >= 14)
         return QStringLiteral("A%1").arg(pin - 14);
     return QStringLiteral("D%1").arg(pin);
@@ -131,55 +131,55 @@ QString HardwareArduinoFirmataControllerWidget::firmataPinToLabel(int pin, int b
 
 void HardwareArduinoFirmataControllerWidget::onDiagramPinClicked(const QString& pinId)
 {
-    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
+    const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
     const int pin = UArduinoBoardDiagramWidget::firmataPinFromLabel(pinId, profile);
     if (pin < 0)
         return;
-    m_pinSpin->setValue(pin);
-    m_diagram->setSelectedPinId(pinId);
+    PinSpin->setValue(pin);
+    Diagram->setSelectedPinId(pinId);
     onApply();
 }
 
 void HardwareArduinoFirmataControllerWidget::onApply()
 {
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::setProp(m_context, "SelectedPin", QString::number(m_pinSpin->value()));
-    HardwareGuiHelpers::setProp(m_context, "SelectedPinMode",
-                                QString::number(m_modeCombo->currentData().toInt()));
-    HardwareGuiHelpers::setProp(m_context, "DigitalPinValue", QString::number(m_digitalValueSpin->value()));
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::setProp(Context, "SelectedPin", QString::number(PinSpin->value()));
+    HardwareGuiHelpers::setProp(Context, "SelectedPinMode",
+                                QString::number(ModeCombo->currentData().toInt()));
+    HardwareGuiHelpers::setProp(Context, "DigitalPinValue", QString::number(DigitalValueSpin->value()));
 }
 
 void HardwareArduinoFirmataControllerWidget::onCalculate()
 {
     onApply();
-    HardwareGuiHelpers::envCalculate(m_context);
+    HardwareGuiHelpers::envCalculate(Context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoFirmataControllerWidget::onSetPinMode()
 {
     onApply();
-    HardwareGuiHelpers::setProp(m_context, "SetPinModeFlag", QStringLiteral("1"));
+    HardwareGuiHelpers::setProp(Context, "SetPinModeFlag", QStringLiteral("1"));
     onCalculate();
 }
 
 void HardwareArduinoFirmataControllerWidget::onWriteDigital()
 {
     onApply();
-    HardwareGuiHelpers::setProp(m_context, "WriteDigitalFlag", QStringLiteral("1"));
+    HardwareGuiHelpers::setProp(Context, "WriteDigitalFlag", QStringLiteral("1"));
     onCalculate();
 }
 
 void HardwareArduinoFirmataControllerWidget::onReadAnalog()
 {
     onApply();
-    HardwareGuiHelpers::setProp(m_context, "ReadAnalogFlag", QStringLiteral("1"));
+    HardwareGuiHelpers::setProp(Context, "ReadAnalogFlag", QStringLiteral("1"));
     onCalculate();
 }
 
 void HardwareArduinoFirmataControllerWidget::onRestartFirmata()
 {
-    m_boardPanel->applyToModel();
-    HardwareGuiHelpers::pulseEdge(m_context, "RestartFirmata");
+    BoardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(Context, "RestartFirmata");
     refreshFromModel(true);
 }

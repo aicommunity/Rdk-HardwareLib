@@ -10,12 +10,12 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
                                                                            RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
-    m_diagram = new UArduinoBoardDiagramWidget(this);
-    m_boardPanel = new HardwareArduinoBoardPanelWidget(this);
+    Diagram = new UArduinoBoardDiagramWidget(this);
+    BoardPanel = new HardwareArduinoBoardPanelWidget(this);
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(m_diagram);
-    splitter->addWidget(m_boardPanel);
+    splitter->addWidget(Diagram);
+    splitter->addWidget(BoardPanel);
     splitter->setStretchFactor(0, 3);
     splitter->setStretchFactor(1, 2);
 
@@ -27,8 +27,8 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
 
 void HardwareArduinoBoardControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
-    m_context = context;
-    m_boardPanel->setContext(context);
+    Context = context;
+    BoardPanel->setContext(context);
     refreshFromModel(true);
 }
 
@@ -40,15 +40,15 @@ QString HardwareArduinoBoardControllerWidget::componentGuiId() const
 void HardwareArduinoBoardControllerWidget::refreshFromModel(bool force)
 {
     Q_UNUSED(force);
-    if (m_context.componentLongName.isEmpty())
+    if (Context.componentLongName.isEmpty())
         return;
-    m_boardPanel->refreshFromModel();
+    BoardPanel->refreshFromModel();
     updateDiagram();
 }
 
 void HardwareArduinoBoardControllerWidget::updateDiagram()
 {
-    m_diagram->setBoardProfile(HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0));
-    m_diagram->setConnectionState(HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0));
-    m_diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
+    Diagram->setBoardProfile(HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0));
+    Diagram->setConnectionState(HardwareGuiHelpers::getPropInt(Context, "ConnectionState", 0));
+    Diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
 }

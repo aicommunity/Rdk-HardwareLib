@@ -17,7 +17,7 @@ public:
     explicit UArduinoSerialSession(QObject* parent = nullptr);
     ~UArduinoSerialSession() override;
 
-    bool open(const QString& portName, int baudRate);
+    bool open(const QString& port_name, int baud_rate);
     void close();
     bool isOpen() const;
     qint64 bytesToWrite() const;
@@ -26,7 +26,7 @@ public:
     QByteArray takeReceivedBytes();
     static QStringList availablePorts();
 
-    bool showDebug = false;
+    bool ShowDebug = false;
 
 signals:
     void bytesReceived();
@@ -36,12 +36,12 @@ private slots:
     void onReadyRead();
 
 private:
-    bool tryOpenPort(const QString& devicePath, int baudRate);
+    bool tryOpenPort(const QString& device_path, int baud_rate);
 
-    QSerialPort* m_port = nullptr;
-    QByteArray m_rxBuffer;
-    QString m_lastError;
-    mutable QMutex m_mutex;
+    QSerialPort* SerialPort = nullptr;
+    QByteArray RxBuffer;
+    QString LastErrorText;
+    mutable QMutex RxMutex;
 };
 
 } // namespace RDK

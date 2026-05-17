@@ -52,7 +52,7 @@ bool isLikelyUsbSerialDevice(const QSerialPortInfo& info)
     return false;
 }
 
-QString displayLabelFor(const QSerialPortInfo& info, const QString& devicePath)
+QString displayLabelFor(const QSerialPortInfo& info, const QString& device_path)
 {
     const QString desc = info.description().trimmed();
     const QString mfg = info.manufacturer().trimmed();
@@ -62,15 +62,15 @@ QString displayLabelFor(const QSerialPortInfo& info, const QString& devicePath)
     else if (!mfg.isEmpty())
         extra = mfg;
     if (extra.isEmpty())
-        return devicePath;
-    return QStringLiteral("%1 — %2").arg(devicePath, extra);
+        return device_path;
+    return QStringLiteral("%1 — %2").arg(device_path, extra);
 }
 
 } // namespace
 
-QString UArduinoSerialPortUtil::normalizeDevicePath(const QString& portName)
+QString UArduinoSerialPortUtil::normalizeDevicePath(const QString& port_name)
 {
-    const QString trimmed = portName.trimmed();
+    const QString trimmed = port_name.trimmed();
     if (trimmed.isEmpty())
         return trimmed;
 
@@ -94,29 +94,29 @@ QString UArduinoSerialPortUtil::normalizeDevicePath(const QString& portName)
 #endif
 }
 
-QString UArduinoSerialPortUtil::devicePathFromPortName(const QString& portName)
+QString UArduinoSerialPortUtil::devicePathFromPortName(const QString& port_name)
 {
-    return normalizeDevicePath(portName);
+    return normalizeDevicePath(port_name);
 }
 
-bool UArduinoSerialPortUtil::portInfoForPath(const QString& portName, QSerialPortInfo* outInfo)
+bool UArduinoSerialPortUtil::portInfoForPath(const QString& port_name, QSerialPortInfo* out_info)
 {
-    if (!outInfo)
+    if (!out_info)
         return false;
     for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
-        if (pathsEquivalent(portName, info.systemLocation())
-            || pathsEquivalent(portName, info.portName())) {
-            *outInfo = info;
+        if (pathsEquivalent(port_name, info.systemLocation())
+            || pathsEquivalent(port_name, info.portName())) {
+            *out_info = info;
             return true;
         }
     }
     return false;
 }
 
-QString UArduinoSerialPortUtil::preferredOpenName(const QString& portName)
+QString UArduinoSerialPortUtil::preferredOpenName(const QString& port_name)
 {
     QSerialPortInfo info;
-    if (portInfoForPath(portName, &info)) {
+    if (portInfoForPath(port_name, &info)) {
 #if defined(Q_OS_WIN)
         return info.portName();
 #else
@@ -126,14 +126,14 @@ QString UArduinoSerialPortUtil::preferredOpenName(const QString& portName)
             return normalizeDevicePath(info.portName());
 #endif
     }
-    return normalizeDevicePath(portName);
+    return normalizeDevicePath(port_name);
 }
 
 QStringList UArduinoSerialPortUtil::listAvailableDevicePaths()
 {
     QStringList paths;
     for (const UArduinoSerialPortEntry& entry : listPortsSorted())
-        paths.append(entry.devicePath);
+        paths.append(entry.DevicePath);
     return paths;
 }
 
@@ -143,23 +143,23 @@ QList<UArduinoSerialPortEntry> UArduinoSerialPortUtil::listPortsSorted()
     for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts()) {
         UArduinoSerialPortEntry entry;
 #if defined(Q_OS_WIN)
-        entry.devicePath = info.portName();
+        entry.DevicePath = info.portName();
 #else
-        entry.devicePath = !info.systemLocation().isEmpty() ? info.systemLocation()
+        entry.DevicePath = !info.systemLocation().isEmpty() ? info.systemLocation()
                                                             : normalizeDevicePath(info.portName());
 #endif
-        if (entry.devicePath.isEmpty())
+        if (entry.DevicePath.isEmpty())
             continue;
-        entry.likelyAttachedDevice = isLikelyUsbSerialDevice(info) && !isLikelyHostUart(info);
-        entry.displayLabel = displayLabelFor(info, entry.devicePath);
+        entry.LikelyAttachedDevice = isLikelyUsbSerialDevice(info) && !isLikelyHostUart(info);
+        entry.DisplayLabel = displayLabelFor(info, entry.DevicePath);
         entries.append(entry);
     }
 
     std::sort(entries.begin(), entries.end(), [](const UArduinoSerialPortEntry& a,
                                                  const UArduinoSerialPortEntry& b) {
-        if (a.likelyAttachedDevice != b.likelyAttachedDevice)
-            return a.likelyAttachedDevice > b.likelyAttachedDevice;
-        return a.devicePath < b.devicePath;
+        if (a.LikelyAttachedDevice != b.LikelyAttachedDevice)
+            return a.LikelyAttachedDevice > b.LikelyAttachedDevice;
+        return a.DevicePath < b.DevicePath;
     });
     return entries;
 }

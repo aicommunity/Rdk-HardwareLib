@@ -18,6 +18,12 @@
 
 Полный каталог: [Component-Catalog.md](Component-Catalog.md).
 
+### Соглашения об именовании (C++)
+
+- **Члены класса** (поля, в т.ч. private): `CamelCase` (`Session`, `ProtocolVersionValue`, `BoardPanel`).
+- **Локальные переменные и параметры методов**: `snake_case` (`port_name`, `param_count`, `board_profile`).
+- **Свойства `UProperty`** (имена в XML/схеме): без изменений (`PortName`, `Connect`, …).
+
 ### Property-driven control
 
 Подключение и действия — через **edge-свойства** (`Connect`, `SendCommand`, `UploadFirmware`, …): импульс `true` на один тик расчёта, затем сброс в `false`. GUI: `HardwareGuiHelpers::pulseEdge`. Подробнее: [Architecture.md](Architecture.md), [API-Overview.md](API-Overview.md).

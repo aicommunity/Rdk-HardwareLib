@@ -2,9 +2,9 @@
 
 namespace RDK {
 
-UArduinoBoardProfile UArduinoBoardProfileUtil::profileForKind(int boardProfileInt)
+UArduinoBoardProfile UArduinoBoardProfileUtil::profileForKind(int board_profile_int)
 {
-    if (boardProfileInt == static_cast<int>(UArduinoBoardKind::Mega2560))
+    if (board_profile_int == static_cast<int>(UArduinoBoardKind::Mega2560))
         return profileForKind(UArduinoBoardKind::Mega2560);
     return profileForKind(UArduinoBoardKind::Uno);
 }

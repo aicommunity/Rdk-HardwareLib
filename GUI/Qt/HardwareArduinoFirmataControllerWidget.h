@@ -33,16 +33,16 @@ private slots:
     void onDiagramPinClicked(const QString& pinId);
 
 private:
-    QString firmataPinToLabel(int pin, int boardProfile) const;
+    QString firmataPinToLabel(int pin, int board_profile) const;
 
-    UComponentGuiContext m_context;
-    UArduinoBoardDiagramWidget* m_diagram = nullptr;
-    QTabWidget* m_tabs = nullptr;
-    HardwareArduinoBoardPanelWidget* m_boardPanel = nullptr;
-    QSpinBox* m_pinSpin = nullptr;
-    QComboBox* m_modeCombo = nullptr;
-    QSpinBox* m_digitalValueSpin = nullptr;
-    QPlainTextEdit* m_statusLog = nullptr;
+    UComponentGuiContext Context;
+    UArduinoBoardDiagramWidget* Diagram = nullptr;
+    QTabWidget* Tabs = nullptr;
+    HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    QSpinBox* PinSpin = nullptr;
+    QComboBox* ModeCombo = nullptr;
+    QSpinBox* DigitalValueSpin = nullptr;
+    QPlainTextEdit* StatusLog = nullptr;
 };
 
 #endif
