@@ -7,6 +7,19 @@
 
 Строка + `\n`. Очередь в `UArduinoCustomLink::EnqueueCommand`.
 
+### Property edge (хост)
+
+В схеме/GUI вместо прямого вызова C++ используйте edge-свойства (сброс в `false` после тика `ACalculate`):
+
+| Свойство | Эффект |
+|----------|--------|
+| `SendCommand` | Отправить `Command` (пустая строка — no-op, edge всё равно сбрасывается) |
+| `RequestGetStatus` | `GET STATUS\n` |
+| `RequestProtocolNegotiate` | Сброс `ProtocolNegotiated`, затем `PROTO n` при connect |
+| `StartReading` / `StopReading` / `Rotate` / `StopRotate` | Пресеты на `ArduinoSensorSketch` (устанавливают `Command` и `SendCommand`) |
+
+См. [API-Overview.md](API-Overview.md), [Architecture.md](Architecture.md) (threading).
+
 | Команда | Действие |
 |---------|----------|
 | `START READING` | Периодическая отправка сенсорных данных |

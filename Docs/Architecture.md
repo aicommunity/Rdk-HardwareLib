@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Библиотека предоставляет Storage-компоненты `UNet` для Arduino и внутренний transport/protocol слой (не в палитре). Расчёт идёт через `ABuild` / `ACalculate` в потоке движка; GUI читает свойства через `MModel_*` API.
+Библиотека предоставляет Storage-компоненты `UNet` для Arduino и внутренний transport/protocol слой (не в палитре). Расчёт идёт через `ABuild` / `ACalculate` в потоке движка; GUI читает и пульсирует edge-свойства через `MModel_*` API и `envCalculate`.
 
 ## Иерархия классов
 
@@ -11,18 +11,39 @@ classDiagram
   UNet <|-- UArduinoBoard
   UArduinoBoard <|-- UArduinoCustomLink
   UArduinoCustomLink <|-- UArduinoSensorSketch
+  UArduinoCustomLink <|-- UArduinoDcDemo
   UArduinoBoard <|-- UArduinoFirmata
   UNet <|-- UArduinoAdc
-  UNet <|-- UArduinoDcDemo
   UArduinoBoard *-- UArduinoSerialSession
   UArduinoBoard *-- UArduinoFlasher
   UArduinoCustomLink *-- UArduinoBinaryStreamParser
   UArduinoFirmata *-- UArduinoFirmataClient
   UArduinoAdc ..> UArduinoFirmata : LinkedFirmataName
-  UArduinoDcDemo ..> UArduinoSensorSketch : LinkedSketchName
 ```
 
 `UArduinoCustomLink` абстрактен (`OnBinaryFrame` pure virtual) и **не** регистрируется в `UploadClass`.
+
+## Threading (обязательный контракт)
+
+Все методы `UNet` и производных (`ADefault`, `ABuild`, `ACalculate`, `AUnInit`, работа с `UProperty`) вызываются **только из потока движка расчёта** (`UStorage::Calculate` / `envCalculate`).
+
+Запрещено:
+
+- Вызывать `ACalculate`, `EnsureConnected`, `CloseConnection`, менять `UProperty` из слота `QSerialPort::readyRead`.
+- Подключать `UArduinoSerialSession::bytesReceived` к коду компонента.
+- Восстанавливать `UArduinoConnect` / отдельный `QThread` для вызовов `UNet`.
+
+Модель RX:
+
+| Компонент | Поток | Поведение |
+|-----------|-------|-----------|
+| `UArduinoSerialSession` | поток владельца `QObject` (обычно Qt main / engine app) | `readyRead` только дописывает `m_rxBuffer` под mutex; `bytesReceived` **не подключён** в HardwareLib |
+| `UArduinoBoard::ACalculate` | Engine | `takeReceivedBytes()` → parse → свойства |
+| `UArduinoFlasher::flash` | синхронно из `RunUpload` в `ACalculate` | прогресс пишет `UploadProgress` в том же потоке |
+
+`UArduinoAdc` не открывает serial; при `ReadAdcFlag` выставляет флаги на связанном `ArduinoFirmata` и полагается на общий `Calculate` контейнера (вызов `firmata->Calculate()` только из `UArduinoAdc::ACalculate`).
+
+Legacy `UArduinoConnect` (`QThread`) **не используется** — его роль выполняют mutex-буфер + pull в `ACalculate`.
 
 ## Регистрация Storage
 
@@ -32,44 +53,42 @@ classDiagram
 
 ## Runtime: цикл `ACalculate`
 
-```mermaid
-sequenceDiagram
-  participant Calc as ACalculate
-  participant Board as UArduinoBoard
-  participant Session as UArduinoSerialSession
-  participant Parser as UArduinoBinaryStreamParser
-  participant Sketch as UArduinoSensorSketch
+### UArduinoBoard
 
-  Calc->>Board: PortChanged / Upload / Heartbeat
-  Board->>Session: open / write
-  Session-->>Sketch: takeReceivedBytes
-  Sketch->>Parser: feed
-  Parser-->>Sketch: OnBinaryFrame
-  Sketch->>Sketch: PutDataToMatrix
+```
+SyncDerivedStates → ProcessBoardEdges → PortChanged → AutoReconnect →
+Heartbeat → RequestHealthCheck → OnBoardCalculate → SyncDerivedStates
 ```
 
-### UArduinoBoard
+Edge: `Connect`, `Disconnect`, `Reconnect`, `UploadFirmware`, `ClearLastError` (legacy: `UploadFirmwareFlag`).
+
+State: `IsConnected`, `IsOpening`, `HasError`, `IsDisconnected`, `IsUploading`, `UploadComplete`.
 
 | Этап | Действие |
 |------|----------|
 | `ABuild` | При `ConnectOnBuild` и непустом `PortName` → `EnsureConnected()` |
-| `ACalculate` | Смена порта, `UploadFirmwareFlag`, heartbeat, `RequestHealthCheck`, затем `OnBoardCalculate()` |
-| `EnsureConnected` | `ConnectionState`: Opening → Connected / Error, `LastError` |
-| `RunUpload` | `Disconnect` → `UArduinoFlasher::flash` → опционально reconnect |
+| `ProcessBoardEdges` | Connect/Disconnect/Reconnect/Upload/ClearLastError |
+| `RunUpload` | `CloseConnection` → `UArduinoFlasher::flash` → опционально reconnect |
 
-### UArduinoCustomLink / UArduinoSensorSketch
+### UArduinoCustomLink / UArduinoSensorSketch / UArduinoDcDemo
 
-После `UArduinoBoard::ACalculate`:
+```
+ProcessCustomLinkEdges → UArduinoBoard::ACalculate → negotiate/process/flush → SyncCustomLinkStates
+```
 
-1. Команды из `InputCommand` / `SendCommandFlag` → очередь → `Session->write` (когда `bytesToWrite()==0`).
-2. `ProcessIncoming` → parser → `OnBinaryFrame`.
-3. `OnHealthCheck` → `GET STATUS\n`.
+`OnBoardCalculate` (CustomLink): negotiate, `ProcessIncoming`, `FlushCommandQueue`.
+
+`UArduinoSensorSketch`: дополнительно `ProcessSketchEdges` (StartReading, GetPinsInfo, …).
+
+`UArduinoDcDemo`: `ProcessDcDemoEdges` (GetSpeed); speed из `OnBinaryFrame` (тип `0x01`). `LinkedSketchName` — deprecated delegate на один релиз.
 
 ### UArduinoFirmata
 
-После connect: handshake (`UArduinoFirmataClient`) — firmware version, capability, analog mapping → `FirmataReady`.
+```
+ProcessFirmataEdges → UArduinoBoard::ACalculate → FirmataClient handshake/IO
+```
 
-Edge flags: `SetPinModeFlag`, `WriteDigitalFlag`, `ReadAnalogFlag`.
+Edge: `RestartFirmata`, `ApplyPinConfig`, legacy pin flags. State: `IsFirmataReady`, `IsLinkReady`.
 
 ## Transport
 
@@ -87,25 +106,23 @@ Edge flags: `SetPinModeFlag`, `WriteDigitalFlag`, `ReadAnalogFlag`.
 
 Статическая библиотека `Rdk-HardwareLib.gui`, регистрация форм в [`HardwareLibComponentGuiRegistration.cpp`](../GUI/Qt/HardwareLibComponentGuiRegistration.cpp).
 
+Общая вкладка **Board** (`HardwareArduinoBoardPanelWidget`), edge через `HardwareGuiHelpers::pulseEdge`.
+
 См. [GUI.md](GUI.md).
 
 ## Типичная схема на canvas
 
 ```mermaid
 flowchart LR
-  Board[ArduinoBoard]
   Sketch[ArduinoSensorSketch]
   Firmata[ArduinoFirmata]
   Adc[ArduinoAdc]
   Dc[ArduinoDcDemo]
 
-  Board -.->|тот же порт или отдельные| Sketch
-  Board -.-> Firmata
   Firmata --> Adc
-  Sketch --> Dc
 ```
 
-На практике часто один `ArduinoSensorSketch` с собственным `PortName` или пара Board + Sketch с общим портом после upload.
+`ArduinoDcDemo` — **один узел** с собственным `PortName` и `sensor_lab_v1` (без `LinkedSketchName`).
 
 ## Зависимости CMake
 

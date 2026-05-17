@@ -4,44 +4,41 @@
 
 **ClassName:** `ArduinoFirmata`  
 **C++:** `UArduinoFirmata` : `UArduinoBoard`  
-**Роль:** Standard Firmata — digital/analog через in-tree `UArduinoFirmataClient`.
+**Роль:** Standard Firmata — digital/analog через `UArduinoFirmataClient`.
 
 ## Ключевые свойства
 
-| Свойство | Описание |
-|----------|----------|
+| Свойство | Роль |
+|----------|------|
 | `BundledFirmwareId` | По умолчанию `standard_firmata` |
-| `FirmataReady` | Handshake завершён |
-| `FirmataFirmwareVersion` | Версия с платы |
-| `SelectedPin` | Номер Firmata pin |
-| `SelectedPinMode` | INPUT/OUTPUT/ANALOG/PWM |
-| `SetPinModeFlag` / `WriteDigitalFlag` / `ReadAnalogFlag` | Edge-действия в `ACalculate` |
+| `RestartFirmata` | **Edge:** сброс handshake |
+| `ApplyPinConfig` | **Edge:** `RunFirmataActions()` |
+| `IsFirmataReady` / `IsLinkReady` | State (link = connected ∧ firmata ready) |
+| `FirmataReady` | Legacy state (= `IsFirmataReady`) |
+| `SelectedPin` / `SelectedPinMode` | Параметры пина |
+| `SetPinModeFlag` / `WriteDigitalFlag` / `ReadAnalogFlag` | Legacy edge |
+| `ReportAnalogEnable` | Включить analog report |
+
+## GUI
+
+`hw.arduino.firmata` — вкладки **Firmata** | **Board**, diagram, `pulseEdge("RestartFirmata")`.
 
 ## Handshake
 
-После connect: REPORT_FIRMWARE_VERSION → CAPABILITY_QUERY → ANALOG_MAPPING_QUERY → `FirmataReady` = true.
-
-Scope MVP: [firmata_spike.md](../firmata_spike.md).
+После connect: REPORT_FIRMWARE_VERSION → CAPABILITY → ANALOG_MAPPING → `FirmataReady`.
 
 ## Типичная схема
 
 ```mermaid
 flowchart LR
-  Board[ArduinoBoard]
   Firmata[ArduinoFirmata]
   Adc[ArduinoAdc]
-  Board -->|upload standard_firmata| Firmata
   Firmata --> Adc
 ```
 
-## GUI
-
-- **Form id:** `hw.arduino.firmata`
-- Интерактивная diagram: клик по пину → `SelectedPin`
-
 ## Тестовый конфиг
 
-`Bin/Configs/SpikeSamples/Hardware/03-ArduinoFirmata/`
+`Bin/Configs/SpikeSamples/Hardware/03-ArduinoFirmata/`, `04-ArduinoAdc/`
 
 ## ClDesc
 

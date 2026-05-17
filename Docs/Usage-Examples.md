@@ -21,7 +21,15 @@
 </Board>
 ```
 
-**GUI:** Refresh ports → выбрать порт → **Upload firmware** (устанавливает `UploadFirmwareFlag`, Calculate). Проверить `UploadProgress` = 100, `UploadLastResult` = `ok`.
+**GUI:** вкладка Board → выбрать порт → **Connect** (`pulseEdge`) или **Upload firmware** (`UploadFirmware`). Проверить `IsConnected`, `UploadProgress` = 100, `UploadLastResult` = `ok`.
+
+**Edge из схемы (без GUI):**
+
+```xml
+<Connect Type="bool" PType="257" IoType="17">1</Connect>
+```
+
+После Calculate флаг сбрасывается в `0`. Аналогично: `Disconnect`, `Reconnect`, `UploadFirmware`, `SendCommand` (на CustomLink).
 
 **Linux:** группа `dialout` для доступа к `/dev/ttyACM0`.
 

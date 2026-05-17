@@ -16,7 +16,10 @@
 | `ConnectOnBuild` | Подключение в `ABuild` |
 | `BundledFirmwareId` | `sensor_lab_v1`, `standard_firmata` |
 | `FirmwarePath` | Альтернатива manifest — свой `.hex` |
-| `UploadFirmwareFlag` | Edge: запуск прошивки в `ACalculate` |
+| `Connect` / `Disconnect` / `Reconnect` | Edge: управление serial (сброс в `false` после тика) |
+| `UploadFirmware` | Edge: прошивка (legacy: `UploadFirmwareFlag`) |
+| `ClearLastError` | Edge |
+| `IsConnected` / `HasError` / `IsDisconnected` | State для GUI/схемы |
 | `ConnectionState` | 0–3 (см. [API-Overview.md](../API-Overview.md)) |
 | `LastError` | Текст ошибки serial/upload |
 

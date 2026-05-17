@@ -19,6 +19,8 @@
 
 **Сигналы:** `bytesReceived`, `errorOccurred`.
 
+**Threading:** `readyRead` только пишет в mutex-буфер. В HardwareLib **нет** `connect(bytesReceived, …)` к `UNet` — компоненты забирают данные в `UArduinoBoard::ACalculate` через `takeReceivedBytes()` (поток движка). См. [Architecture.md](Architecture.md).
+
 **Права Linux:** при `Permission denied` в `lastError` — подсказка про группу `dialout`.
 
 ## UArduinoSerialPortUtil

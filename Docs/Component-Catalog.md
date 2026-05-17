@@ -17,11 +17,11 @@
 | ClassName | C++ | Связь | Документация |
 |-----------|-----|-------|--------------|
 | `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
-| `ArduinoDcDemo` | `UArduinoDcDemo` | `LinkedSketchName` → `ArduinoSensorSketch` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
+| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | один узел (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)
 
-Target `Rdk-HardwareLib.gui`: diagram + контроллеры Board / SensorSketch / Firmata.
+Target `Rdk-HardwareLib.gui`: diagram + контроллеры Board / SensorSketch / Firmata / DcDemo / Adc; общая вкладка Board.
 
 См. [GUI.md](GUI.md). Ресурсы: `GUI/Qt/Resources/boards/*.svg`, `*_pins.json`.
 

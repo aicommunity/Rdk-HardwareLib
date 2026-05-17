@@ -3,17 +3,20 @@
 ## Назначение
 
 **ClassName:** `ArduinoAdc`  
-**C++:** `UArduinoAdc` : `UNet`  
-**Роль:** Чтение аналогового значения через **уже подключённый** `ArduinoFirmata` (отдельный serial не открывает).
+**C++:** `UArduinoAdc` : `UNet` (база **не** меняется)  
+**Роль:** Чтение ADC через связанный `ArduinoFirmata` (свой serial не открывает).
 
 ## Ключевые свойства
 
-| Свойство | Описание |
-|----------|----------|
-| `LinkedFirmataName` | Имя узла `ArduinoFirmata` на canvas (не ClassName) |
-| `AnalogPin` | Номер аналогового пина |
-| `ReadAdcFlag` | Edge: запросить чтение в `ACalculate` |
-| `AdcValue` | Результат 0–1023 |
+| Свойство | Роль |
+|----------|------|
+| `LinkedFirmataName` | Имя узла `ArduinoFirmata` на canvas |
+| `AnalogPin` | Номер пина Firmata |
+| `ReadAdcFlag` | **Edge:** запросить чтение |
+| `AdcValue` | State: 0–1023 |
+| `AdcReadOk` | State: firmata найден и `IsLinkReady` |
+
+`firmata->Calculate()` вызывается **только** из `UArduinoAdc::ACalculate` (поток движка).
 
 ## Типичная схема
 
@@ -24,11 +27,9 @@ flowchart LR
   Adc -->|LinkedFirmataName| Firmata
 ```
 
-Требования: Firmata подключён (`FirmataReady`), порт и baud настроены на узле Firmata.
-
 ## GUI
 
-Отдельной формы нет — свойства через property grid NeuroModeler.
+`hw.arduino.adc` — `LinkedFirmataName`, analog pin, `pulseEdge("ReadAdcFlag")`.
 
 ## Тестовый конфиг
 
@@ -37,7 +38,3 @@ flowchart LR
 ## ClDesc
 
 `Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoAdc.xml`
-
-## Миграция
-
-Старый `ADC` / `UADC` → `ArduinoAdc`. См. [Legacy/README.md](../Legacy/README.md).

@@ -11,15 +11,29 @@
 | `ArduinoBoard` | `hw.arduino.board` | `HardwareArduinoBoardControllerWidget` |
 | `ArduinoSensorSketch` | `hw.arduino.sensor_sketch` | `HardwareArduinoSensorSketchControllerWidget` |
 | `ArduinoFirmata` | `hw.arduino.firmata` | `HardwareArduinoFirmataControllerWidget` |
-
-`ArduinoAdc` и `ArduinoDcDemo` — без отдельных форм (property grid).
+| `ArduinoDcDemo` | `hw.arduino.dc_demo` | `HardwareArduinoDcDemoControllerWidget` |
+| `ArduinoAdc` | `hw.arduino.adc` | `HardwareArduinoAdcControllerWidget` |
 
 ## Доступ к модели
 
-[`HardwareGuiHelpers`](../GUI/Qt/widgets/HardwareGuiHelpers.cpp):
+[`HardwareGuiHelpers`](../GUI/Qt/widgets/HardwareGuiHelpers.h):
 
-- `MModel_GetComponentPropertyValue` / `Set`
-- `MEnv_Reset`, `MEnv_Calculate` для Apply / Calculate
+- `getProp` / `setProp` — чтение/запись свойств
+- `envCalculate` — один тик расчёта
+- **`pulseEdge(ctx, "Connect")`** — `setProp(edge, "1")` + `envCalculate` (edge сбрасыется в C++)
+
+Кнопки Connect/Disconnect/Reconnect/Upload **не** вызывают C++ напрямую — только property API.
+
+## Вкладка Board
+
+[`HardwareArduinoBoardPanelWidget`](../GUI/Qt/widgets/HardwareArduinoBoardPanelWidget.cpp) — общая панель:
+
+- Порт, baud, bundled firmware, upload
+- Connect / Disconnect / Reconnect / Health (`pulseEdge`)
+- Статус: `IsConnected`, `HasError`, `LastError` (read-only)
+- **Disconnect не очищает `PortName`**
+
+Встроена во вкладку **Board** у SensorSketch, Firmata, DcDemo.
 
 ## Diagram
 
@@ -27,22 +41,23 @@
 
 - SVG pinout Uno / Mega (`hardware_lib.qrc`)
 - Overlay пинов из `uno_pins.json`, `mega2560_pins.json`
-- Масштаб с сохранением aspect ratio
 - Firmata: клик по пину → `SelectedPin`
-
-## Board widget
-
-- Combo портов (USB сверху, `ttyS*` серым)
-- Upload firmware, progress, status log (копируемый текст)
-- Connect / Disconnect / Health check
 
 ## Sensor sketch widget
 
-- Command line, presets, matrix preview, GetDataFromBuffers / GetPinsInfo
+Вкладки **Sensor** | **Board**. Sensor: команды (`pulseEdge("SendCommand")`), presets, matrix.
 
 ## Firmata widget
 
-- Pin mode, digital write, read analog, interactive diagram
+Вкладки **Firmata** | **Board**. Restart Firmata → `pulseEdge("RestartFirmata")`. Статус: `IsFirmataReady`, `IsLinkReady`.
+
+## DcDemo widget
+
+Вкладки **DC** | **Board**. Send → `SendCommand`, Read speed → `GetSpeed`.
+
+## Adc widget
+
+`LinkedFirmataName`, analog pin, Read → `ReadAdcFlag`.
 
 ## Ресурсы
 
@@ -56,4 +71,4 @@
 ## См. также
 
 - [Usage-Examples.md](Usage-Examples.md)
-- [Component-Catalog.md](Component-Catalog.md)
+- [Architecture.md](Architecture.md) — threading

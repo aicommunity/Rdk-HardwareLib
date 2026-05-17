@@ -14,9 +14,13 @@
 | `ArduinoSensorSketch` | Протокол sensor_lab, команды, матрица показаний |
 | `ArduinoFirmata` | Firmata: pin mode / digital / analog |
 | `ArduinoAdc` | Чтение ADC через связанный `ArduinoFirmata` |
-| `ArduinoDcDemo` | DC demo через связанный `ArduinoSensorSketch` |
+| `ArduinoDcDemo` | DC demo (один узел, `UArduinoCustomLink` + sensor_lab_v1) |
 
 Полный каталог: [Component-Catalog.md](Component-Catalog.md).
+
+### Property-driven control
+
+Подключение и действия — через **edge-свойства** (`Connect`, `SendCommand`, `UploadFirmware`, …): импульс `true` на один тик расчёта, затем сброс в `false`. GUI: `HardwareGuiHelpers::pulseEdge`. Подробнее: [Architecture.md](Architecture.md), [API-Overview.md](API-Overview.md).
 
 ### Быстрый старт
 
