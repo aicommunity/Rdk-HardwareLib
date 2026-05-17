@@ -4,15 +4,11 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QPushButton>
-#include <QSignalBlocker>
 #include <QSplitter>
 #include <QVBoxLayout>
 
-#include <QtSerialPort/QSerialPortInfo>
-
+#include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
-
-#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
 
 namespace {
 
@@ -25,24 +21,21 @@ QMap<QString, QString> defaultSensorPinRoles()
 
 } // namespace
 
-HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControllerWidget(QWidget* parent,
-                                                                                       RDK::UApplication* app)
+HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControllerWidget(
+    QWidget* parent,
+    RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
     m_diagram = new UArduinoBoardDiagramWidget(this);
     m_diagram->setPinRoles(defaultSensorPinRoles());
     m_diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
 
-    m_portCombo = new QComboBox(this);
-    m_boardProfileCombo = new QComboBox(this);
-    m_boardProfileCombo->addItem(tr("Uno"), 0);
-    m_boardProfileCombo->addItem(tr("Mega 2560"), 1);
-
-    m_commandEdit = new QLineEdit(this);
-    auto* sendBtn = new QPushButton(tr("Send"), this);
+    auto* sensorPage = new QWidget(this);
+    m_commandEdit = new QLineEdit(sensorPage);
+    auto* sendBtn = new QPushButton(tr("Send"), sensorPage);
     connect(sendBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onSendCommand);
 
-    m_presetsList = new QListWidget(this);
+    m_presetsList = new QListWidget(sensorPage);
     m_presetsList->addItems({QStringLiteral("START READING"),
                               QStringLiteral("STOP READING"),
                               QStringLiteral("ROTATE"),
@@ -52,52 +45,58 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     connect(m_presetsList, &QListWidget::itemDoubleClicked, this,
             &HardwareArduinoSensorSketchControllerWidget::onPresetCommand);
 
-    m_matrixTable = new QTableWidget(0, 0, this);
+    m_matrixTable = new QTableWidget(0, 0, sensorPage);
     m_matrixTable->horizontalHeader()->setStretchLastSection(true);
-    m_getDataCheck = new QCheckBox(tr("Get data from buffers"), this);
-    m_getPinsInfoCheck = new QCheckBox(tr("Get pins info"), this);
 
-    m_applyButton = new QPushButton(tr("Apply"), this);
-    m_resetButton = new QPushButton(tr("Reset"), this);
-    m_calculateButton = new QPushButton(tr("Calculate"), this);
-    connect(m_applyButton, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onApply);
-    connect(m_resetButton, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onReset);
-    connect(m_calculateButton, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onCalculate);
-    connect(m_getPinsInfoCheck, &QCheckBox::toggled, this,
-            &HardwareArduinoSensorSketchControllerWidget::onGetPinsInfoToggled);
+    auto* getDataBtn = new QPushButton(tr("Get data from buffers"), sensorPage);
+    auto* getPinsBtn = new QPushButton(tr("Get pins info"), sensorPage);
+    connect(getDataBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onGetData);
+    connect(getPinsBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onGetPinsInfo);
+
+    auto* applyBtn = new QPushButton(tr("Apply"), sensorPage);
+    auto* resetBtn = new QPushButton(tr("Reset"), sensorPage);
+    auto* calcBtn = new QPushButton(tr("Calculate"), sensorPage);
+    connect(applyBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onApply);
+    connect(resetBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onReset);
+    connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onCalculate);
 
     auto* form = new QFormLayout();
-    form->addRow(tr("Port:"), m_portCombo);
-    form->addRow(tr("Board:"), m_boardProfileCombo);
     auto* cmdRow = new QHBoxLayout();
     cmdRow->addWidget(m_commandEdit, 1);
     cmdRow->addWidget(sendBtn);
     form->addRow(tr("Command:"), cmdRow);
     form->addRow(tr("Presets:"), m_presetsList);
-    form->addRow(QString(), m_getDataCheck);
-    form->addRow(QString(), m_getPinsInfoCheck);
+    auto* edgeRow = new QHBoxLayout();
+    edgeRow->addWidget(getDataBtn);
+    edgeRow->addWidget(getPinsBtn);
+    form->addRow(tr("Actions:"), edgeRow);
     form->addRow(tr("Readings:"), m_matrixTable);
     auto* btnRow = new QHBoxLayout();
-    btnRow->addWidget(m_applyButton);
-    btnRow->addWidget(m_resetButton);
-    btnRow->addWidget(m_calculateButton);
+    btnRow->addWidget(applyBtn);
+    btnRow->addWidget(resetBtn);
+    btnRow->addWidget(calcBtn);
     form->addRow(QString(), btnRow);
+    sensorPage->setLayout(form);
 
-    auto* right = new QWidget(this);
-    right->setLayout(form);
+    m_boardPanel = new HardwareArduinoBoardPanelWidget(this);
+    m_tabs = new QTabWidget(this);
+    m_tabs->addTab(sensorPage, tr("Sensor"));
+    m_tabs->addTab(m_boardPanel, tr("Board"));
+
     auto* splitter = new QSplitter(Qt::Horizontal, this);
     splitter->addWidget(m_diagram);
-    splitter->addWidget(right);
+    splitter->addWidget(m_tabs);
+    splitter->setStretchFactor(0, 3);
+    splitter->setStretchFactor(1, 2);
 
     auto* root = new QVBoxLayout(this);
     root->addWidget(splitter);
-
-    HardwareGuiHelpers::populateSerialPortCombo(m_portCombo);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
     m_context = context;
+    m_boardPanel->setContext(context);
     refreshFromModel(true);
 }
 
@@ -106,41 +105,16 @@ QString HardwareArduinoSensorSketchControllerWidget::componentGuiId() const
     return QStringLiteral("hw.arduino.sensor_sketch");
 }
 
-void HardwareArduinoSensorSketchControllerWidget::applyBoardFields()
-{
-    HardwareGuiHelpers::setProp(m_context,
-                                "PortName",
-                                HardwareGuiHelpers::selectedSerialPortPath(m_portCombo));
-    HardwareGuiHelpers::setProp(m_context, "BoardProfile",
-                                QString::number(m_boardProfileCombo->currentData().toInt()));
-    HardwareGuiHelpers::setProp(m_context, "GetDataFromBuffers",
-                                m_getDataCheck->isChecked() ? QStringLiteral("1") : QStringLiteral("0"));
-    HardwareGuiHelpers::setProp(m_context, "GetPinsInfo",
-                                m_getPinsInfoCheck->isChecked() ? QStringLiteral("1") : QStringLiteral("0"));
-}
-
 void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
 {
     Q_UNUSED(force);
     if (m_context.componentLongName.isEmpty())
         return;
 
-    QSignalBlocker b1(m_portCombo);
-    QSignalBlocker b2(m_boardProfileCombo);
-    QSignalBlocker b3(m_getDataCheck);
-    QSignalBlocker b4(m_getPinsInfoCheck);
-
-    const QString port = HardwareGuiHelpers::getProp(m_context, "PortName");
-    const QString portPath =
-        port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
-    HardwareGuiHelpers::selectSerialPortInCombo(m_portCombo, portPath);
-
-    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
-    m_boardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
-    m_getDataCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "GetDataFromBuffers", false));
-    m_getPinsInfoCheck->setChecked(HardwareGuiHelpers::getPropBool(m_context, "GetPinsInfo", false));
+    m_boardPanel->refreshFromModel();
     m_commandEdit->setText(HardwareGuiHelpers::getProp(m_context, "Command"));
 
+    const int profile = HardwareGuiHelpers::getPropInt(m_context, "BoardProfile", 0);
     m_diagram->setBoardProfile(profile);
     m_diagram->setConnectionState(HardwareGuiHelpers::getPropInt(m_context, "ConnectionState", 0));
     m_diagram->setPinRoles(defaultSensorPinRoles());
@@ -167,20 +141,10 @@ void HardwareArduinoSensorSketchControllerWidget::refreshMatrixPreview()
     }
 }
 
-void HardwareArduinoSensorSketchControllerWidget::onGetPinsInfoToggled(bool checked)
-{
-    applyBoardFields();
-    HardwareGuiHelpers::setProp(m_context, "GetPinsInfo", checked ? QStringLiteral("1") : QStringLiteral("0"));
-    if (checked) {
-        HardwareGuiHelpers::envCalculate(m_context);
-        refreshFromModel(true);
-    }
-}
-
 void HardwareArduinoSensorSketchControllerWidget::onApply()
 {
-    applyBoardFields();
     HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
+    m_boardPanel->applyToModel();
     HardwareGuiHelpers::envReset(m_context);
     refreshFromModel(true);
 }
@@ -193,17 +157,31 @@ void HardwareArduinoSensorSketchControllerWidget::onReset()
 
 void HardwareArduinoSensorSketchControllerWidget::onCalculate()
 {
-    applyBoardFields();
+    HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
+    m_boardPanel->applyToModel();
     HardwareGuiHelpers::envCalculate(m_context);
     refreshFromModel(true);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::onSendCommand()
 {
-    applyBoardFields();
     HardwareGuiHelpers::setProp(m_context, "Command", m_commandEdit->text());
-    HardwareGuiHelpers::setProp(m_context, "SendCommandFlag", QStringLiteral("1"));
-    HardwareGuiHelpers::envCalculate(m_context);
+    m_boardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(m_context, "SendCommand");
+    refreshFromModel(true);
+}
+
+void HardwareArduinoSensorSketchControllerWidget::onGetData()
+{
+    m_boardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(m_context, "GetDataFromBuffers");
+    refreshFromModel(true);
+}
+
+void HardwareArduinoSensorSketchControllerWidget::onGetPinsInfo()
+{
+    m_boardPanel->applyToModel();
+    HardwareGuiHelpers::pulseEdge(m_context, "GetPinsInfo");
     refreshFromModel(true);
 }
 
@@ -213,8 +191,7 @@ void HardwareArduinoSensorSketchControllerWidget::onPresetCommand()
         return;
     const QString text = m_presetsList->currentItem()->text();
     if (text == QStringLiteral("GET PINS INFO")) {
-        m_getPinsInfoCheck->setChecked(true);
-        onGetPinsInfoToggled(true);
+        onGetPinsInfo();
         return;
     }
     m_commandEdit->setText(text);

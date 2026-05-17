@@ -18,6 +18,10 @@ UArduinoSensorSketch::UArduinoSensorSketch()
     , DoubleMatrixReadings("DoubleMatrixReadings", this)
     , GetPinsInfo("GetPinsInfo", this)
     , PinStatusJson("PinStatusJson", this)
+    , StartReading("StartReading", this)
+    , StopReading("StopReading", this)
+    , Rotate("Rotate", this)
+    , StopRotate("StopRotate", this)
 {
 }
 
@@ -37,6 +41,10 @@ bool UArduinoSensorSketch::ADefault()
     GetDataFromBuffers = false;
     GetPinsInfo = false;
     PinStatusJson = "";
+    StartReading = false;
+    StopReading = false;
+    Rotate = false;
+    StopRotate = false;
     BundledFirmwareId = "sensor_lab_v1";
     return true;
 }
@@ -52,7 +60,50 @@ bool UArduinoSensorSketch::AReset()
 {
     SendCommandFlag = false;
     GetPinsInfo = false;
+    GetDataFromBuffers = false;
+    StartReading = false;
+    StopReading = false;
+    Rotate = false;
+    StopRotate = false;
     return UArduinoCustomLink::AReset();
+}
+
+void UArduinoSensorSketch::runPresetCommand(const char* text)
+{
+    Command = text;
+    EnqueueCommand(text);
+    SentCommand = text;
+}
+
+void UArduinoSensorSketch::ProcessSketchEdges()
+{
+    if (StartReading) {
+        runPresetCommand("START READING");
+        ResetEdge(StartReading);
+    }
+    if (StopReading) {
+        runPresetCommand("STOP READING");
+        ResetEdge(StopReading);
+    }
+    if (Rotate) {
+        runPresetCommand("ROTATE");
+        ResetEdge(Rotate);
+    }
+    if (StopRotate) {
+        runPresetCommand("STOP ROTATE");
+        ResetEdge(StopRotate);
+    }
+
+    if (GetPinsInfo) {
+        EnqueueCommand("GET STATUS");
+        FlushCommandQueue();
+        ResetEdge(GetPinsInfo);
+    }
+
+    if (GetDataFromBuffers) {
+        PutDataToMatrix();
+        ResetEdge(GetDataFromBuffers);
+    }
 }
 
 QString UArduinoSensorSketch::pinToString(int pin)
@@ -165,16 +216,8 @@ void UArduinoSensorSketch::PutDataToMatrix()
 
 void UArduinoSensorSketch::OnBoardCalculate()
 {
+    ProcessSketchEdges();
     UArduinoCustomLink::OnBoardCalculate();
-
-    if (GetPinsInfo) {
-        EnqueueCommand("GET STATUS");
-        FlushCommandQueue();
-        GetPinsInfo = false;
-    }
-
-    if (GetDataFromBuffers)
-        PutDataToMatrix();
 }
 
 bool UArduinoSensorSketch::ACalculate()

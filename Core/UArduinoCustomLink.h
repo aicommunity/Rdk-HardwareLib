@@ -20,6 +20,14 @@ public:
     UProperty<int, UArduinoCustomLink, ptPubState> RxFrameCount;
     UProperty<int, UArduinoCustomLink, ptPubState> TxCommandCount;
 
+    UProperty<bool, UArduinoCustomLink, ptPubParameter | ptInput> SendCommand;
+    UProperty<bool, UArduinoCustomLink, ptPubParameter | ptInput> RequestGetStatus;
+    UProperty<bool, UArduinoCustomLink, ptPubParameter | ptInput> RequestProtocolNegotiate;
+
+    UProperty<bool, UArduinoCustomLink, ptPubState> IsProtocolReady;
+    UProperty<bool, UArduinoCustomLink, ptPubState> HasPendingCommands;
+    UProperty<string, UArduinoCustomLink, ptPubState> LastSentCommand;
+
     UArduinoCustomLink();
     virtual ~UArduinoCustomLink();
 
@@ -33,6 +41,8 @@ protected:
 
     virtual void OnBinaryFrame(uint8_t type, const QByteArray& payload) = 0;
 
+    void ProcessCustomLinkEdges();
+    void SyncCustomLinkStates();
     void EnqueueCommand(const string& command);
     void FlushCommandQueue();
     void ProcessIncoming();

@@ -3,7 +3,9 @@
 #include <QCoreApplication>
 
 #include "../../../../Rdk/GUI/Qt/UComponentFormRegistry.h"
+#include "HardwareArduinoAdcControllerWidget.h"
 #include "HardwareArduinoBoardControllerWidget.h"
+#include "HardwareArduinoDcDemoControllerWidget.h"
 #include "HardwareArduinoFirmataControllerWidget.h"
 #include "HardwareArduinoSensorSketchControllerWidget.h"
 
@@ -49,5 +51,19 @@ void RegisterHardwareLibComponentGuiForms()
         MakeDescriptor(QStringLiteral("hw.arduino.firmata"), QStringLiteral("Arduino Firmata"),
                        [](RDK::UApplication* app) {
                            return new HardwareArduinoFirmataControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoDcDemo"),
+        MakeDescriptor(QStringLiteral("hw.arduino.dc_demo"), QStringLiteral("Arduino DC Demo"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoDcDemoControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoAdc"),
+        MakeDescriptor(QStringLiteral("hw.arduino.adc"), QStringLiteral("Arduino ADC"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoAdcControllerWidget(nullptr, app);
                        }));
 }

@@ -18,6 +18,12 @@ public:
     UProperty<bool, UArduinoFirmata, ptPubState> ReadAnalogFlag;
     UProperty<bool, UArduinoFirmata, ptPubState> WriteDigitalFlag;
 
+    UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> RestartFirmata;
+    UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> ApplyPinConfig;
+    UProperty<bool, UArduinoFirmata, ptPubState> IsFirmataReady;
+    UProperty<bool, UArduinoFirmata, ptPubState> IsLinkReady;
+    UProperty<bool, UArduinoFirmata, ptPubParameter> ReportAnalogEnable;
+
     UArduinoFirmata();
     virtual ~UArduinoFirmata();
 
@@ -29,8 +35,11 @@ protected:
     void OnBoardCalculate() override;
     bool EnsureConnected() override;
 
+    void ProcessFirmataEdges();
+    void SyncFirmataStates();
     void ProcessFirmata();
     void RunFirmataActions();
+    void StartFirmataHandshake();
 
     UArduinoFirmataClient FirmataClient;
     bool HandshakeSent = false;

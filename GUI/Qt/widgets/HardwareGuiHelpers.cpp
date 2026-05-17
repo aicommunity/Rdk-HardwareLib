@@ -175,4 +175,10 @@ void envCalculate(const UComponentGuiContext& ctx)
     MEnv_Calculate(ctx.channelIndex, ctx.componentLongName.toUtf8().constData());
 }
 
+void pulseEdge(const UComponentGuiContext& ctx, const char* edgeName)
+{
+    setProp(ctx, edgeName, QStringLiteral("1"));
+    envCalculate(ctx);
+}
+
 } // namespace HardwareGuiHelpers

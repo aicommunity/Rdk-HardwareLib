@@ -1,21 +1,18 @@
 #ifndef UARDUINODCDEMO_H
 #define UARDUINODCDEMO_H
 
-#include "../../../Rdk/Deploy/Include/rdk.h"
+#include "UArduinoCustomLink.h"
 
 namespace RDK {
 
 class UArduinoSensorSketch;
 
-class RDK_LIB_TYPE UArduinoDcDemo : public UNet {
+class RDK_LIB_TYPE UArduinoDcDemo : public UArduinoCustomLink {
 public:
     UProperty<string, UArduinoDcDemo, ptPubParameter> LinkedSketchName;
-    UProperty<string, UArduinoDcDemo, ptPubParameter | ptOutput> Command;
-    UProperty<bool, UArduinoDcDemo, ptPubState> SendCommandFlag;
-    UProperty<string, UArduinoDcDemo, ptPubState> SentCommand;
     UProperty<float, UArduinoDcDemo, ptPubState> Speed;
     UProperty<float, UArduinoDcDemo, ptPubState> Acceleration;
-    UProperty<bool, UArduinoDcDemo, ptPubState> GetSpeed;
+    UProperty<bool, UArduinoDcDemo, ptPubParameter | ptInput> GetSpeed;
 
     UArduinoDcDemo();
     virtual ~UArduinoDcDemo();
@@ -26,6 +23,13 @@ protected:
     bool ABuild() override;
     bool AReset() override;
     bool ACalculate() override;
+
+    void OnBinaryFrame(uint8_t type, const QByteArray& payload) override;
+    void ProcessDcDemoEdges();
+    bool delegateToLinkedSketch();
+
+    float CachedSpeed = 0.f;
+    float CachedAcceleration = 0.f;
 };
 
 } // namespace RDK

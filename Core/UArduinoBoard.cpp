@@ -5,6 +5,7 @@
 #include "Transport/UArduinoSerialSession.h"
 #include "UFirmwareManifest.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDebug>
 
@@ -16,9 +17,20 @@ UArduinoBoard::UArduinoBoard()
     , BoardProfile("BoardProfile", this)
     , AutoReconnect("AutoReconnect", this)
     , ConnectOnBuild("ConnectOnBuild", this)
+    , Connect("Connect", this)
+    , Disconnect("Disconnect", this)
+    , Reconnect("Reconnect", this)
+    , UploadFirmware("UploadFirmware", this)
+    , ClearLastError("ClearLastError", this)
     , ConnectionState("ConnectionState", this)
     , LastError("LastError", this)
     , LastActivityMs("LastActivityMs", this)
+    , IsConnected("IsConnected", this)
+    , IsOpening("IsOpening", this)
+    , HasError("HasError", this)
+    , IsDisconnected("IsDisconnected", this)
+    , IsUploading("IsUploading", this)
+    , UploadComplete("UploadComplete", this)
     , HeartbeatEnabled("HeartbeatEnabled", this)
     , HeartbeatIntervalMs("HeartbeatIntervalMs", this)
     , HeartbeatTimeoutMs("HeartbeatTimeoutMs", this)
@@ -43,10 +55,16 @@ UArduinoBoard* UArduinoBoard::New()
     return new UArduinoBoard;
 }
 
+void UArduinoBoard::ResetEdge(bool& flag)
+{
+    if (flag)
+        flag = false;
+}
+
 bool UArduinoBoard::SetPortName(const string& value)
 {
     Q_UNUSED(value);
-    Disconnect();
+    CloseConnection();
     Ready = false;
     PortChanged = true;
     return true;
@@ -59,6 +77,11 @@ bool UArduinoBoard::ADefault()
     BoardProfile = 0;
     AutoReconnect = false;
     ConnectOnBuild = true;
+    Connect = false;
+    Disconnect = false;
+    Reconnect = false;
+    UploadFirmware = false;
+    ClearLastError = false;
     ConnectionState = ArduinoDisconnected;
     LastError = "";
     LastActivityMs = 0;
@@ -73,6 +96,7 @@ bool UArduinoBoard::ADefault()
     UploadProgress = 0;
     UploadLastResult = "";
     ShowDebug = false;
+    SyncDerivedStates();
     return true;
 }
 
@@ -81,6 +105,7 @@ bool UArduinoBoard::ABuild()
     PortChanged = false;
     if (ConnectOnBuild && !PortName->empty())
         EnsureConnected();
+    SyncDerivedStates();
     return true;
 }
 
@@ -88,6 +113,11 @@ bool UArduinoBoard::AReset()
 {
     RequestHealthCheck = false;
     UploadFirmwareFlag = false;
+    UploadFirmware = false;
+    Connect = false;
+    Disconnect = false;
+    Reconnect = false;
+    ClearLastError = false;
     return true;
 }
 
@@ -97,7 +127,7 @@ void UArduinoBoard::AInit()
 
 void UArduinoBoard::AUnInit()
 {
-    Disconnect();
+    CloseConnection();
     delete Session;
     Session = nullptr;
     delete Flasher;
@@ -106,14 +136,61 @@ void UArduinoBoard::AUnInit()
 
 UArduinoSerialSession* UArduinoBoard::session()
 {
-    if (!Session)
-        Session = new UArduinoSerialSession();
+    if (!Session) {
+        QObject* parent = QCoreApplication::instance();
+        Session = new UArduinoSerialSession(parent);
+        // RX is pulled in ACalculate (engine thread). Do not connect bytesReceived to UNet.
+    }
     return Session;
 }
 
 void UArduinoBoard::TouchActivity()
 {
     LastActivityMs = QDateTime::currentMSecsSinceEpoch();
+}
+
+void UArduinoBoard::SyncDerivedStates()
+{
+    const int state = ConnectionState;
+    IsConnected = (state == ArduinoConnected);
+    IsOpening = (state == ArduinoOpening);
+    HasError = (state == ArduinoError);
+    IsDisconnected = (state == ArduinoDisconnected);
+    IsUploading = (UploadProgress > 0 && UploadProgress < 100);
+    UploadComplete = (*UploadLastResult == std::string("ok"));
+}
+
+void UArduinoBoard::ProcessBoardEdges()
+{
+    if (ClearLastError) {
+        LastError = "";
+        ResetEdge(ClearLastError);
+    }
+
+    if (Disconnect) {
+        CloseConnection();
+        ResetEdge(Disconnect);
+    }
+
+    if (Reconnect) {
+        CloseConnection();
+        if (!PortName->empty())
+            EnsureConnected();
+        ResetEdge(Reconnect);
+    }
+
+    if (Connect) {
+        if (!PortName->empty())
+            EnsureConnected();
+        ResetEdge(Connect);
+    }
+
+    const bool uploadRequested = UploadFirmware || UploadFirmwareFlag;
+    if (uploadRequested) {
+        RunUpload();
+        ResetEdge(UploadFirmware);
+        UploadFirmwareFlag = false;
+    }
 }
 
 bool UArduinoBoard::EnsureConnected()
@@ -143,7 +220,7 @@ bool UArduinoBoard::EnsureConnected()
     return false;
 }
 
-void UArduinoBoard::Disconnect()
+void UArduinoBoard::CloseConnection()
 {
     if (Session)
         Session->close();
@@ -166,10 +243,12 @@ void UArduinoBoard::RunUpload()
         return;
     }
 
-    if (!Flasher)
-        Flasher = new UArduinoFlasher();
+    if (!Flasher) {
+        QObject* parent = QCoreApplication::instance();
+        Flasher = new UArduinoFlasher(parent);
+    }
 
-    Disconnect();
+    CloseConnection();
     UploadProgress = 10;
 
     const UArduinoBoardProfile profile =
@@ -207,7 +286,7 @@ void UArduinoBoard::HeartbeatTick()
     if (now - LastHealthResponseMs > HeartbeatTimeoutMs) {
         MissedHeartbeats = MissedHeartbeats + 1;
         if (AutoReconnect) {
-            Disconnect();
+            CloseConnection();
             EnsureConnected();
         }
     }
@@ -225,16 +304,14 @@ void UArduinoBoard::OnBoardCalculate()
 
 bool UArduinoBoard::ACalculate()
 {
+    SyncDerivedStates();
+    ProcessBoardEdges();
+
     if (PortChanged) {
-        Disconnect();
+        CloseConnection();
         if (!PortName->empty())
             EnsureConnected();
         PortChanged = false;
-    }
-
-    if (UploadFirmwareFlag) {
-        RunUpload();
-        UploadFirmwareFlag = false;
     }
 
     if (ConnectionState != ArduinoConnected && AutoReconnect && !PortName->empty()) {
@@ -254,6 +331,7 @@ bool UArduinoBoard::ACalculate()
     }
 
     OnBoardCalculate();
+    SyncDerivedStates();
     return true;
 }
 

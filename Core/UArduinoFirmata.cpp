@@ -14,6 +14,11 @@ UArduinoFirmata::UArduinoFirmata()
     , SetPinModeFlag("SetPinModeFlag", this)
     , ReadAnalogFlag("ReadAnalogFlag", this)
     , WriteDigitalFlag("WriteDigitalFlag", this)
+    , RestartFirmata("RestartFirmata", this)
+    , ApplyPinConfig("ApplyPinConfig", this)
+    , IsFirmataReady("IsFirmataReady", this)
+    , IsLinkReady("IsLinkReady", this)
+    , ReportAnalogEnable("ReportAnalogEnable", this)
 {
 }
 
@@ -36,19 +41,52 @@ bool UArduinoFirmata::ADefault()
     SetPinModeFlag = false;
     ReadAnalogFlag = false;
     WriteDigitalFlag = false;
+    RestartFirmata = false;
+    ApplyPinConfig = false;
+    IsFirmataReady = false;
+    IsLinkReady = false;
+    ReportAnalogEnable = false;
     BundledFirmwareId = "standard_firmata";
     HandshakeSent = false;
+    SyncFirmataStates();
     return true;
+}
+
+void UArduinoFirmata::SyncFirmataStates()
+{
+    IsFirmataReady = FirmataReady;
+    IsLinkReady = IsConnected && FirmataReady;
+}
+
+void UArduinoFirmata::StartFirmataHandshake()
+{
+    FirmataClient.reset();
+    if (Session && Session->isOpen())
+        FirmataClient.startHandshake(session());
+    HandshakeSent = true;
+}
+
+void UArduinoFirmata::ProcessFirmataEdges()
+{
+    if (RestartFirmata) {
+        HandshakeSent = false;
+        FirmataReady = false;
+        if (IsConnected)
+            StartFirmataHandshake();
+        ResetEdge(RestartFirmata);
+    }
+
+    if (ApplyPinConfig) {
+        RunFirmataActions();
+        ResetEdge(ApplyPinConfig);
+    }
 }
 
 bool UArduinoFirmata::EnsureConnected()
 {
     const bool ok = UArduinoBoard::EnsureConnected();
-    if (ok && !HandshakeSent) {
-        FirmataClient.reset();
-        FirmataClient.startHandshake(session());
-        HandshakeSent = true;
-    }
+    if (ok && !HandshakeSent)
+        StartFirmataHandshake();
     if (!ok)
         HandshakeSent = false;
     return ok;
@@ -82,10 +120,11 @@ void UArduinoFirmata::RunFirmataActions()
         FirmataClient.digitalWrite(session(), SelectedPin, DigitalPinValue ? 1 : 0);
         WriteDigitalFlag = false;
     }
-    if (ReadAnalogFlag) {
+    if (ReadAnalogFlag || ReportAnalogEnable) {
         FirmataClient.reportAnalog(session(), SelectedPin, 1);
         AnalogPinValue = FirmataClient.analogValue(SelectedPin);
-        ReadAnalogFlag = false;
+        if (ReadAnalogFlag)
+            ReadAnalogFlag = false;
     }
 }
 
@@ -97,7 +136,10 @@ void UArduinoFirmata::OnBoardCalculate()
 
 bool UArduinoFirmata::ACalculate()
 {
-    return UArduinoBoard::ACalculate();
+    ProcessFirmataEdges();
+    const bool ok = UArduinoBoard::ACalculate();
+    SyncFirmataStates();
+    return ok;
 }
 
 } // namespace RDK

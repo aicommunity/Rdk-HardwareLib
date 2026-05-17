@@ -5,12 +5,15 @@
 
 namespace RDK {
 
+class UArduinoFirmata;
+
 class RDK_LIB_TYPE UArduinoAdc : public UNet {
 public:
     UProperty<string, UArduinoAdc, ptPubParameter> LinkedFirmataName;
     UProperty<int, UArduinoAdc, ptPubParameter> AnalogPin;
     UProperty<int, UArduinoAdc, ptPubState> AdcValue;
-    UProperty<bool, UArduinoAdc, ptPubState> ReadAdcFlag;
+    UProperty<bool, UArduinoAdc, ptPubParameter | ptInput> ReadAdcFlag;
+    UProperty<bool, UArduinoAdc, ptPubState> AdcReadOk;
 
     UArduinoAdc();
     virtual ~UArduinoAdc();

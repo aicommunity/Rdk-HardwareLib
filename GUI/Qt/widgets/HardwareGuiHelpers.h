@@ -33,6 +33,7 @@ bool getMatrixPreview(const UComponentGuiContext& ctx,
                       QVector<QVector<double>>* outRows);
 void envReset(const UComponentGuiContext& ctx);
 void envCalculate(const UComponentGuiContext& ctx);
+void pulseEdge(const UComponentGuiContext& ctx, const char* edgeName);
 
 } // namespace HardwareGuiHelpers
 

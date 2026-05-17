@@ -5,11 +5,14 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTabWidget>
 
 #include "../../../../Rdk/GUI/Qt/IComponentControllerWidget.h"
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
 #include "widgets/UArduinoBoardDiagramWidget.h"
+
+class HardwareArduinoBoardPanelWidget;
 
 class HardwareArduinoFirmataControllerWidget : public UVisualControllerWidget, public IComponentControllerWidget {
     Q_OBJECT
@@ -26,6 +29,7 @@ private slots:
     void onSetPinMode();
     void onWriteDigital();
     void onReadAnalog();
+    void onRestartFirmata();
     void onDiagramPinClicked(const QString& pinId);
 
 private:
@@ -33,7 +37,8 @@ private:
 
     UComponentGuiContext m_context;
     UArduinoBoardDiagramWidget* m_diagram = nullptr;
-    QComboBox* m_portCombo = nullptr;
+    QTabWidget* m_tabs = nullptr;
+    HardwareArduinoBoardPanelWidget* m_boardPanel = nullptr;
     QSpinBox* m_pinSpin = nullptr;
     QComboBox* m_modeCombo = nullptr;
     QSpinBox* m_digitalValueSpin = nullptr;

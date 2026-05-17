@@ -6,9 +6,6 @@ namespace RDK {
 
 UArduinoDcDemo::UArduinoDcDemo()
     : LinkedSketchName("LinkedSketchName", this)
-    , Command("Command", this)
-    , SendCommandFlag("SendCommandFlag", this)
-    , SentCommand("SentCommand", this)
     , Speed("Speed", this)
     , Acceleration("Acceleration", this)
     , GetSpeed("GetSpeed", this)
@@ -24,60 +21,114 @@ UArduinoDcDemo* UArduinoDcDemo::New()
 
 bool UArduinoDcDemo::ADefault()
 {
+    UArduinoCustomLink::ADefault();
     LinkedSketchName = "";
-    Command = "";
-    SendCommandFlag = false;
-    SentCommand = "";
     Speed = 0;
     Acceleration = 0;
     GetSpeed = false;
+    BundledFirmwareId = "sensor_lab_v1";
+    CachedSpeed = 0.f;
+    CachedAcceleration = 0.f;
     return true;
 }
 
 bool UArduinoDcDemo::ABuild()
 {
-    return true;
+    return UArduinoCustomLink::ABuild();
 }
 
 bool UArduinoDcDemo::AReset()
 {
-    SendCommandFlag = false;
+    GetSpeed = false;
+    return UArduinoCustomLink::AReset();
+}
+
+bool UArduinoDcDemo::delegateToLinkedSketch()
+{
+    if (LinkedSketchName->empty())
+        return false;
+
+    UContainer* owner = dynamic_cast<UContainer*>(GetOwner().Get());
+    if (!owner)
+        return false;
+
+    UEPtr<UArduinoSensorSketch> sketch =
+        owner->GetComponentL<UArduinoSensorSketch>(*LinkedSketchName, true);
+    if (!sketch)
+        return false;
+
+    if (!LinkedSketchName->empty()) {
+        LastError =
+            "LinkedSketchName is deprecated; use a single ArduinoDcDemo node with PortName";
+    }
+
+    const bool sendRequested = (SendCommand || SendCommandFlag) && !Command->empty();
+    if (sendRequested) {
+        sketch->Command = Command;
+        sketch->SendCommand = true;
+        SentCommand = Command;
+        SendCommandFlag = false;
+        ResetEdge(SendCommand);
+    }
+
+    if (GetSpeed) {
+        // Deprecated path: no nested Calculate(); read last matrix row if already filled.
+        sketch->GetDataFromBuffers = true;
+        if (sketch->DoubleMatrixReadings->GetRows() > 0) {
+            const int row = qMax(0, sketch->DoubleMatrixReadings->GetRows() - 1);
+            const int cols = sketch->DoubleMatrixReadings->GetCols();
+            if (cols > 4)
+                Speed = static_cast<float>(sketch->DoubleMatrixReadings(row, 4));
+            if (cols > 5)
+                Acceleration = static_cast<float>(sketch->DoubleMatrixReadings(row, 5));
+        }
+        ResetEdge(GetSpeed);
+    }
     return true;
+}
+
+void UArduinoDcDemo::OnBinaryFrame(uint8_t type, const QByteArray& payload)
+{
+    if (type != 0x01 || payload.size() < 2)
+        return;
+
+    const uint8_t paramCount = static_cast<uint8_t>(payload[1]);
+    if (payload.size() < 2 + paramCount * static_cast<int>(sizeof(float)))
+        return;
+
+    float values[5] = {0, 0, 0, 0, 0};
+    for (int i = 0; i < paramCount && i < 5; ++i)
+        memcpy(&values[i], payload.constData() + 2 + i * sizeof(float), sizeof(float));
+
+    // Legacy 0x01 layout: t, h, hall, speed[, acceleration]
+    if (paramCount >= 5) {
+        CachedSpeed = values[3];
+        CachedAcceleration = values[4];
+    } else if (paramCount >= 4) {
+        CachedSpeed = values[3];
+        CachedAcceleration = 0.f;
+    } else if (paramCount >= 1) {
+        CachedSpeed = values[0];
+        CachedAcceleration = 0.f;
+    }
+}
+
+void UArduinoDcDemo::ProcessDcDemoEdges()
+{
+    if (GetSpeed) {
+        Speed = CachedSpeed;
+        Acceleration = CachedAcceleration;
+        ResetEdge(GetSpeed);
+    }
 }
 
 bool UArduinoDcDemo::ACalculate()
 {
-    if (LinkedSketchName->empty())
-        return true;
+    if (!LinkedSketchName->empty())
+        return delegateToLinkedSketch();
 
-    UContainer* owner = dynamic_cast<UContainer*>(GetOwner().Get());
-    if (!owner)
-        return true;
-
-    UEPtr<UArduinoSensorSketch> sketch = owner->GetComponentL<UArduinoSensorSketch>(*LinkedSketchName, true);
-    if (!sketch)
-        return true;
-
-    if (SendCommandFlag) {
-        sketch->InputCommand = Command;
-        sketch->SendCommandFlag = true;
-        SentCommand = Command;
-        SendCommandFlag = false;
-    }
-
-    if (GetSpeed) {
-        sketch->GetDataFromBuffers = true;
-        sketch->Calculate();
-        if (sketch->DoubleMatrixReadings->GetRows() > 0
-            && sketch->DoubleMatrixReadings->GetCols() > 4) {
-            const int row = qMax(0, sketch->DoubleMatrixReadings->GetRows() - 1);
-            Speed = static_cast<float>(sketch->DoubleMatrixReadings(row, 4));
-            if (sketch->DoubleMatrixReadings->GetCols() > 5)
-                Acceleration = static_cast<float>(sketch->DoubleMatrixReadings(row, 5));
-        }
-        GetSpeed = false;
-    }
-    return true;
+    ProcessDcDemoEdges();
+    return UArduinoCustomLink::ACalculate();
 }
 
 } // namespace RDK
