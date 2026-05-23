@@ -77,6 +77,7 @@ protected:
     bool ACalculate() override;
     void OnBoardCalculate() override;
     bool EnsureConnected() override;
+    void CloseConnection() override;
 
     void ProcessFirmataEdges();
     void SyncFirmataStates();

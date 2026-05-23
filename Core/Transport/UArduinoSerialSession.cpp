@@ -41,6 +41,8 @@ bool UArduinoSerialSession::tryOpenPort(const QString& device_path, int baud_rat
     SerialPort->setFlowControl(QSerialPort::NoFlowControl);
 
     if (SerialPort->open(QIODevice::ReadWrite)) {
+        SerialPort->setDataTerminalReady(false);
+        SerialPort->setDataTerminalReady(true);
         connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoSerialSession::onReadyRead);
         return true;
     }
@@ -139,6 +141,15 @@ qint64 UArduinoSerialSession::write(const QByteArray& data)
 
 QByteArray UArduinoSerialSession::takeReceivedBytes()
 {
+    if (SerialPort && SerialPort->isOpen()) {
+        while (SerialPort->bytesAvailable() > 0)
+            onReadyRead();
+        if (RxBuffer.isEmpty())
+            SerialPort->waitForReadyRead(50);
+        while (SerialPort->bytesAvailable() > 0)
+            onReadyRead();
+    }
+
     QMutexLocker locker(&RxMutex);
     QByteArray out = RxBuffer;
     RxBuffer.clear();
@@ -157,7 +168,7 @@ void UArduinoSerialSession::onReadyRead()
         RxBuffer.append(chunk);
     }
     if (ShowDebug)
-        qDebug() << "UArduinoSerialSession RX:" << chunk.size() << "bytes";
+        qDebug().noquote() << "UArduinoSerialSession RX:" << chunk.size() << chunk.toHex(' ');
     emit bytesReceived();
 }
 

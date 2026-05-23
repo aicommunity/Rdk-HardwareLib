@@ -1,5 +1,6 @@
 #include "UArduinoFirmata.h"
 
+#include "UFirmwareManifest.h"
 #include "Transport/UArduinoPinMap.h"
 #include "Transport/UArduinoSerialSession.h"
 #include "UArduinoSampleBuffer.h"
@@ -165,6 +166,8 @@ bool UArduinoFirmata::ADefault()
     IsLinkReady = false;
     ReportAnalogEnable = false;
     BundledFirmwareId = "standard_firmata";
+    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("standard_firmata"), 0)
+                       .toStdString();
     HandshakeSent = false;
     FirmataClient.setBoardProfile(BoardProfile);
     SyncFirmataStates();
@@ -232,6 +235,13 @@ void UArduinoFirmata::ProcessFirmataEdges()
         RunFirmataActions();
         ResetEdge(ApplyPinConfig);
     }
+}
+
+void UArduinoFirmata::CloseConnection()
+{
+    UArduinoBoard::CloseConnection();
+    HandshakeSent = false;
+    FirmataReady = false;
 }
 
 bool UArduinoFirmata::EnsureConnected()

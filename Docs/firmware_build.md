@@ -1,6 +1,6 @@
 # Firmware build
 
-Сборка bundled HEX для `Libraries/Rdk-HardwareLib/Firmware/`.
+Сборка bundled HEX в `Bin/ArduinoFirmware/` (runtime). Исходники sketch: `Libraries/Rdk-HardwareLib/Firmware/`.
 
 ## Требования
 
@@ -38,6 +38,6 @@ cp build/sensor_lab.ino.hex Libraries/Rdk-HardwareLib/Firmware/sensor_lab/mega25
 
 ## После сборки
 
-- Обновите `Firmware/manifest.json` при смене путей или id.
+- Обновите `Bin/ArduinoFirmware/manifest.json` (и шаблон в `Libraries/.../Firmware/`) при смене путей или id.
 - Проверка на хосте: unit-тест `ArduinoFirmwareManifest.AllBundledIdsResolveHex`.
 - Ручная проверка на плате: [Firmware/README.md](../Firmware/README.md).

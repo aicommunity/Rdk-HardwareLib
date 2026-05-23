@@ -59,6 +59,7 @@ public:
 
 private:
     void updateHandshakeStage();
+    void advanceHandshake();
     void handleMessage(uint8_t status, uint8_t data1, uint8_t data2);
     void handleSysex(const QByteArray& sysex);
     void writeBytes(UArduinoSerialSession* session, const QByteArray& bytes);
@@ -75,6 +76,7 @@ private:
     bool GotCapability = false;
     bool GotAnalogMapping = false;
     int BoardProfileValue = 0;
+    UArduinoSerialSession* HandshakeSession = nullptr;
 };
 
 } // namespace RDK

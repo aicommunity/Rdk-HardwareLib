@@ -61,8 +61,11 @@
 
 **Файлы:** `UFirmwareManifest.{h,cpp}`
 
-- `firmwareRoot()` — `RDK_HARDWARE_FIRMWARE_DIR`, рядом с приложением, `NMSDK_SOURCE_DIR`
-- `resolveBundledHex(bundled_id, board_profile_int)` / `resolveBundledHex(bundled_id, board_key)` — путь к `.hex` из `manifest.json`
+- `bundledFirmwareRelativeRoot()` — `../../ArduinoFirmware` (`Bin/ArduinoFirmware`) относительно `Bin/Platform/<OS>/`
+- `bundledHexRelativePath(bundled_id, board_profile)` — относительный путь к `.hex` для значения по умолчанию в `FirmwarePath`
+- `resolveFromApplicationDir(relative)` — разворачивает путь от каталога exe
+- `firmwareRoot()` — `RDK_HARDWARE_FIRMWARE_DIR`, затем относительный корень, затем `NMSDK_SOURCE_DIR`
+- `resolveBundledHex(...)` — абсолютный путь к `.hex` из `manifest.json`
 
 ## См. также
 

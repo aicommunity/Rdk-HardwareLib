@@ -1,5 +1,6 @@
 #include "UArduinoDcDemo.h"
 
+#include "UFirmwareManifest.h"
 #include "UArduinoSensorSketch.h"
 
 namespace RDK {
@@ -27,6 +28,8 @@ bool UArduinoDcDemo::ADefault()
     Acceleration = 0;
     GetSpeed = false;
     BundledFirmwareId = "sensor_lab_v1";
+    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
+                       .toStdString();
     CachedSpeed = 0.f;
     CachedAcceleration = 0.f;
     return true;

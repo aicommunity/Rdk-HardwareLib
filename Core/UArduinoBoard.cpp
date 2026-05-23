@@ -8,6 +8,7 @@
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDebug>
+#include <QFile>
 
 namespace RDK {
 
@@ -90,7 +91,8 @@ bool UArduinoBoard::ADefault()
     HeartbeatTimeoutMs = 10000;
     MissedHeartbeats = 0;
     RequestHealthCheck = false;
-    FirmwarePath = "";
+    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
+                       .toStdString();
     BundledFirmwareId = "sensor_lab_v1";
     UploadFirmwareFlag = false;
     UploadProgress = 0;
@@ -229,8 +231,12 @@ void UArduinoBoard::CloseConnection()
 
 QString UArduinoBoard::ResolveHexPath() const
 {
-    if (!FirmwarePath->empty())
-        return QString::fromStdString(*FirmwarePath);
+    if (!FirmwarePath->empty()) {
+        const QString resolved =
+            UFirmwareManifest::resolveFromApplicationDir(QString::fromStdString(*FirmwarePath));
+        if (QFile::exists(resolved))
+            return resolved;
+    }
     return UFirmwareManifest::resolveBundledHex(QString::fromStdString(*BundledFirmwareId), BoardProfile);
 }
 

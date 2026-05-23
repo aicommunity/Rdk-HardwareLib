@@ -20,7 +20,7 @@ UArduinoBoardProfile UArduinoBoardProfileUtil::profileForKind(UArduinoBoardKind 
     } else {
         p.mcu = "atmega328p";
         p.programmer = "arduino";
-        p.protocol = "stk500";
+        p.protocol = "arduino";
     }
     p.uploadBaud = 115200;
     return p;

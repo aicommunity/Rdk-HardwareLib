@@ -8,6 +8,9 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QStandardPaths>
+#include <QThread>
+
+#include <QtSerialPort/QSerialPort>
 
 namespace RDK {
 
@@ -26,6 +29,32 @@ QString enrichUploadError(const QString& avrdudeOutput)
         "Close Arduino IDE / serial monitors that may hold the port.\n\n"
         "--- avrdude output ---\n");
     return hint + avrdudeOutput.trimmed();
+}
+
+void prepareBootloaderEntry(const QString& device_port, UArduinoBoardKind kind)
+{
+    if (device_port.isEmpty())
+        return;
+
+    if (kind == UArduinoBoardKind::Uno) {
+        QSerialPort reset_port;
+        reset_port.setPortName(device_port);
+        reset_port.setBaudRate(1200);
+        if (reset_port.open(QIODevice::ReadWrite))
+            reset_port.close();
+        QThread::msleep(2500);
+        return;
+    }
+
+    QSerialPort reset_port;
+    reset_port.setPortName(device_port);
+    reset_port.setBaudRate(1200);
+    if (reset_port.open(QIODevice::ReadWrite)) {
+        reset_port.setDataTerminalReady(false);
+        reset_port.setDataTerminalReady(true);
+        reset_port.close();
+    }
+    QThread::msleep(1500);
 }
 
 int parseUploadPercent(const QString& output)
@@ -152,6 +181,7 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
     }
 
     const QString devicePort = UArduinoSerialPortUtil::normalizeDevicePath(port);
+    prepareBootloaderEntry(devicePort, profile.kind);
     const QString args = buildCommand(profile, devicePort, hexPath, conf);
     QProcess process;
     process.setProgram(avrdude);

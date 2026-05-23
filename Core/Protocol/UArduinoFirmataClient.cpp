@@ -50,6 +50,7 @@ void UArduinoFirmataClient::reset()
     GotFirmware = false;
     GotCapability = false;
     GotAnalogMapping = false;
+    HandshakeSession = nullptr;
 }
 
 void UArduinoFirmataClient::updateHandshakeStage()
@@ -94,16 +95,31 @@ void UArduinoFirmataClient::writeSysex(UArduinoSerialSession* session, const QBy
     writeBytes(session, msg);
 }
 
+void UArduinoFirmataClient::advanceHandshake()
+{
+    if (!HandshakeSession)
+        return;
+    if (!GotFirmware) {
+        writeSysex(HandshakeSession, QByteArray(1, char(kFirmwareVersion)));
+        return;
+    }
+    if (!GotCapability) {
+        writeSysex(HandshakeSession, QByteArray(1, char(kCapabilityQuery)));
+        return;
+    }
+    if (!GotAnalogMapping)
+        queryAnalogMapping(HandshakeSession);
+}
+
 bool UArduinoFirmataClient::startHandshake(UArduinoSerialSession* session, int board_profile)
 {
     reset();
     BoardProfileValue = board_profile;
+    HandshakeSession = session;
     PortDigitalMask.resize(UArduinoPinMap::digitalPortCount(board_profile));
     PortDigitalMask.fill(0);
 
-    writeSysex(session, QByteArray(1, char(kFirmwareVersion)));
-    writeSysex(session, QByteArray(1, char(kCapabilityQuery)));
-    queryAnalogMapping(session);
+    advanceHandshake();
     return true;
 }
 
@@ -163,6 +179,14 @@ bool UArduinoFirmataClient::setPinMode(UArduinoSerialSession* session, int pin, 
 
 bool UArduinoFirmataClient::setDigitalPinValue(UArduinoSerialSession* session, int pin, int value)
 {
+    const int port = UArduinoPinMap::portForPin(pin);
+    const int bit = UArduinoPinMap::bitIndexInPort(pin);
+    ensurePortMaskSize(port);
+    if (value)
+        PortDigitalMask[port] |= (1 << bit);
+    else
+        PortDigitalMask[port] &= ~(1 << bit);
+
     QByteArray msg;
     msg.append(char(kSetDigitalPinValue));
     msg.append(char(pin & 0x7F));
@@ -350,8 +374,11 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
         LastI2cReadData = sysex.mid(1);
     }
 
+    advanceHandshake();
+
     if (GotFirmware && GotCapability && GotAnalogMapping && !HandshakeReady) {
         HandshakeReady = true;
+        HandshakeSession = nullptr;
         if (OnReadyCallback)
             OnReadyCallback();
     }

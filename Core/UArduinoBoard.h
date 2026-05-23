@@ -75,7 +75,7 @@ protected:
     virtual void OnHealthCheck();
 
     virtual bool EnsureConnected();
-    void CloseConnection();
+    virtual void CloseConnection();
     void RunUpload();
     void HeartbeatTick();
     void TouchActivity();

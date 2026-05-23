@@ -6,7 +6,20 @@ Living document for the Firmata UX implementation plan. Update on every phase ga
 
 | ID | Opened | Summary | Reason deferred | Target | Blocker |
 |----|--------|---------|-----------------|--------|---------|
-| TD-001 | P5 | Manual Uno/Mega tests (PWM, Servo, I2C on hardware) | needs-hardware | before-release | — |
+| TD-001 | P5 | Manual PWM / Servo / I2C on Uno/Mega (not in integration suite) | needs-hardware | before-release | — |
+
+## Hardware integration tests
+
+`Tests/Integration/HardwareLib/Test_ArduinoHardwareIntegration.cpp` — auto-detect USB serial, optional `standard_firmata` upload (avrdude), Firmata handshake, D13 digital, A0 analog, restart.
+
+```bash
+cmake --preset linux-gcc-debug-tests && cmake --build --preset linux-gcc-debug-tests --target Test_ArduinoHardwareIntegration
+cd Bin/Platform/Linux
+sudo usermod -aG dialout $USER && newgrp dialout   # once per machine
+ctest -R ArduinoHardwareIntegration --output-on-failure
+```
+
+Env: `ARDUINO_TEST_PORT`, `ARDUINO_BOARD_PROFILE` (0=Uno, 1=Mega), `ARDUINO_SKIP_UPLOAD`, `ARDUINO_FORCE_UPLOAD` (reflash via avrdude), `ARDUINO_TEST_DEBUG`. Test `02` probes Firmata first; upload only if probe fails and `ARDUINO_FORCE_UPLOAD=1`.
 
 ## Closed
 

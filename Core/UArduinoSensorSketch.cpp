@@ -1,5 +1,7 @@
 #include "UArduinoSensorSketch.h"
 
+#include "UFirmwareManifest.h"
+
 #include <QDebug>
 #include <cstring>
 
@@ -46,6 +48,8 @@ bool UArduinoSensorSketch::ADefault()
     Rotate = false;
     StopRotate = false;
     BundledFirmwareId = "sensor_lab_v1";
+    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
+                       .toStdString();
     return true;
 }
 
