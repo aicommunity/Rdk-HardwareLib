@@ -1,12 +1,15 @@
 #include "UArduinoAdc.h"
 
 #include "UArduinoFirmata.h"
+#include "Transport/UArduinoPinMap.h"
 
 namespace RDK {
 
 UArduinoAdc::UArduinoAdc()
     : LinkedFirmataName("LinkedFirmataName", this)
     , AnalogPin("AnalogPin", this)
+    , BoardProfile("BoardProfile", this)
+    , UseLinkedAnalogSamples("UseLinkedAnalogSamples", this)
     , AdcValue("AdcValue", this)
     , ReadAdcFlag("ReadAdcFlag", this)
     , AdcReadOk("AdcReadOk", this)
@@ -23,7 +26,9 @@ UArduinoAdc* UArduinoAdc::New()
 bool UArduinoAdc::ADefault()
 {
     LinkedFirmataName = "";
-    AnalogPin = 0;
+    AnalogPin = UArduinoPinMap::firmataPinForLabel(QStringLiteral("A0"), 0);
+    BoardProfile = 0;
+    UseLinkedAnalogSamples = true;
     AdcValue = 0;
     ReadAdcFlag = false;
     AdcReadOk = false;
@@ -33,16 +38,12 @@ bool UArduinoAdc::ADefault()
 bool UArduinoAdc::ACalculate()
 {
     AdcReadOk = false;
-    if (!ReadAdcFlag || LinkedFirmataName->empty()) {
-        ReadAdcFlag = false;
+    if (LinkedFirmataName->empty())
         return true;
-    }
 
     UContainer* owner = dynamic_cast<UContainer*>(GetOwner().Get());
-    if (!owner) {
-        ReadAdcFlag = false;
+    if (!owner)
         return true;
-    }
 
     UEPtr<UArduinoFirmata> firmata =
         owner->GetComponentL<UArduinoFirmata>(*LinkedFirmataName, true);
@@ -51,13 +52,27 @@ bool UArduinoAdc::ACalculate()
         return true;
     }
 
-    // Engine thread only (same as UArduinoAdc::ACalculate).
-    firmata->SelectedPin = AnalogPin;
-    firmata->ReadAnalogFlag = true;
-    firmata->Calculate();
-    AdcValue = firmata->AnalogPinValue;
-    AdcReadOk = firmata->IsLinkReady;
-    ReadAdcFlag = false;
+    if (UseLinkedAnalogSamples && firmata->AnalogSamples->GetRows() > 0) {
+        const int target_pin = AnalogPin;
+        for (int r = firmata->AnalogSamples->GetRows() - 1; r >= 0; --r) {
+            const int pin = static_cast<int>((*firmata->AnalogSamples)(r, 1));
+            if (pin == target_pin) {
+                AdcValue = static_cast<int>((*firmata->AnalogSamples)(r, 3));
+                AdcReadOk = firmata->IsLinkReady;
+                ReadAdcFlag = false;
+                return true;
+            }
+        }
+    }
+
+    if (ReadAdcFlag) {
+        firmata->SelectedPin = AnalogPin;
+        firmata->ReadAnalog = true;
+        firmata->Calculate();
+        AdcValue = firmata->AnalogPinValue;
+        AdcReadOk = firmata->IsLinkReady;
+        ReadAdcFlag = false;
+    }
     return true;
 }
 

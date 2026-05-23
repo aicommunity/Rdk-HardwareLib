@@ -11,6 +11,8 @@ class RDK_LIB_TYPE UArduinoAdc : public UNet {
 public:
     UProperty<string, UArduinoAdc, ptPubParameter> LinkedFirmataName;
     UProperty<int, UArduinoAdc, ptPubParameter> AnalogPin;
+    UProperty<int, UArduinoAdc, ptPubParameter> BoardProfile;
+    UProperty<bool, UArduinoAdc, ptPubParameter> UseLinkedAnalogSamples;
     UProperty<int, UArduinoAdc, ptPubState> AdcValue;
     UProperty<bool, UArduinoAdc, ptPubParameter | ptInput> ReadAdcFlag;
     UProperty<bool, UArduinoAdc, ptPubState> AdcReadOk;
