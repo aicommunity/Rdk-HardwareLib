@@ -49,7 +49,9 @@
 
 ## Firmata widget
 
-Вкладки **Firmata** | **Board**. Restart Firmata → `pulseEdge("RestartFirmata")`. Статус: `IsFirmataReady`, `IsLinkReady`.
+Вкладки **Pins** | **Monitor** | **I2C** | **Board**. Пульт пинов: `SetPinMode`, `WriteDigital`, `ReadAnalog`, пресеты, `Monitor all` → `AutoRefreshPins`. Monitor: превью `AnalogSamples`, `StreamLog`. Диаграмма: `applyPinStatusJson` + клик по пину (Mega — полный `mega2560_pins.json`).
+
+**Watch:** привяжите downstream к свойству `AnalogSamples` (`ptOutput`) для графика/статистики без встроенного `UGraphWidget`.
 
 ## DcDemo widget
 
@@ -57,7 +59,7 @@
 
 ## Adc widget
 
-`LinkedFirmataName`, analog pin, Read → `ReadAdcFlag`.
+`LinkedFirmataName`, выбор пина по label (`UArduinoPinMap`), `UseLinkedAnalogSamples` (читать `AnalogSamples` связанного Firmata) или `ReadAdcFlag` для one-shot.
 
 ## Ресурсы
 
