@@ -1,15 +1,14 @@
 #ifndef HARDWAREARDUINOFIRMATACONTROLLERWIDGET_H
 #define HARDWAREARDUINOFIRMATACONTROLLERWIDGET_H
 
-#include <QComboBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSpinBox>
 #include <QTabWidget>
 
 #include "../../../../Rdk/GUI/Qt/IComponentControllerWidget.h"
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
+#include "widgets/HardwareArduinoPinConsoleWidget.h"
 #include "widgets/UArduinoBoardDiagramWidget.h"
 
 class HardwareArduinoBoardPanelWidget;
@@ -26,23 +25,25 @@ public:
 private slots:
     void onApply();
     void onCalculate();
-    void onSetPinMode();
-    void onWriteDigital();
-    void onReadAnalog();
     void onRestartFirmata();
     void onDiagramPinClicked(const QString& pinId);
+    void onConsoleCalculate();
+    void onQueryPinState();
+    void onWritePwm();
+    void onI2cWrite();
+    void onI2cRead();
 
 private:
-    QString firmataPinToLabel(int pin, int board_profile) const;
-
     UComponentGuiContext Context;
     UArduinoBoardDiagramWidget* Diagram = nullptr;
     QTabWidget* Tabs = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
-    QSpinBox* PinSpin = nullptr;
-    QComboBox* ModeCombo = nullptr;
-    QSpinBox* DigitalValueSpin = nullptr;
+    HardwareArduinoPinConsoleWidget* PinConsole = nullptr;
+    QWidget* MonitorPage = nullptr;
+    QPlainTextEdit* AnalogPreview = nullptr;
+    QPlainTextEdit* StreamLogView = nullptr;
     QPlainTextEdit* StatusLog = nullptr;
+    QWidget* I2cPage = nullptr;
 };
 
 #endif

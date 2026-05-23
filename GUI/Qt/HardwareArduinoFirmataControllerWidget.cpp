@@ -3,11 +3,15 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QVBoxLayout>
 
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
+
+#include <Transport/UArduinoPinMap.h>
 
 HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(QWidget* parent,
                                                                                RDK::UApplication* app)
@@ -19,54 +23,68 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
             &HardwareArduinoFirmataControllerWidget::onDiagramPinClicked);
 
     auto* firmataPage = new QWidget(this);
-    PinSpin = new QSpinBox(firmataPage);
-    PinSpin->setRange(0, 69);
-    PinSpin->setValue(13);
-
-    ModeCombo = new QComboBox(firmataPage);
-    ModeCombo->addItem(tr("Input"), 0);
-    ModeCombo->addItem(tr("Output"), 1);
-    ModeCombo->addItem(tr("Analog"), 2);
-    ModeCombo->addItem(tr("PWM"), 3);
-
-    DigitalValueSpin = new QSpinBox(firmataPage);
-    DigitalValueSpin->setRange(0, 1);
+    PinConsole = new HardwareArduinoPinConsoleWidget(firmataPage);
+    connect(PinConsole, &HardwareArduinoPinConsoleWidget::calculateRequested, this,
+            &HardwareArduinoFirmataControllerWidget::onConsoleCalculate);
 
     StatusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage);
+    StatusLog->setMaximumHeight(120);
 
-    auto* setModeBtn = new QPushButton(tr("Set pin mode"), firmataPage);
-    auto* writeBtn = new QPushButton(tr("Write digital"), firmataPage);
-    auto* readBtn = new QPushButton(tr("Read analog"), firmataPage);
     auto* restartBtn = new QPushButton(tr("Restart Firmata"), firmataPage);
-    connect(setModeBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onSetPinMode);
-    connect(writeBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onWriteDigital);
-    connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onReadAnalog);
-    connect(restartBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onRestartFirmata);
-
     auto* applyBtn = new QPushButton(tr("Apply"), firmataPage);
     auto* calcBtn = new QPushButton(tr("Calculate"), firmataPage);
+    auto* queryBtn = new QPushButton(tr("Query pin"), firmataPage);
+    auto* pwmBtn = new QPushButton(tr("Write PWM"), firmataPage);
+    connect(restartBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onRestartFirmata);
     connect(applyBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onApply);
     connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onCalculate);
+    connect(queryBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onQueryPinState);
+    connect(pwmBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onWritePwm);
 
-    auto* form = new QFormLayout();
-    form->addRow(tr("Pin (Firmata #):"), PinSpin);
-    form->addRow(tr("Mode:"), ModeCombo);
-    form->addRow(tr("Digital value:"), DigitalValueSpin);
-    auto* row = new QHBoxLayout();
-    row->addWidget(setModeBtn);
-    row->addWidget(writeBtn);
-    row->addWidget(readBtn);
-    form->addRow(tr("Actions:"), row);
-    form->addRow(QString(), restartBtn);
-    form->addRow(QString(), applyBtn);
-    form->addRow(QString(), calcBtn);
-    form->addRow(tr("Status:"), StatusLog);
-    form->addRow(QString(), new QLabel(tr("Click a pin on the diagram to select it."), firmataPage));
-    firmataPage->setLayout(form);
+  auto* bottom = new QHBoxLayout();
+    bottom->addWidget(applyBtn);
+    bottom->addWidget(calcBtn);
+    bottom->addWidget(restartBtn);
+    bottom->addWidget(queryBtn);
+    bottom->addWidget(pwmBtn);
+
+    auto* firmataLayout = new QVBoxLayout(firmataPage);
+    firmataLayout->addWidget(PinConsole, 1);
+    firmataLayout->addLayout(bottom);
+    firmataLayout->addWidget(new QLabel(tr("Status:"), firmataPage));
+    firmataLayout->addWidget(StatusLog);
+
+    MonitorPage = new QWidget(this);
+    AnalogPreview = HardwareGuiHelpers::createStatusLogWidget(MonitorPage);
+    StreamLogView = HardwareGuiHelpers::createStatusLogWidget(MonitorPage);
+    auto* monLayout = new QVBoxLayout(MonitorPage);
+    monLayout->addWidget(new QLabel(tr("AnalogSamples (last rows):"), MonitorPage));
+    monLayout->addWidget(AnalogPreview, 1);
+    monLayout->addWidget(new QLabel(tr("Stream log:"), MonitorPage));
+    monLayout->addWidget(StreamLogView, 1);
+
+    I2cPage = new QWidget(this);
+    auto* i2cAddr = new QSpinBox(I2cPage);
+    i2cAddr->setObjectName(QStringLiteral("i2cAddress"));
+    i2cAddr->setRange(0, 127);
+    auto* i2cHex = new QLineEdit(I2cPage);
+    i2cHex->setObjectName(QStringLiteral("i2cWriteHex"));
+    i2cHex->setPlaceholderText(tr("01 02"));
+    auto* i2cForm = new QFormLayout(I2cPage);
+    i2cForm->addRow(tr("Address (7-bit):"), i2cAddr);
+    i2cForm->addRow(tr("Write data (hex):"), i2cHex);
+    auto* i2cWriteBtn = new QPushButton(tr("I2C write"), I2cPage);
+    auto* i2cReadBtn = new QPushButton(tr("I2C read"), I2cPage);
+    connect(i2cWriteBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onI2cWrite);
+    connect(i2cReadBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onI2cRead);
+    i2cForm->addRow(QString(), i2cWriteBtn);
+    i2cForm->addRow(QString(), i2cReadBtn);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     Tabs = new QTabWidget(this);
-    Tabs->addTab(firmataPage, tr("Firmata"));
+    Tabs->addTab(firmataPage, tr("Pins"));
+    Tabs->addTab(MonitorPage, tr("Monitor"));
+    Tabs->addTab(I2cPage, tr("I2C"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
@@ -83,6 +101,7 @@ void HardwareArduinoFirmataControllerWidget::setComponentContext(const UComponen
 {
     Context = context;
     BoardPanel->setContext(context);
+    PinConsole->setContext(context);
     refreshFromModel(true);
 }
 
@@ -98,35 +117,52 @@ void HardwareArduinoFirmataControllerWidget::refreshFromModel(bool force)
         return;
 
     BoardPanel->refreshFromModel();
+    PinConsole->refreshFromModel();
 
     const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
     const int pin = HardwareGuiHelpers::getPropInt(Context, "SelectedPin", 13);
-    PinSpin->setValue(pin);
-    DigitalValueSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "DigitalPinValue", 0));
 
     Diagram->setBoardProfile(profile);
     Diagram->setConnectionState(HardwareGuiHelpers::getPropInt(Context, "ConnectionState", 0));
-    Diagram->setSelectedPinId(firmataPinToLabel(pin, profile));
+    Diagram->applyPinStatusJson(HardwareGuiHelpers::getProp(Context, "PinStatusJson"));
+    Diagram->setSelectedPinId(RDK::UArduinoPinMap::labelForFirmataPin(pin, profile));
 
     const bool firmata_ready = HardwareGuiHelpers::getPropBool(Context, "IsFirmataReady", false);
     const bool link_ready = HardwareGuiHelpers::getPropBool(Context, "IsLinkReady", false);
     const QString ver = HardwareGuiHelpers::getProp(Context, "FirmataFirmwareVersion");
     const int analog = HardwareGuiHelpers::getPropInt(Context, "AnalogPinValue", 0);
+    const int stage = HardwareGuiHelpers::getPropInt(Context, "HandshakeStage", 0);
     HardwareGuiHelpers::setStatusLogText(
         StatusLog,
-        tr("Firmata ready: %1\nLink ready: %2\nVersion: %3\nAnalog: %4")
+        tr("Firmata ready: %1\nLink ready: %2\nHandshake stage: %3\nVersion: %4\nAnalog: %5")
             .arg(firmata_ready ? tr("yes") : tr("no"))
             .arg(link_ready ? tr("yes") : tr("no"))
+            .arg(stage)
             .arg(ver)
             .arg(analog));
-}
 
-QString HardwareArduinoFirmataControllerWidget::firmataPinToLabel(int pin, int board_profile) const
-{
-    Q_UNUSED(board_profile);
-    if (pin >= 14)
-        return QStringLiteral("A%1").arg(pin - 14);
-    return QStringLiteral("D%1").arg(pin);
+    QVector<QVector<double>> sample_rows;
+    QString matrix_preview;
+    if (HardwareGuiHelpers::getMatrixPreview(Context, "AnalogSamples", 32, 4, &sample_rows)) {
+        for (const QVector<double>& row : sample_rows) {
+            QStringList cols;
+            for (double v : row)
+                cols.append(QString::number(v, 'f', 1));
+            matrix_preview += cols.join(QStringLiteral("\t")) + QLatin1Char('\n');
+        }
+    } else {
+        matrix_preview = tr("(no samples)");
+    }
+    HardwareGuiHelpers::setStatusLogText(AnalogPreview, matrix_preview);
+    HardwareGuiHelpers::setStatusLogText(
+        StreamLogView, HardwareGuiHelpers::getProp(Context, "StreamLog"));
+
+    if (I2cPage) {
+        if (auto* addr = I2cPage->findChild<QSpinBox*>(QStringLiteral("i2cAddress")))
+            addr->setValue(HardwareGuiHelpers::getPropInt(Context, "I2cAddress", 72));
+        if (auto* hex = I2cPage->findChild<QLineEdit*>(QStringLiteral("i2cWriteHex")))
+            hex->setText(HardwareGuiHelpers::getProp(Context, "I2cWriteData"));
+    }
 }
 
 void HardwareArduinoFirmataControllerWidget::onDiagramPinClicked(const QString& pinId)
@@ -135,18 +171,15 @@ void HardwareArduinoFirmataControllerWidget::onDiagramPinClicked(const QString& 
     const int pin = UArduinoBoardDiagramWidget::firmataPinFromLabel(pinId, profile);
     if (pin < 0)
         return;
-    PinSpin->setValue(pin);
+    HardwareGuiHelpers::setProp(Context, "SelectedPin", QString::number(pin));
     Diagram->setSelectedPinId(pinId);
-    onApply();
+    PinConsole->refreshFromModel();
 }
 
 void HardwareArduinoFirmataControllerWidget::onApply()
 {
     BoardPanel->applyToModel();
-    HardwareGuiHelpers::setProp(Context, "SelectedPin", QString::number(PinSpin->value()));
-    HardwareGuiHelpers::setProp(Context, "SelectedPinMode",
-                                QString::number(ModeCombo->currentData().toInt()));
-    HardwareGuiHelpers::setProp(Context, "DigitalPinValue", QString::number(DigitalValueSpin->value()));
+    PinConsole->applyToModel();
 }
 
 void HardwareArduinoFirmataControllerWidget::onCalculate()
@@ -156,24 +189,8 @@ void HardwareArduinoFirmataControllerWidget::onCalculate()
     refreshFromModel(true);
 }
 
-void HardwareArduinoFirmataControllerWidget::onSetPinMode()
+void HardwareArduinoFirmataControllerWidget::onConsoleCalculate()
 {
-    onApply();
-    HardwareGuiHelpers::setProp(Context, "SetPinModeFlag", QStringLiteral("1"));
-    onCalculate();
-}
-
-void HardwareArduinoFirmataControllerWidget::onWriteDigital()
-{
-    onApply();
-    HardwareGuiHelpers::setProp(Context, "WriteDigitalFlag", QStringLiteral("1"));
-    onCalculate();
-}
-
-void HardwareArduinoFirmataControllerWidget::onReadAnalog()
-{
-    onApply();
-    HardwareGuiHelpers::setProp(Context, "ReadAnalogFlag", QStringLiteral("1"));
     onCalculate();
 }
 
@@ -182,4 +199,40 @@ void HardwareArduinoFirmataControllerWidget::onRestartFirmata()
     BoardPanel->applyToModel();
     HardwareGuiHelpers::pulseEdge(Context, "RestartFirmata");
     refreshFromModel(true);
+}
+
+void HardwareArduinoFirmataControllerWidget::onQueryPinState()
+{
+    onApply();
+    HardwareGuiHelpers::pulseEdge(Context, "QueryPinState");
+    onCalculate();
+}
+
+void HardwareArduinoFirmataControllerWidget::onWritePwm()
+{
+    onApply();
+    HardwareGuiHelpers::setProp(Context, "PwmPinValue",
+                                HardwareGuiHelpers::getProp(Context, "DigitalPinValue"));
+    HardwareGuiHelpers::pulseEdge(Context, "WritePwm");
+    onCalculate();
+}
+
+void HardwareArduinoFirmataControllerWidget::onI2cWrite()
+{
+    onApply();
+    if (auto* addr = I2cPage->findChild<QSpinBox*>(QStringLiteral("i2cAddress")))
+        HardwareGuiHelpers::setProp(Context, "I2cAddress", QString::number(addr->value()));
+    if (auto* hex = I2cPage->findChild<QLineEdit*>(QStringLiteral("i2cWriteHex")))
+        HardwareGuiHelpers::setProp(Context, "I2cWriteData", hex->text());
+    HardwareGuiHelpers::pulseEdge(Context, "I2cWrite");
+    onCalculate();
+}
+
+void HardwareArduinoFirmataControllerWidget::onI2cRead()
+{
+    onApply();
+    if (auto* addr = I2cPage->findChild<QSpinBox*>(QStringLiteral("i2cAddress")))
+        HardwareGuiHelpers::setProp(Context, "I2cAddress", QString::number(addr->value()));
+    HardwareGuiHelpers::pulseEdge(Context, "I2cRead");
+    onCalculate();
 }

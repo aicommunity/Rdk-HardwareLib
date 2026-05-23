@@ -1,10 +1,10 @@
 #ifndef HARDWAREARDUINOADCCONTROLLERWIDGET_H
 #define HARDWAREARDUINOADCCONTROLLERWIDGET_H
 
-#include <QLineEdit>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
-#include <QPushButton>
-#include <QSpinBox>
+#include <QLineEdit>
 
 #include "../../../../Rdk/GUI/Qt/IComponentControllerWidget.h"
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
@@ -25,7 +25,8 @@ private slots:
 private:
     UComponentGuiContext Context;
     QLineEdit* LinkedEdit = nullptr;
-    QSpinBox* PinSpin = nullptr;
+    QComboBox* PinCombo = nullptr;
+    QCheckBox* UseLinkedSamples = nullptr;
     QLabel* ValueLabel = nullptr;
 };
 
