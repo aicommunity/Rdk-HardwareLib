@@ -2,6 +2,8 @@
 
 #include "HardwareGuiHelpers.h"
 
+#include <Transport/UArduinoPinMap.h>
+
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -184,18 +186,7 @@ void UArduinoBoardDiagramWidget::resizeEvent(QResizeEvent* event)
 
 int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int board_profile)
 {
-    Q_UNUSED(board_profile);
-    if (pinId.startsWith(QLatin1String("D"), Qt::CaseInsensitive)) {
-        bool ok = false;
-        const int n = pinId.mid(1).toInt(&ok);
-        return ok ? n : -1;
-    }
-    if (pinId.startsWith(QLatin1String("A"), Qt::CaseInsensitive)) {
-        bool ok = false;
-        const int n = pinId.mid(1).toInt(&ok);
-        return ok ? (14 + n) : -1;
-    }
-    return -1;
+    return RDK::UArduinoPinMap::firmataPinForLabel(pinId, board_profile);
 }
 
 void UArduinoBoardDiagramWidget::setBoardProfile(int profile)
@@ -236,4 +227,34 @@ void UArduinoBoardDiagramWidget::setInteractive(bool interactive)
 {
     Interactive = interactive;
     Overlay->setInteractive(interactive);
+}
+
+void UArduinoBoardDiagramWidget::applyPinStatusJson(const QString& json)
+{
+    if (!Overlay || json.isEmpty())
+        return;
+
+    const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    const QJsonArray pins = doc.object().value(QStringLiteral("pins")).toArray();
+    QMap<QString, UArduinoPinOverlay::PinVisualState> states;
+    for (const QJsonValue& v : pins) {
+        const QJsonObject o = v.toObject();
+        const QString id = o.value(QStringLiteral("id")).toString();
+        if (id.isEmpty())
+            continue;
+        UArduinoPinOverlay::PinVisualState vs;
+        vs.Supported = o.value(QStringLiteral("supported")).toBool(true);
+        const int host_mode = o.value(QStringLiteral("hostMode")).toInt(-1);
+        switch (host_mode) {
+        case 0: vs.Mode = UArduinoPinOverlay::PinModeVisual::Input; break;
+        case 1: vs.Mode = UArduinoPinOverlay::PinModeVisual::Output; break;
+        case 2: vs.Mode = UArduinoPinOverlay::PinModeVisual::Analog; break;
+        case 3: vs.Mode = UArduinoPinOverlay::PinModeVisual::Pwm; break;
+        default: vs.Mode = UArduinoPinOverlay::PinModeVisual::Unknown; break;
+        }
+        vs.Digital = o.value(QStringLiteral("digital")).toInt(-1);
+        vs.Analog = o.value(QStringLiteral("analog")).toInt(-1);
+        states.insert(id, vs);
+    }
+    Overlay->setPinStates(states);
 }

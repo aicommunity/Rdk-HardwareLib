@@ -30,6 +30,7 @@ public:
     void setPinRoles(const QMap<QString, QString>& roles);
     void setSelectedPinId(const QString& pinId);
     void setInteractive(bool interactive);
+    void applyPinStatusJson(const QString& json);
 
     static int firmataPinFromLabel(const QString& pinId, int board_profile);
 

@@ -22,6 +22,12 @@ void UArduinoPinOverlay::setPinRoles(const QMap<QString, QString>& roles)
     update();
 }
 
+void UArduinoPinOverlay::setPinStates(const QMap<QString, PinVisualState>& states)
+{
+    VisualStates = states;
+    update();
+}
+
 void UArduinoPinOverlay::setHighlightedIds(const QStringList& ids)
 {
     HighlightedIds = ids;
@@ -58,6 +64,33 @@ QString UArduinoPinOverlay::pinAt(const QPoint& pos) const
     return {};
 }
 
+QColor UArduinoPinOverlay::fillColorForPin(const PinRegion& pin) const
+{
+    const PinVisualState vs = VisualStates.value(pin.Id);
+    if (!vs.Supported)
+        return QColor(QStringLiteral("#9e9e9e"));
+
+    if (vs.Mode == PinModeVisual::Analog && vs.Analog >= 0) {
+        const int alpha = 80 + (vs.Analog * 120) / 1023;
+        QColor c(QStringLiteral("#2196f3"));
+        c.setAlpha(alpha);
+        return c;
+    }
+    if (vs.Mode == PinModeVisual::Output && vs.Digital >= 0)
+        return vs.Digital ? QColor(QStringLiteral("#4caf50"))
+                          : QColor(QStringLiteral("#388e3c"));
+    if (vs.Mode == PinModeVisual::Input && vs.Digital >= 0)
+        return vs.Digital ? QColor(QStringLiteral("#ffc107"))
+                          : QColor(QStringLiteral("#827717"));
+    if (vs.Mode == PinModeVisual::Pwm)
+        return QColor(QStringLiteral("#7e57c2"));
+
+    QColor fill(80, 140, 220, 90);
+    if (HighlightedIds.contains(pin.Id))
+        fill = QColor(255, 180, 40, 140);
+    return fill;
+}
+
 void UArduinoPinOverlay::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
@@ -75,13 +108,15 @@ void UArduinoPinOverlay::paintEvent(QPaintEvent* event)
                        pin.NormalizedRect.width() * w,
                        pin.NormalizedRect.height() * h);
 
-        QColor fill(80, 140, 220, 90);
-        if (HighlightedIds.contains(pin.Id))
-            fill = QColor(255, 180, 40, 140);
+        QColor fill = fillColorForPin(pin);
         if (pin.Id == SelectedId)
             fill = QColor(60, 200, 90, 160);
 
-        p.setPen(QPen(fill.darker(130), 1.5));
+        QPen pen = QPen(fill.darker(130), 1.5);
+        if (pin.Id == SelectedId)
+            pen = QPen(QColor(QStringLiteral("#00e676")), 3.0);
+
+        p.setPen(pen);
         p.setBrush(fill);
         p.drawRoundedRect(r, 3, 3);
 
