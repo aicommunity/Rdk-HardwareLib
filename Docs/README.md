@@ -62,6 +62,7 @@
 - [Protocol.md](Protocol.md) — бинарный протокол sensor_lab
 - [GUI.md](GUI.md) — NeuroModeler forms и diagram
 - [firmata_spike.md](firmata_spike.md) — scope Firmata MVP
+- [FirmataTechDebt.md](FirmataTechDebt.md) — tech debt log (Firmata implementation)
 
 ### Doxygen
 
