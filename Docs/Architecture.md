@@ -85,10 +85,14 @@ ProcessCustomLinkEdges → UArduinoBoard::ACalculate → negotiate/process/flush
 ### UArduinoFirmata
 
 ```
-ProcessFirmataEdges → UArduinoBoard::ACalculate → FirmataClient handshake/IO
+ProcessFirmataEdges → UArduinoBoard::ACalculate → OnBoardCalculate
+  → ProcessFirmata (RX) → RunFirmataActions (TX) → BuildPinStatusJson
 ```
 
-Edge: `RestartFirmata`, `ApplyPinConfig`, legacy pin flags. State: `IsFirmataReady`, `IsLinkReady`.
+Edge: `RestartFirmata`, `ApplyPinConfig`, `SetPinMode`, `WriteDigital`, `ReadAnalog`, `RefreshPins`, `WritePwm`, `QueryPinState`, …  
+State: `PinStatusJson`, `HandshakeStage`, `AnalogPinValue`, `StreamLog`.  
+Vector I/O: `AnalogSamples` / `DigitalSamples` (`MDMatrix<double>`, `ptPubOutput | ptPubState`); batch input `DigitalOutputCommands`, `PinConfigBatch`.  
+GUI: только properties/edges (`HardwareGuiHelpers`), без прямого доступа к `UArduinoFirmataClient`.
 
 ## Transport
 

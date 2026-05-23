@@ -2,6 +2,7 @@
 #define HARDWAREARDUINOPINCONSOLEWIDGET_H
 
 #include <QComboBox>
+#include <QSpinBox>
 #include <QTableWidget>
 #include <QWidget>
 
@@ -18,6 +19,7 @@ public:
 
 signals:
     void calculateRequested();
+    void selectedPinChanged(int firmata_pin, int board_profile);
 
 private slots:
     void onRowSelectionChanged();
@@ -25,15 +27,20 @@ private slots:
     void onSetPinMode();
     void onWriteDigital();
     void onReadAnalog();
+    void onWritePwm();
     void onMonitorAll();
 
 private:
     void rebuildTable(int profile);
     void syncSelectedRowToProps();
+    void emitSelectedPin();
 
     UComponentGuiContext Context;
     QTableWidget* Table = nullptr;
     QComboBox* PresetCombo = nullptr;
+    QSpinBox* DigitalSpin = nullptr;
+    QSpinBox* PwmSpin = nullptr;
+    QSpinBox* ServoAngleSpin = nullptr;
     int LastProfile = -1;
 };
 

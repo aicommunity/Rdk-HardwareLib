@@ -45,6 +45,8 @@ void UArduinoFirmataClient::reset()
     ChannelToPin.clear();
     PortDigitalMask.clear();
     PinModeByPin.clear();
+    PinDeviceModeByPin.clear();
+    LastWrittenBytes.clear();
     GotFirmware = false;
     GotCapability = false;
     GotAnalogMapping = false;
@@ -74,8 +76,13 @@ void UArduinoFirmataClient::ensurePortMaskSize(int port)
 
 void UArduinoFirmataClient::writeBytes(UArduinoSerialSession* session, const QByteArray& bytes)
 {
+    if (bytes.isEmpty())
+        return;
+    LastWrittenBytes = bytes;
     if (session)
         session->write(bytes);
+    if (OnBytesWrittenCallback)
+        OnBytesWrittenCallback(bytes);
 }
 
 void UArduinoFirmataClient::writeSysex(UArduinoSerialSession* session, const QByteArray& payload)
@@ -108,7 +115,12 @@ bool UArduinoFirmataClient::queryAnalogMapping(UArduinoSerialSession* session)
 
 int UArduinoFirmataClient::analogChannelForPin(int firmata_pin) const
 {
-    return AnalogChannelByPin.value(firmata_pin, -1);
+    if (AnalogChannelByPin.contains(firmata_pin))
+        return AnalogChannelByPin.value(firmata_pin);
+    const int base = UArduinoPinMap::analogBase(BoardProfileValue);
+    if (firmata_pin >= base)
+        return firmata_pin - base;
+    return -1;
 }
 
 int UArduinoFirmataClient::analogValueForChannel(int channel) const
@@ -131,6 +143,11 @@ int UArduinoFirmataClient::digitalValue(int firmata_pin) const
     if (port < 0 || port >= PortDigitalMask.size())
         return 0;
     return (PortDigitalMask[port] >> bit) & 1;
+}
+
+int UArduinoFirmataClient::deviceModeForPin(int firmata_pin) const
+{
+    return PinDeviceModeByPin.value(firmata_pin, -1);
 }
 
 bool UArduinoFirmataClient::setPinMode(UArduinoSerialSession* session, int pin, int mode)
@@ -276,16 +293,23 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
     } else if (cmd == kCapabilityResponse) {
         int pin = 0;
         PinCount = 0;
+        int first_mode = -1;
         for (int i = 1; i < sysex.size();) {
-            if (static_cast<uint8_t>(sysex[i]) == kPinModeIgnore) {
+            const uint8_t b = static_cast<uint8_t>(sysex[i]);
+            if (b == kPinModeIgnore) {
+                if (first_mode >= 0) {
+                    PinDeviceModeByPin[pin] = first_mode;
+                    if (!PinModeByPin.contains(pin))
+                        PinModeByPin[pin] = first_mode;
+                }
                 ++pin;
                 PinCount = qMax(PinCount, pin);
-                while (i < sysex.size() && static_cast<uint8_t>(sysex[i]) != kPinModeIgnore)
-                    ++i;
-                if (i < sysex.size())
-                    ++i;
+                first_mode = -1;
+                ++i;
                 continue;
             }
+            if (first_mode < 0)
+                first_mode = b;
             ++i;
         }
         if (PinCount == 0)
@@ -302,10 +326,26 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
             }
         }
         GotAnalogMapping = true;
-    } else if (cmd == kPinStateResponse && sysex.size() >= 4) {
+    } else if (cmd == kPinStateResponse && sysex.size() >= 5) {
         const int pin = static_cast<uint8_t>(sysex[1]);
         const int mode = static_cast<uint8_t>(sysex[2]);
         PinModeByPin[pin] = mode;
+        PinDeviceModeByPin[pin] = mode;
+        const int value = (static_cast<uint8_t>(sysex[3]) & 0x7F)
+                          | ((static_cast<uint8_t>(sysex[4]) & 0x7F) << 7);
+        if (mode == 2 || mode == 3) {
+            const int channel = analogChannelForPin(pin);
+            if (channel >= 0)
+                AnalogValues[channel] = value;
+        } else {
+            const int port = UArduinoPinMap::portForPin(pin);
+            const int bit = UArduinoPinMap::bitIndexInPort(pin);
+            ensurePortMaskSize(port);
+            if (value)
+                PortDigitalMask[port] |= (1 << bit);
+            else
+                PortDigitalMask[port] &= ~(1 << bit);
+        }
     } else if (cmd == kI2cReply) {
         LastI2cReadData = sysex.mid(1);
     }

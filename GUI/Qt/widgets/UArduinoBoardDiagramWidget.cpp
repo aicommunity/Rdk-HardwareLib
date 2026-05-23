@@ -4,6 +4,7 @@
 
 #include <Transport/UArduinoPinMap.h>
 
+#include <QDebug>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -37,7 +38,8 @@ QString resolveBundledPath(const QString& qrc_path, const QString& resources_rel
 }
 
 QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resource_path,
-                                                            const QString& resources_relative_path)
+                                                            const QString& resources_relative_path,
+                                                            int board_profile)
 {
     const QString path = resolveBundledPath(resource_path, resources_relative_path);
     QFile file(path);
@@ -58,6 +60,14 @@ QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resou
         UArduinoPinOverlay::PinRegion region;
         region.Id = o.value(QStringLiteral("id")).toString();
         region.Label = o.value(QStringLiteral("label")).toString(region.Id);
+        if (o.contains(QStringLiteral("firmataPin"))) {
+            const int json_pin = o.value(QStringLiteral("firmataPin")).toInt(-1);
+            const int map_pin =
+                RDK::UArduinoPinMap::firmataPinForLabel(region.Id, board_profile);
+            if (map_pin >= 0 && json_pin >= 0 && map_pin != json_pin)
+                qWarning("Pin %s: firmataPin %d != PinMap %d", qPrintable(region.Id), json_pin,
+                         map_pin);
+        }
         region.NormalizedRect = QRectF(rect.at(0).toDouble(),
                                        rect.at(1).toDouble(),
                                        rect.at(2).toDouble(),
@@ -112,7 +122,7 @@ void UArduinoBoardDiagramWidget::reloadPinLayout()
 {
     const QString pinsRel = BoardProfileValue == 1 ? QStringLiteral("boards/mega2560_pins.json")
                                                 : QStringLiteral("boards/uno_pins.json");
-    Overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel));
+    Overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel, BoardProfileValue));
     Overlay->setPinRoles(PinRoles);
     Overlay->setHighlightedIds(HighlightedPins);
     Overlay->setSelectedId(SelectedPinId);

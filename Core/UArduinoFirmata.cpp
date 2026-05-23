@@ -186,6 +186,12 @@ void UArduinoFirmata::StartFirmataHandshake()
             if (Session && Session->isOpen())
                 FirmataClient.setSamplingInterval(session(), 19);
         });
+        FirmataClient.setOnBytesWritten([this](const QByteArray& bytes) {
+            if (!StreamLogEnable || !ShowDebug)
+                return;
+            StreamLog = appendStreamLog(string(StreamLog),
+                                        QStringLiteral("TX %1").arg(QString(bytes.toHex(' '))));
+        });
         FirmataClient.startHandshake(session(), BoardProfile);
     }
     HandshakeSent = true;
@@ -226,9 +232,6 @@ void UArduinoFirmata::ProcessFirmataEdges()
         RunFirmataActions();
         ResetEdge(ApplyPinConfig);
     }
-
-    if (RefreshPins)
-        ResetEdge(RefreshPins);
 }
 
 bool UArduinoFirmata::EnsureConnected()
@@ -305,8 +308,17 @@ void UArduinoFirmata::ProcessFirmata()
 
 void UArduinoFirmata::UpdateCapabilityJson()
 {
+    QJsonArray pins;
+    for (auto it = FirmataClient.PinDeviceModeByPin.constBegin();
+         it != FirmataClient.PinDeviceModeByPin.constEnd(); ++it) {
+        QJsonObject o;
+        o.insert(QStringLiteral("pin"), it.key());
+        o.insert(QStringLiteral("mode"), it.value());
+        pins.append(o);
+    }
     QJsonObject root;
     root.insert(QStringLiteral("pinCount"), FirmataClient.PinCount);
+    root.insert(QStringLiteral("pins"), pins);
     CapabilityJson = QJsonDocument(root).toJson(QJsonDocument::Compact).toStdString();
 }
 
@@ -323,7 +335,7 @@ void UArduinoFirmata::BuildPinStatusJson()
         const bool supported = FirmataClient.PinCount <= 0 || pin < FirmataClient.PinCount;
         o.insert(QStringLiteral("supported"), supported);
         o.insert(QStringLiteral("hostMode"), FirmataClient.PinModeByPin.value(pin, -1));
-        o.insert(QStringLiteral("deviceMode"), -1);
+        o.insert(QStringLiteral("deviceMode"), FirmataClient.deviceModeForPin(pin));
         const int dig = FirmataClient.digitalValue(pin);
         o.insert(QStringLiteral("digital"), dig);
         const int ch = FirmataClient.analogChannelForPin(pin);
@@ -345,28 +357,23 @@ void UArduinoFirmata::BuildPinStatusJson()
 
 void UArduinoFirmata::RunFirmataActions()
 {
-    if (!Session || !Session->isOpen() || !FirmataClient.HandshakeReady)
-        return;
-
     const bool do_set_mode = SetPinMode || SetPinModeFlag;
     const bool do_write = WriteDigital || WriteDigitalFlag;
     const bool do_read = ReadAnalog || ReadAnalogFlag;
 
+    if (Session && Session->isOpen() && FirmataClient.HandshakeReady) {
     if (do_set_mode) {
         FirmataClient.setPinMode(session(), SelectedPin, SelectedPinMode);
-        SetPinMode = false;
         SetPinModeFlag = false;
     }
     if (do_write) {
         FirmataClient.setDigitalPinValue(session(), SelectedPin, DigitalPinValue ? 1 : 0);
-        WriteDigital = false;
         WriteDigitalFlag = false;
     }
     if (do_read) {
         if (SelectedPinMode != 2)
             FirmataClient.setPinMode(session(), SelectedPin, 2);
         FirmataClient.reportAnalog(session(), SelectedPin, 1);
-        ReadAnalog = false;
         ReadAnalogFlag = false;
     }
     if (ReportAnalogEnable)
@@ -379,38 +386,28 @@ void UArduinoFirmata::RunFirmataActions()
             FirmataClient.reportAnalog(session(), SelectedPin, 1);
     }
 
-    if (WritePwm) {
+    if (WritePwm)
         FirmataClient.extendedAnalogWrite(session(), SelectedPin, PwmPinValue);
-        WritePwm = false;
-    }
 
-    if (ConfigureServo) {
+    if (ConfigureServo)
         FirmataClient.configureServo(session(), ServoPin, ServoMinPulse, ServoMaxPulse);
-        ConfigureServo = false;
-    }
-    if (WriteServo) {
+    if (WriteServo)
         FirmataClient.servoWrite(session(), ServoPin, ServoAngle);
-        WriteServo = false;
-    }
 
     if (QueryPinState) {
-        const int pin = QueryPin > 0 ? QueryPin : SelectedPin;
+        const int pin = QueryPin >= 0 ? QueryPin : SelectedPin;
         FirmataClient.queryPinState(session(), pin);
-        QueryPinState = false;
     }
 
     if (I2cWrite) {
         FirmataClient.i2cConfig(session(), 0);
-        const QByteArray payload =
-            parseHexBytes(QString::fromStdString(I2cWriteData));
+        const QByteArray payload = parseHexBytes(QString::fromStdString(I2cWriteData));
         FirmataClient.i2cWrite(session(), I2cAddress, payload);
-        I2cWrite = false;
     }
     if (I2cRead) {
         FirmataClient.i2cConfig(session(), 0);
         FirmataClient.i2cReadRequest(session(), I2cAddress, 8);
         I2cReadData = hexEncode(FirmataClient.lastI2cReadData()).toStdString();
-        I2cRead = false;
     }
 
     for (int r = 0; r < PinConfigBatch->GetRows(); ++r) {
@@ -436,6 +433,28 @@ void UArduinoFirmata::RunFirmataActions()
     }
     if (AnalogOutputCommands->GetRows() > 0)
         AnalogOutputCommands.Assign(0, 2, 0.0);
+    }
+
+    if (RefreshPins)
+        ResetEdge(RefreshPins);
+    if (SetPinMode)
+        ResetEdge(SetPinMode);
+    if (WriteDigital)
+        ResetEdge(WriteDigital);
+    if (ReadAnalog)
+        ResetEdge(ReadAnalog);
+    if (WritePwm)
+        ResetEdge(WritePwm);
+    if (ConfigureServo)
+        ResetEdge(ConfigureServo);
+    if (WriteServo)
+        ResetEdge(WriteServo);
+    if (QueryPinState)
+        ResetEdge(QueryPinState);
+    if (I2cWrite)
+        ResetEdge(I2cWrite);
+    if (I2cRead)
+        ResetEdge(I2cRead);
 }
 
 void UArduinoFirmata::OnBoardCalculate()

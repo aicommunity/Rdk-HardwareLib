@@ -19,8 +19,10 @@ public:
     int PinCount = 0;
     QVector<int> PortDigitalMask;
     QMap<int, int> PinModeByPin;
+    QMap<int, int> PinDeviceModeByPin;
     QMap<int, int> AnalogValues;
     QMap<int, int> ChannelToPin;
+    QByteArray LastWrittenBytes;
 
     void reset();
     void processIncoming(const QByteArray& data);
@@ -47,8 +49,13 @@ public:
     int analogValueForChannel(int channel) const;
     int analogValue(int firmata_pin) const;
     int digitalValue(int firmata_pin) const;
+    int deviceModeForPin(int firmata_pin) const;
 
     void setBoardProfile(int board_profile) { BoardProfileValue = board_profile; }
+    void setOnBytesWritten(std::function<void(const QByteArray&)> cb)
+    {
+        OnBytesWrittenCallback = std::move(cb);
+    }
 
 private:
     void updateHandshakeStage();
@@ -63,6 +70,7 @@ private:
     bool InSysex = false;
     QMap<int, int> AnalogChannelByPin;
     std::function<void()> OnReadyCallback;
+    std::function<void(const QByteArray&)> OnBytesWrittenCallback;
     bool GotFirmware = false;
     bool GotCapability = false;
     bool GotAnalogMapping = false;

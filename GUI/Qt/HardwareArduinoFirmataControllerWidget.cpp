@@ -26,6 +26,10 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     PinConsole = new HardwareArduinoPinConsoleWidget(firmataPage);
     connect(PinConsole, &HardwareArduinoPinConsoleWidget::calculateRequested, this,
             &HardwareArduinoFirmataControllerWidget::onConsoleCalculate);
+    connect(PinConsole, &HardwareArduinoPinConsoleWidget::selectedPinChanged, this,
+            [this](int pin, int profile) {
+                Diagram->setSelectedPinId(RDK::UArduinoPinMap::labelForFirmataPin(pin, profile));
+            });
 
     StatusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage);
     StatusLog->setMaximumHeight(120);
@@ -204,6 +208,8 @@ void HardwareArduinoFirmataControllerWidget::onRestartFirmata()
 void HardwareArduinoFirmataControllerWidget::onQueryPinState()
 {
     onApply();
+    const int pin = HardwareGuiHelpers::getPropInt(Context, "SelectedPin", 13);
+    HardwareGuiHelpers::setProp(Context, "QueryPin", QString::number(pin));
     HardwareGuiHelpers::pulseEdge(Context, "QueryPinState");
     onCalculate();
 }
@@ -211,8 +217,6 @@ void HardwareArduinoFirmataControllerWidget::onQueryPinState()
 void HardwareArduinoFirmataControllerWidget::onWritePwm()
 {
     onApply();
-    HardwareGuiHelpers::setProp(Context, "PwmPinValue",
-                                HardwareGuiHelpers::getProp(Context, "DigitalPinValue"));
     HardwareGuiHelpers::pulseEdge(Context, "WritePwm");
     onCalculate();
 }
