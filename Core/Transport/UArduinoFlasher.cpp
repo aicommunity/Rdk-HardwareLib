@@ -16,6 +16,41 @@ namespace RDK {
 
 namespace {
 
+QString applicationWorkDirectory()
+{
+    if (QCoreApplication::instance())
+        return QDir::fromNativeSeparators(QCoreApplication::applicationDirPath());
+    return QDir::currentPath();
+}
+
+QString bundledAvrdudeCandidate()
+{
+    const QDir toolsBin(QDir(applicationWorkDirectory()).filePath(QStringLiteral("ArduinoTools/bin")));
+    if (!toolsBin.exists())
+        return QString();
+
+#if defined(Q_OS_WIN)
+    const QStringList names = {QStringLiteral("avrdude.exe"), QStringLiteral("avrdude")};
+#else
+    const QStringList names = {QStringLiteral("avrdude")};
+#endif
+    for (const QString& name : names) {
+        const QString path = toolsBin.absoluteFilePath(name);
+        if (QFileInfo::exists(path))
+            return QFileInfo(path).absoluteFilePath();
+    }
+    return QString();
+}
+
+QString bundledAvrdudeConfCandidate()
+{
+    const QDir bundledEtc(QDir(applicationWorkDirectory()).filePath(QStringLiteral("ArduinoTools/etc")));
+    const QString bundledConf = bundledEtc.absoluteFilePath(QStringLiteral("avrdude.conf"));
+    if (QFileInfo::exists(bundledConf))
+        return QFileInfo(bundledConf).absoluteFilePath();
+    return QString();
+}
+
 QString enrichUploadError(const QString& avrdudeOutput)
 {
     if (!avrdudeOutput.contains(QStringLiteral("Permission denied"), Qt::CaseInsensitive))
@@ -89,6 +124,10 @@ QString UArduinoFlasher::locateAvrdudeBinary()
     if (!inPath.isEmpty())
         return inPath;
 
+    const QString bundled = bundledAvrdudeCandidate();
+    if (!bundled.isEmpty())
+        return bundled;
+
     const QDir toolsRoot(QDir::homePath()
                          + QStringLiteral("/.arduino15/packages/arduino/tools/avrdude"));
     if (toolsRoot.exists()) {
@@ -108,6 +147,10 @@ QString UArduinoFlasher::locateAvrdudeConf()
     const QByteArray env = qgetenv("AVRUDUDE_CONF");
     if (!env.isEmpty() && QFileInfo::exists(QString::fromUtf8(env)))
         return QString::fromUtf8(env);
+
+    const QString bundledConf = bundledAvrdudeConfCandidate();
+    if (!bundledConf.isEmpty())
+        return bundledConf;
 
     const QStringList candidates = {QStringLiteral("/etc/avrdude.conf")};
     for (const QString& path : candidates) {
@@ -158,8 +201,9 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
     const QString conf = locateAvrdudeConf();
 
     if (avrdude.isEmpty()) {
-        const QString msg =
-            QStringLiteral("avrdude not found (install avrdude or arduino:avr core via arduino-cli)");
+        const QString msg = QStringLiteral(
+            "avrdude not found. Windows: run Bin\\Platform\\Win\\SetupArduinoTools.bat. "
+            "Linux: install avrdude package or arduino-cli core install arduino:avr.");
         if (errorOut)
             *errorOut = msg;
         emit finished(false, msg);
