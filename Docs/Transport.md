@@ -37,14 +37,22 @@
 
 | API | Описание |
 |-----|----------|
-| `locateAvrdudeBinary` | PATH, `AVRDUDE`, `~/.arduino15/.../avrdude` |
-| `locateAvrdudeConf` | `AVRUDUDE_CONF`, `/etc`, рядом с бинарником |
+| `locateAvrdudeBinary` | `AVRDUDE` → PATH → **`ArduinoTools/bin` рядом с exe** → `~/.arduino15/.../avrdude` |
+| `locateAvrdudeConf` | `AVRUDUDE_CONF` → **`ArduinoTools/etc/avrdude.conf`** → `/etc/avrdude.conf` → рядом с бинарником → `.arduino15` |
 | `buildCommand` | Строка аргументов avrdude |
 | `flash(profile, port, hex, &err)` | `QProcess`, парсинг `%` в stdout → `progressChanged` |
 
 **Сигналы:** `progressChanged(int)`, `finished(bool, message)`.
 
 При ошибке permission — расширенное сообщение в `errorOut`.
+
+### Windows setup
+
+Запустите [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) — копирует `avrdude` в `Bin/Platform/Win/ArduinoTools/`. Подробнее: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
+
+### Linux
+
+Установите пакетный `avrdude` (`apt` / `dnf` / `pacman`), добавьте пользователя в `dialout`. Каталог `Bin/Platform/Linux/ArduinoTools` **не требуется**.
 
 ## UArduinoBoardProfile
 

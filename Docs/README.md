@@ -59,6 +59,7 @@
 - [API-Overview.md](API-Overview.md) — свойства компонентов
 - [Usage-Examples.md](Usage-Examples.md) — XML и сценарии
 - [Transport.md](Transport.md) — serial, avrdude, профили плат
+- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — SetupArduinoTools.bat, bundled ArduinoTools
 - [Protocol.md](Protocol.md) — бинарный протокол sensor_lab
 - [GUI.md](GUI.md) — NeuroModeler forms и diagram
 - [firmata_spike.md](firmata_spike.md) — scope Firmata MVP

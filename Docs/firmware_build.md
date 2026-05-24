@@ -9,9 +9,29 @@
 
 ## Сборка из корня Nmsdk
 
+### Linux / macOS
+
 ```bash
 ./Scripts/build_arduino_firmware.sh
 ```
+
+### Windows (PowerShell)
+
+После [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX уже собраны. Отдельная пересборка:
+
+```powershell
+.\Scripts\build_arduino_firmware.ps1
+```
+
+С явными путями к локальному toolchain:
+
+```powershell
+.\Scripts\build_arduino_firmware.ps1 `
+  -ArduinoCli "Bin\Platform\Win\ArduinoCLI\arduino-cli.exe" `
+  -ArduinoData "Bin\Platform\Win\ArduinoData"
+```
+
+См. [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
 
 Скрипт устанавливает ядро `arduino:avr`, библиотеку DHT, компилирует `sensor_lab` (Uno + Mega) и StandardFirmata, копирует артефакты в:
 

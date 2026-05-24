@@ -25,7 +25,8 @@ If `downloads.arduino.cc` returns 403, build on a machine with working Arduino C
 ### Подготовка
 
 - [ ] Плата подключена по USB, в системе виден порт (`/dev/ttyACM0`, `COM3`, …).
-- [ ] Установлен `avrdude` (Linux: пакет `avrdude`; Windows: идёт с Arduino / toolchain).
+- [ ] **Windows:** запущен `Bin/Platform/Win/SetupArduinoTools.bat` или `avrdude` в PATH.
+- [ ] **Linux:** установлен пакет `avrdude`; пользователь в группе `dialout` (`sudo usermod -aG dialout $USER`).
 - [ ] В модели выбран верный **Board profile**: `0` = Uno, `1` = Mega 2560.
 - [ ] Bundled HEX существуют (см. таблицу выше) или указан свой путь в **Firmware path**.
 
