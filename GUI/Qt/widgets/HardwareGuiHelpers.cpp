@@ -3,17 +3,44 @@
 #include "../../../../../Rdk/Core/Math/MDMatrix.h"
 #include "../../../../../Rdk/Deploy/Include/rdk_init.h"
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+#include "../../../Core/UArduinoPropertyString.h"
 
+#include <QApplication>
+#include <string>
 #include <QColor>
 #include <QComboBox>
+#include <QFont>
 #include <QPlainTextEdit>
 #include <QtSerialPort/QSerialPortInfo>
 
 namespace HardwareGuiHelpers {
 
+QString propertyStringFromEngine(const char* value)
+{
+    if (!value || !*value)
+        return QString();
+    return RDK::UArduinoPropertyString::fromStdProperty(value);
+}
+
+QByteArray propertyStringToEngine(const QString& value)
+{
+    const std::string encoded = RDK::UArduinoPropertyString::toStdProperty(value);
+    return QByteArray(encoded.c_str(), static_cast<int>(encoded.size()));
+}
+
+void applyUnicodeFriendlyFont(QWidget* widget)
+{
+    if (!widget)
+        return;
+    QFont font = QApplication::font();
+    font.setStyleStrategy(QFont::PreferDefault);
+    widget->setFont(font);
+}
+
 QPlainTextEdit* createStatusLogWidget(QWidget* parent)
 {
     auto* edit = new QPlainTextEdit(parent);
+    applyUnicodeFriendlyFont(edit);
     edit->setReadOnly(true);
     edit->setLineWrapMode(QPlainTextEdit::WidgetWidth);
     edit->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
@@ -59,6 +86,7 @@ void populateSerialPortCombo(QComboBox* combo, const QString& select_device_path
         selected = selectedSerialPortPath(combo);
 
     combo->clear();
+    applyUnicodeFriendlyFont(combo);
     for (const RDK::UArduinoSerialPortEntry& entry : RDK::UArduinoSerialPortUtil::listPortsSorted()) {
         combo->addItem(entry.DisplayLabel, entry.DevicePath);
         const int idx = combo->count() - 1;
@@ -109,15 +137,16 @@ QString getProp(const UComponentGuiContext& ctx, const char* name)
     const char* v = MModel_GetComponentPropertyValue(ctx.channelIndex,
                                                      ctx.componentLongName.toUtf8().constData(),
                                                      name);
-    return v ? QString::fromUtf8(v) : QString();
+    return propertyStringFromEngine(v);
 }
 
 bool setProp(const UComponentGuiContext& ctx, const char* name, const QString& value)
 {
+    const QByteArray encoded = propertyStringToEngine(value);
     return MModel_SetComponentPropertyValue(ctx.channelIndex,
                                             ctx.componentLongName.toUtf8().constData(),
                                             name,
-                                            value.toUtf8().constData()) == 0;
+                                            encoded.constData()) == 0;
 }
 
 int getPropInt(const UComponentGuiContext& ctx, const char* name, int default_value)

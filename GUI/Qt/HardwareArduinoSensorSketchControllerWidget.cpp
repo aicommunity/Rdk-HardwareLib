@@ -91,6 +91,7 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
 
     auto* root = new QVBoxLayout(this);
     root->addWidget(splitter);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UComponentGuiContext& context)

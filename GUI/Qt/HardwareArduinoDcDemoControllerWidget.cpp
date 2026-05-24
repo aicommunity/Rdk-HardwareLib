@@ -46,6 +46,7 @@ HardwareArduinoDcDemoControllerWidget::HardwareArduinoDcDemoControllerWidget(QWi
 
     auto* root = new QVBoxLayout(this);
     root->addWidget(Tabs);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoDcDemoControllerWidget::setComponentContext(const UComponentGuiContext& context)

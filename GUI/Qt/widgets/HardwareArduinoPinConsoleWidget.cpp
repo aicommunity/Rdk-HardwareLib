@@ -97,6 +97,7 @@ HardwareArduinoPinConsoleWidget::HardwareArduinoPinConsoleWidget(QWidget* parent
     root->addLayout(toolbar);
     root->addLayout(valueRow);
     root->addWidget(Table, 1);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoPinConsoleWidget::setContext(const UComponentGuiContext& context)

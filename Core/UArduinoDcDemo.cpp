@@ -1,5 +1,6 @@
 #include "UArduinoDcDemo.h"
 
+#include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
 #include "UArduinoSensorSketch.h"
 
@@ -28,8 +29,8 @@ bool UArduinoDcDemo::ADefault()
     Acceleration = 0;
     GetSpeed = false;
     BundledFirmwareId = "sensor_lab_v1";
-    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
-                       .toStdString();
+    FirmwarePath = UArduinoPropertyString::toStdProperty(
+        UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0));
     CachedSpeed = 0.f;
     CachedAcceleration = 0.f;
     return true;

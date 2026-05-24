@@ -15,6 +15,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     : QWidget(parent)
 {
     PortCombo = new QComboBox(this);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(PortCombo);
     auto* refreshPortsBtn = new QPushButton(tr("Refresh"), this);
     connect(refreshPortsBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onRefreshPorts);
 
@@ -112,6 +113,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     root->setContentsMargins(0, 0, 0, 0);
     root->addWidget(scroll);
 
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
     onRefreshPorts();
 }
 

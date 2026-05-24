@@ -258,7 +258,11 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
     auto reportProgress = [this, &accumulated](const QByteArray& chunk) {
         if (chunk.isEmpty())
             return;
+#if defined(Q_OS_WIN)
+        accumulated += QString::fromLocal8Bit(chunk);
+#else
         accumulated += QString::fromUtf8(chunk);
+#endif
         const int percent = parseUploadPercent(accumulated);
         if (percent >= 0)
             emit progressChanged(qBound(10, percent, 99));

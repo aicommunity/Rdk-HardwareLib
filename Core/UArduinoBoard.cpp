@@ -3,6 +3,7 @@
 #include "Transport/UArduinoBoardProfile.h"
 #include "Transport/UArduinoFlasher.h"
 #include "Transport/UArduinoSerialSession.h"
+#include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
 
 #include <QCoreApplication>
@@ -92,8 +93,8 @@ bool UArduinoBoard::ADefault()
     HeartbeatTimeoutMs = 10000;
     MissedHeartbeats = 0;
     RequestHealthCheck = false;
-    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
-                       .toStdString();
+    FirmwarePath = UArduinoPropertyString::toStdProperty(
+        UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0));
     BundledFirmwareId = "sensor_lab_v1";
     UploadFirmwareFlag = false;
     UploadProgress = 0;
@@ -207,7 +208,7 @@ bool UArduinoBoard::EnsureConnected()
     ConnectionState = ArduinoOpening;
     UArduinoSerialSession* s = session();
     s->ShowDebug = ShowDebug;
-    const QString port = QString::fromStdString(*PortName);
+    const QString port = UArduinoPropertyString::fromStdProperty(*PortName);
     if (s->open(port, BaudRate)) {
         ConnectionState = ArduinoConnected;
         LastError = "";
@@ -219,7 +220,8 @@ bool UArduinoBoard::EnsureConnected()
 
     ConnectionState = ArduinoError;
     const QString err = s->lastError();
-    LastError = err.isEmpty() ? "Failed to open serial port" : err.toStdString();
+    LastError = err.isEmpty() ? std::string("Failed to open serial port")
+                              : UArduinoPropertyString::toStdProperty(err);
     return false;
 }
 
@@ -233,12 +235,13 @@ void UArduinoBoard::CloseConnection()
 QString UArduinoBoard::ResolveHexPath() const
 {
     if (!FirmwarePath->empty()) {
-        const QString resolved =
-            UFirmwareManifest::resolveFromApplicationDir(QString::fromStdString(*FirmwarePath));
+        const QString resolved = UFirmwareManifest::resolveFromApplicationDir(
+            UArduinoPropertyString::fromStdProperty(*FirmwarePath));
         if (QFile::exists(resolved))
             return resolved;
     }
-    return UFirmwareManifest::resolveBundledHex(QString::fromStdString(*BundledFirmwareId), BoardProfile);
+    return UFirmwareManifest::resolveBundledHex(
+        UArduinoPropertyString::fromStdProperty(*BundledFirmwareId), BoardProfile);
 }
 
 void UArduinoBoard::RunUpload()
@@ -262,7 +265,7 @@ void UArduinoBoard::RunUpload()
 
     const UArduinoBoardProfile profile =
         UArduinoBoardProfileUtil::profileForKind(BoardProfile);
-    const QString port = QString::fromStdString(*PortName);
+    const QString port = UArduinoPropertyString::fromStdProperty(*PortName);
 
     const QMetaObject::Connection progressConn = QObject::connect(
         Flasher,
@@ -274,7 +277,8 @@ void UArduinoBoard::RunUpload()
     const bool ok = Flasher->flash(profile, port, hex, &err);
     QObject::disconnect(progressConn);
     UploadProgress = ok ? 100 : 0;
-    UploadLastResult = ok ? "ok" : err.toStdString();
+    UploadLastResult =
+        ok ? std::string("ok") : UArduinoPropertyString::toStdProperty(err);
 
     if (ConnectOnBuild && ok)
         EnsureConnected();

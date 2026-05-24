@@ -23,6 +23,7 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     root->addWidget(splitter);
 
     setAccessibleName(QStringLiteral("HardwareArduinoBoardControllerWidget"));
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoBoardControllerWidget::setComponentContext(const UComponentGuiContext& context)

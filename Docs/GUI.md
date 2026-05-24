@@ -18,7 +18,8 @@
 
 [`HardwareGuiHelpers`](../GUI/Qt/widgets/HardwareGuiHelpers.h):
 
-- `getProp` / `setProp` — чтение/запись свойств
+- `getProp` / `setProp` — чтение/запись свойств (кодировка согласована с движком: Windows — системная locale, Linux — UTF-8; см. `UArduinoPropertyString`)
+- `applyUnicodeFriendlyFont` — шрифт приложения для корректного отображения кириллицы в комбобоксах и логах
 - `envCalculate` — один тик расчёта
 - **`pulseEdge(ctx, "Connect")`** — `setProp(edge, "1")` + `envCalculate` (edge сбрасыется в C++)
 

@@ -30,6 +30,7 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
 
     auto* root = new QVBoxLayout(this);
     root->addLayout(form);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoAdcControllerWidget::setComponentContext(const UComponentGuiContext& context)

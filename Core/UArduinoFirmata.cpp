@@ -1,5 +1,7 @@
 #include "UArduinoFirmata.h"
 
+#include "UArduinoPropertyString.h"
+
 #include "UFirmwareManifest.h"
 #include "Transport/UArduinoPinMap.h"
 #include "Transport/UArduinoSerialSession.h"
@@ -40,7 +42,7 @@ QString hexEncode(const QByteArray& data)
 
 string appendStreamLog(string log, const QString& line, int max_bytes = 8192)
 {
-    QString combined = QString::fromStdString(log);
+    QString combined = UArduinoPropertyString::fromStdProperty(log);
     if (!combined.isEmpty())
         combined.append('\n');
     combined.append(line);
@@ -50,7 +52,7 @@ string appendStreamLog(string log, const QString& line, int max_bytes = 8192)
             break;
         combined = combined.mid(nl + 1);
     }
-    return combined.toStdString();
+    return UArduinoPropertyString::toStdProperty(combined);
 }
 
 } // namespace
@@ -166,8 +168,8 @@ bool UArduinoFirmata::ADefault()
     IsLinkReady = false;
     ReportAnalogEnable = false;
     BundledFirmwareId = "standard_firmata";
-    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("standard_firmata"), 0)
-                       .toStdString();
+    FirmwarePath = UArduinoPropertyString::toStdProperty(
+        UFirmwareManifest::bundledHexRelativePath(QStringLiteral("standard_firmata"), 0));
     HandshakeSent = false;
     FirmataClient.setBoardProfile(BoardProfile);
     SyncFirmataStates();
@@ -202,7 +204,7 @@ void UArduinoFirmata::StartFirmataHandshake()
 
 void UArduinoFirmata::ApplyLoadPreset()
 {
-    const QString preset = QString::fromStdString(PinConfigPreset);
+    const QString preset = UArduinoPropertyString::fromStdProperty(PinConfigPreset);
     if (preset == QStringLiteral("uno_d13_blink") || preset == QStringLiteral("mega_d13_blink")) {
         SelectedPin = 13;
         SelectedPinMode = 1;
@@ -304,7 +306,7 @@ void UArduinoFirmata::ProcessFirmata()
     }
 
     FirmataReady = FirmataClient.HandshakeReady;
-    FirmataFirmwareVersion = FirmataClient.FirmwareVersion.toStdString();
+    FirmataFirmwareVersion = UArduinoPropertyString::toStdProperty(FirmataClient.FirmwareVersion);
     HandshakeStage = FirmataClient.HandshakeStage;
     AnalogPinValue = FirmataClient.analogValueForChannel(
         FirmataClient.analogChannelForPin(SelectedPin));
@@ -329,7 +331,8 @@ void UArduinoFirmata::UpdateCapabilityJson()
     QJsonObject root;
     root.insert(QStringLiteral("pinCount"), FirmataClient.PinCount);
     root.insert(QStringLiteral("pins"), pins);
-    CapabilityJson = QJsonDocument(root).toJson(QJsonDocument::Compact).toStdString();
+    CapabilityJson = UArduinoPropertyString::toStdProperty(
+        QString::fromUtf8(QJsonDocument(root).toJson(QJsonDocument::Compact)));
 }
 
 void UArduinoFirmata::BuildPinStatusJson()
@@ -362,7 +365,8 @@ void UArduinoFirmata::BuildPinStatusJson()
     root.insert(QStringLiteral("linkReady"), static_cast<bool>(IsLinkReady));
     root.insert(QStringLiteral("pinCount"), FirmataClient.PinCount);
     root.insert(QStringLiteral("pins"), pins);
-    PinStatusJson = QJsonDocument(root).toJson(QJsonDocument::Compact).toStdString();
+    PinStatusJson = UArduinoPropertyString::toStdProperty(
+        QString::fromUtf8(QJsonDocument(root).toJson(QJsonDocument::Compact)));
 }
 
 void UArduinoFirmata::RunFirmataActions()
@@ -411,13 +415,15 @@ void UArduinoFirmata::RunFirmataActions()
 
     if (I2cWrite) {
         FirmataClient.i2cConfig(session(), 0);
-        const QByteArray payload = parseHexBytes(QString::fromStdString(I2cWriteData));
+        const QByteArray payload =
+            parseHexBytes(UArduinoPropertyString::fromStdProperty(I2cWriteData));
         FirmataClient.i2cWrite(session(), I2cAddress, payload);
     }
     if (I2cRead) {
         FirmataClient.i2cConfig(session(), 0);
         FirmataClient.i2cReadRequest(session(), I2cAddress, 8);
-        I2cReadData = hexEncode(FirmataClient.lastI2cReadData()).toStdString();
+        I2cReadData =
+            UArduinoPropertyString::toStdProperty(hexEncode(FirmataClient.lastI2cReadData()));
     }
 
     for (int r = 0; r < PinConfigBatch->GetRows(); ++r) {

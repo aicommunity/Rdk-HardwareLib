@@ -1,5 +1,6 @@
 #include "UArduinoSensorSketch.h"
 
+#include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
 
 #include <QDebug>
@@ -48,8 +49,8 @@ bool UArduinoSensorSketch::ADefault()
     Rotate = false;
     StopRotate = false;
     BundledFirmwareId = "sensor_lab_v1";
-    FirmwarePath = UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0)
-                       .toStdString();
+    FirmwarePath = UArduinoPropertyString::toStdProperty(
+        UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0));
     return true;
 }
 
@@ -173,11 +174,11 @@ void UArduinoSensorSketch::OnBinaryFrame(uint8_t type, const QByteArray& payload
         const int dht_pin = static_cast<uint8_t>(payload[idx++]);
         const int servo_pin = static_cast<uint8_t>(payload[idx++]);
 
-        PinStatusJson = QStringLiteral("{\"analog\":[%1],\"dht\":\"%2\",\"servo\":\"%3\"}")
-                            .arg(analog_pins.join(QStringLiteral(",")),
-                                 pinToString(dht_pin),
-                                 pinToString(servo_pin))
-                            .toStdString();
+        PinStatusJson = UArduinoPropertyString::toStdProperty(
+            QStringLiteral("{\"analog\":[%1],\"dht\":\"%2\",\"servo\":\"%3\"}")
+                .arg(analog_pins.join(QStringLiteral(",")),
+                     pinToString(dht_pin),
+                     pinToString(servo_pin)));
     }
 }
 

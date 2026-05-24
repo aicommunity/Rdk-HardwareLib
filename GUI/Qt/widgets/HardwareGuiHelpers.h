@@ -13,6 +13,14 @@ class QWidget;
 
 namespace HardwareGuiHelpers {
 
+/** Decode property bytes from MModel (system locale on Windows, UTF-8 elsewhere). */
+QString propertyStringFromEngine(const char* value);
+/** Encode property text for MModel (must match propertyStringFromEngine). */
+QByteArray propertyStringToEngine(const QString& value);
+
+/** Application font suitable for Cyrillic and other Unicode in Hardware forms. */
+void applyUnicodeFriendlyFont(QWidget* widget);
+
 QPlainTextEdit* createStatusLogWidget(QWidget* parent);
 void setStatusLogText(QPlainTextEdit* widget, const QString& text);
 

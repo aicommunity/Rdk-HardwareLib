@@ -1,6 +1,7 @@
 #include "UArduinoCustomLink.h"
 
 #include "Transport/UArduinoSerialSession.h"
+#include "UArduinoPropertyString.h"
 
 namespace RDK {
 
@@ -106,7 +107,8 @@ void UArduinoCustomLink::EnqueueCommand(const string& command)
 {
     if (command.empty())
         return;
-    QByteArray line = QByteArray::fromStdString(command);
+    const QByteArray line_bytes = UArduinoPropertyString::fromStdProperty(command).toUtf8();
+    QByteArray line(line_bytes);
     if (!line.endsWith('\n'))
         line.append('\n');
     CommandQueue.enqueue(line);

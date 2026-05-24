@@ -99,6 +99,7 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
 
     auto* root = new QVBoxLayout(this);
     root->addWidget(splitter);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoFirmataControllerWidget::setComponentContext(const UComponentGuiContext& context)
