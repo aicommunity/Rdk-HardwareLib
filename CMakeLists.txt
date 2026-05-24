@@ -30,6 +30,10 @@ target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES} ${HW_CORE_REQUIRED_SOUR
 
 target_compile_definitions(${TARGET_NAME} PUBLIC RDK_QT RDK_LIB_CVS_REVISION=0)
 
+if(MSVC)
+  target_compile_options(${TARGET_NAME} PRIVATE /utf-8)
+endif()
+
 include(${CMAKE_SOURCE_DIR}/cmake/SelectQt.cmake)
 target_link_libraries(${TARGET_NAME} PUBLIC
   Nmsdk::Qt::Core
@@ -76,3 +80,7 @@ else()
 endif()
 
 target_compile_definitions(${GUI_TARGET_NAME} PUBLIC RDK_QT)
+
+if(MSVC)
+  target_compile_options(${GUI_TARGET_NAME} PRIVATE /utf-8)
+endif()

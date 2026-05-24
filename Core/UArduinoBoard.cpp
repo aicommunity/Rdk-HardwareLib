@@ -344,7 +344,7 @@ void UArduinoBoard::startUploadAsync()
     UploadJob->progress = 5;
     {
         QMutexLocker lock(&UploadJob->messageMutex);
-        UploadJob->statusMessage = QStringLiteral("Preparing upload…");
+        UploadJob->statusMessage = QStringLiteral("Preparing upload\u2026");
     }
     UploadProgress = 5;
     UploadLastResult = UArduinoPropertyString::toStdProperty(QStringLiteral("uploading"));

@@ -18,7 +18,7 @@
 
 [`HardwareGuiHelpers`](../GUI/Qt/widgets/HardwareGuiHelpers.h):
 
-- `getProp` / `setProp` — чтение/запись свойств (кодировка согласована с движком: Windows — системная locale, Linux — UTF-8; см. `UArduinoPropertyString`)
+- `getProp` / `setProp` — чтение/запись свойств в **UTF-8** при `RDK_UNICODE_RUN` (см. `UArduinoPropertyString`); в строках UI для MSVC — escape `\u2014` / `\u2026`, не литералы «—»/«…» в исходнике
 - `applyUnicodeFriendlyFont` — шрифт приложения для корректного отображения кириллицы в комбобоксах и логах
 - `envCalculate` — один тик расчёта
 - **`pulseEdge(ctx, "Connect")`** — `setProp(edge, "1")` + `envCalculate` (edge сбрасыется в C++)

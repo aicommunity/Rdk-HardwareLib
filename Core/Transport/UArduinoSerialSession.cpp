@@ -50,9 +50,9 @@ bool UArduinoSerialSession::tryOpenPort(const QString& device_path, int baud_rat
     QString err = QStringLiteral("Failed to open %1: %2").arg(device_path, SerialPort->errorString());
     if (SerialPort->error() == QSerialPort::PermissionError) {
         err += QStringLiteral(
-            " — check dialout group (sudo usermod -aG dialout $USER) or close Arduino IDE / other apps using the port");
+            " \u2014 check dialout group (sudo usermod -aG dialout $USER) or close Arduino IDE / other apps using the port");
     } else if (SerialPort->error() == QSerialPort::ResourceError) {
-        err += QStringLiteral(" — port may be busy or disconnected");
+        err += QStringLiteral(" \u2014 port may be busy or disconnected");
     }
 
     LastErrorText = err;

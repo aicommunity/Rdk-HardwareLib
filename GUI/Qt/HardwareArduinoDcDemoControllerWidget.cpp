@@ -20,7 +20,7 @@ HardwareArduinoDcDemoControllerWidget::HardwareArduinoDcDemoControllerWidget(QWi
     auto* speedBtn = new QPushButton(tr("Read speed"), dcPage);
     connect(speedBtn, &QPushButton::clicked, this, &HardwareArduinoDcDemoControllerWidget::onGetSpeed);
 
-    SpeedLabel = new QLabel(tr("Speed: —"), dcPage);
+    SpeedLabel = new QLabel(tr("Speed: \u2014"), dcPage);
 
     auto* presets = new QListWidget(dcPage);
     presets->addItems({QStringLiteral("SET SPEED 50"), QStringLiteral("SET SPEED 0")});

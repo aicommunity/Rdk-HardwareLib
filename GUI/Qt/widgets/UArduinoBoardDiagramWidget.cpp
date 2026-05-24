@@ -139,7 +139,7 @@ void UArduinoBoardDiagramWidget::updateSvg()
 
     QString status;
     switch (ConnectionStateValue) {
-    case 1: status = tr("Opening…"); break;
+    case 1: status = tr("Opening\u2026"); break;
     case 2: status = tr("Connected"); break;
     case 3: status = tr("Error"); break;
     default: status = tr("Disconnected"); break;
@@ -155,7 +155,7 @@ void UArduinoBoardDiagramWidget::updateSvg()
 
     HardwareGuiHelpers::setStatusLogText(
         StatusLog,
-        QStringLiteral("%1 — %2%3%4").arg(board,
+        QStringLiteral("%1 \u2014 %2%3%4").arg(board,
                                           status,
                                           pinInfo.isEmpty() ? QString() : QStringLiteral("\n"),
                                           pinInfo));

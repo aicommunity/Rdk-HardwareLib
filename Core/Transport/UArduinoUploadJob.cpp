@@ -29,10 +29,10 @@ void UArduinoUploadJob::runSync(UArduinoUploadJobState* state,
     if (!state)
         return;
 
-    setStatus(state, 5, QStringLiteral("Preparing upload…"));
+    setStatus(state, 5, QStringLiteral("Preparing upload\u2026"));
     QThread::msleep(400);
 
-    setStatus(state, 8, QStringLiteral("Resetting to bootloader…"));
+    setStatus(state, 8, QStringLiteral("Resetting to bootloader\u2026"));
 
     UArduinoFlasher flasher;
     const QMetaObject::Connection progressConn = QObject::connect(
@@ -43,7 +43,7 @@ void UArduinoUploadJob::runSync(UArduinoUploadJobState* state,
             const int mapped = qBound(15, percent, 99);
             state->progress = mapped;
             QMutexLocker lock(&state->messageMutex);
-            state->statusMessage = QStringLiteral("Flashing… %1%").arg(percent);
+            state->statusMessage = QStringLiteral("Flashing\u2026 %1%").arg(percent);
         },
         Qt::DirectConnection);
 

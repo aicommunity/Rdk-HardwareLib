@@ -124,9 +124,9 @@ void HardwareArduinoPinConsoleWidget::rebuildTable(int profile)
         mode->addItem(tr("PWM"), 3);
         Table->setCellWidget(pin, 2, mode);
 
-        Table->setItem(pin, 3, new QTableWidgetItem(QStringLiteral("—")));
-        Table->setItem(pin, 4, new QTableWidgetItem(QStringLiteral("—")));
-        Table->setItem(pin, 5, new QTableWidgetItem(QStringLiteral("—")));
+        Table->setItem(pin, 3, new QTableWidgetItem(QStringLiteral("\u2014")));
+        Table->setItem(pin, 4, new QTableWidgetItem(QStringLiteral("\u2014")));
+        Table->setItem(pin, 5, new QTableWidgetItem(QStringLiteral("\u2014")));
     }
     LastProfile = profile;
 }
@@ -167,10 +167,10 @@ void HardwareArduinoPinConsoleWidget::refreshFromModel()
         if (!o.isEmpty()) {
             const int dig = o.value(QStringLiteral("digital")).toInt(-1);
             const int ana = o.value(QStringLiteral("analog")).toInt(-1);
-            Table->item(pin, 3)->setText(dig >= 0 ? QString::number(dig) : QStringLiteral("—"));
-            Table->item(pin, 4)->setText(ana >= 0 ? QString::number(ana) : QStringLiteral("—"));
+            Table->item(pin, 3)->setText(dig >= 0 ? QString::number(dig) : QStringLiteral("\u2014"));
+            Table->item(pin, 4)->setText(ana >= 0 ? QString::number(ana) : QStringLiteral("\u2014"));
             Table->item(pin, 5)->setText(
-                pwm > 0 && pin == selected ? QString::number(pwm) : QStringLiteral("—"));
+                pwm > 0 && pin == selected ? QString::number(pwm) : QStringLiteral("\u2014"));
         }
         if (pin == selected) {
             if (auto* mode_combo = qobject_cast<QComboBox*>(Table->cellWidget(pin, 2))) {

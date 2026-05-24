@@ -65,7 +65,7 @@ QString displayLabelFor(const QSerialPortInfo& info, const QString& device_path)
         extra = mfg;
     if (extra.isEmpty())
         return device_path;
-    return QStringLiteral("%1 — %2").arg(device_path, extra);
+    return QStringLiteral("%1 \u2014 %2").arg(device_path, extra);
 }
 
 } // namespace

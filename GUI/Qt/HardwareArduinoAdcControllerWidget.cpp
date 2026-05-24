@@ -16,7 +16,7 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
     PinCombo = new QComboBox(this);
     UseLinkedSamples = new QCheckBox(tr("Use linked AnalogSamples"), this);
     UseLinkedSamples->setChecked(true);
-    ValueLabel = new QLabel(tr("Adc value: —"), this);
+    ValueLabel = new QLabel(tr("Adc value: \u2014"), this);
 
     auto* readBtn = new QPushButton(tr("Read ADC"), this);
     connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoAdcControllerWidget::onReadAdc);

@@ -88,7 +88,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     FirmwarePathEdit = new QLineEdit(this);
 
-    auto* browseBtn = new QPushButton(tr("Browse…"), this);
+    auto* browseBtn = new QPushButton(tr("Browse\u2026"), this);
 
     connect(browseBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseHex);
 
