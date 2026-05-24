@@ -27,7 +27,7 @@ If `downloads.arduino.cc` returns 403, build on a machine with working Arduino C
 - [ ] Плата подключена по USB, в системе виден порт (`/dev/ttyACM0`, `COM3`, …).
 - [ ] **Windows:** запущен `Bin/Platform/Win/SetupArduinoTools.bat` или `avrdude` в PATH.
 - [ ] **Linux:** установлен пакет `avrdude`; пользователь в группе `dialout` (`sudo usermod -aG dialout $USER`).
-- [ ] В модели выбран верный **Board profile**: `0` = Uno, `1` = Mega 2560.
+- [ ] В модели выбран верный **Board profile**: `0` = Uno, `1` = Mega 2560 (GUI: авто-детект при выборе COM для официальных Arduino; CH340-клоны — вручную).
 - [ ] Bundled HEX существуют (см. таблицу выше) или указан свой путь в **Firmware path**.
 
 ### A. Прошивка sensor_lab (`sensor_lab_v1`)
