@@ -34,7 +34,7 @@
 - **Upload preview** — MCU, avrdude `-c`, HEX; предупреждение при несоответствии профиля и HEX
 - Progress bar: indeterminate на фазе bootloader, затем `%`; кнопки disabled при `IsUploading`
 - Connect / Disconnect / Reconnect / Health (`pulseEdge`)
-- Статус: `IsConnected`, `HasError`, `LastError`, `UploadLastResult` (read-only)
+- Статус: `IsConnected`, `HasError`, `LastError`, `UploadLastResult` (read-only); при **выключенном** auto-detect — строка `Detected: Arduino Uno` / `Mega 2560` / `unknown` по выбранному COM (USB VID/PID + description)
 - **Disconnect не очищает `PortName`**
 
 Встроена во вкладку **Board** у SensorSketch, Firmata, DcDemo.

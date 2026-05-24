@@ -246,7 +246,9 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
         return false;
     }
 
+    emit progressChanged(8);
     prepareBootloaderEntry(port, profile.kind);
+    emit progressChanged(12);
     const QString avrdudePort = UArduinoSerialPortUtil::avrdudePortArgument(port);
     const QString args = buildCommand(profile, avrdudePort, hexPath, conf);
     QProcess process;

@@ -38,8 +38,9 @@ classDiagram
 | Компонент | Поток | Поведение |
 |-----------|-------|-----------|
 | `UArduinoSerialSession` | поток владельца `QObject` (обычно Qt main / engine app) | `readyRead` только дописывает `RxBuffer` под mutex; `bytesReceived` **не подключён** в HardwareLib |
-| `UArduinoBoard::ACalculate` | Engine | `takeReceivedBytes()` → parse → свойства |
-| `UArduinoFlasher::flash` | синхронно из `RunUpload` в `ACalculate` | прогресс пишет `UploadProgress` в том же потоке |
+| `UArduinoBoard::ACalculate` | Engine | `PollUploadJob()` → edges → serial RX; свойства `UploadProgress` / `UploadLastResult` |
+| `UArduinoUploadJob::runSync` | отдельный `QThread` (по умолчанию) | `UArduinoFlasher::flash`; прогресс в `UArduinoUploadJobState`, движок копирует в `PollUploadJob` |
+| `UArduinoFlasher::flash` | вызывающий поток (engine при sync, worker при async) | `progressChanged` → job или прямой slot в `RunUploadBlocking` |
 
 `UArduinoAdc` не открывает serial; при `ReadAdcFlag` выставляет флаги на связанном `ArduinoFirmata` и полагается на общий `Calculate` контейнера (вызов `firmata->Calculate()` только из `UArduinoAdc::ACalculate`).
 
@@ -56,19 +57,27 @@ Legacy `UArduinoConnect` (`QThread`) **не используется** — ег�
 ### UArduinoBoard
 
 ```
-SyncDerivedStates → ProcessBoardEdges → PortChanged → AutoReconnect →
-Heartbeat → RequestHealthCheck → OnBoardCalculate → SyncDerivedStates
+PollUploadJob → SyncDerivedStates → ProcessBoardEdges → PortChanged →
+AutoReconnect → Heartbeat → RequestHealthCheck → OnBoardCalculate → SyncDerivedStates
 ```
 
 Edge: `Connect`, `Disconnect`, `Reconnect`, `UploadFirmware`, `ClearLastError` (legacy: `UploadFirmwareFlag`).
 
-State: `IsConnected`, `IsOpening`, `HasError`, `IsDisconnected`, `IsUploading`, `UploadComplete`.
+State: `IsConnected`, `IsOpening`, `HasError`, `IsDisconnected`, `IsUploading`, `UploadComplete`, `UploadProgress`, `UploadLastResult`.
 
 | Этап | Действие |
 |------|----------|
 | `ABuild` | При `ConnectOnBuild` и непустом `PortName` → `EnsureConnected()` |
+| `PollUploadJob` | В начале каждого `ACalculate`: копирует прогресс/статус из `UArduinoUploadJobState`; по `finished` — результат, `UploadJob.reset()`, опционально reconnect |
 | `ProcessBoardEdges` | Connect/Disconnect/Reconnect/Upload/ClearLastError |
-| `RunUpload` | `CloseConnection` → `UArduinoFlasher::flash` → опционально reconnect |
+| Upload (edge) | `validateUploadTargets` → `CloseConnection` → async `startUploadAsync` **или** sync `RunUploadBlocking` (см. ниже) |
+
+**Прошивка (upload):**
+
+- По умолчанию — **асинхронно**: `startUploadAsync()` создаёт `UArduinoUploadJobState` и `QThread` с `UArduinoUploadJob::runSync`; GUI/тесты дергают `envCalculate` / `ACalculate`, чтобы `PollUploadJob` обновлял свойства без блокировки UI.
+- **Синхронный путь** (тесты, отладка): переменная окружения `ARDUINO_SYNC_UPLOAD=1` → `RunUploadBlocking()` в потоке движка (`flash` + `msleep` после `CloseConnection`).
+- Повторный edge при незавершённом job → `UploadLastResult` = `Upload already in progress`.
+- `RunUpload()` — legacy alias на `RunUploadBlocking()` (не вызывается из `ProcessBoardEdges`).
 
 ### UArduinoCustomLink / UArduinoSensorSketch / UArduinoDcDemo
 
@@ -96,7 +105,7 @@ GUI: только properties/edges (`HardwareGuiHelpers`), без прямого
 
 ## Transport
 
-См. [Transport.md](Transport.md): `UArduinoSerialSession`, `UArduinoFlasher`, `UArduinoBoardProfile`, `UArduinoSerialPortUtil`.
+См. [Transport.md](Transport.md): `UArduinoSerialSession`, `UArduinoFlasher`, `UArduinoUploadJob`, `UArduinoBoardProfile`, `UArduinoSerialPortUtil` (USB/description auto-detect, `validateUploadTargets`).
 
 ## Protocol
 

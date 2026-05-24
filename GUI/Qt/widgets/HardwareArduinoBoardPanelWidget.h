@@ -40,6 +40,8 @@ private slots:
 private:
     void updateUploadPreview();
     void updateUploadControlsEnabled();
+    void updateBoardDetectHint();
+    QString formatBoardDetectLine(const QString& port_path, int detected) const;
     void startUploadUiPoll();
     void stopUploadUiPoll();
 
@@ -65,6 +67,7 @@ private:
     QPushButton* ReconnectBtn = nullptr;
     QPushButton* HealthBtn = nullptr;
     QTimer* UploadPollTimer = nullptr;
+    QString BoardDetectHint;
 };
 
 #endif
