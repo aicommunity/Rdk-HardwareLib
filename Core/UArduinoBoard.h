@@ -13,6 +13,7 @@ namespace RDK {
 
 class UArduinoSerialSession;
 class UArduinoFlasher;
+struct UArduinoUploadJobState;
 
 enum UArduinoConnectionState {
     ArduinoDisconnected = 0,
@@ -100,7 +101,6 @@ protected:
             edge = false;
     }
 
-    struct UArduinoUploadJobState;
     std::unique_ptr<UArduinoUploadJobState> UploadJob;
     QThread* UploadThread = nullptr;
 
