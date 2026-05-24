@@ -3,7 +3,11 @@
 
 #include "../../../Rdk/Deploy/Include/rdk.h"
 
+#include <memory>
+
 #include <QString>
+
+class QThread;
 
 namespace RDK {
 
@@ -77,6 +81,10 @@ protected:
     virtual bool EnsureConnected();
     virtual void CloseConnection();
     void RunUpload();
+    void RunUploadBlocking();
+    void startUploadAsync();
+    void PollUploadJob();
+    void finishUploadThread();
     void HeartbeatTick();
     void TouchActivity();
     UArduinoSerialSession* session();
@@ -91,6 +99,10 @@ protected:
         if (edge)
             edge = false;
     }
+
+    struct UArduinoUploadJobState;
+    std::unique_ptr<UArduinoUploadJobState> UploadJob;
+    QThread* UploadThread = nullptr;
 
     UArduinoSerialSession* Session = nullptr;
     UArduinoFlasher* Flasher = nullptr;

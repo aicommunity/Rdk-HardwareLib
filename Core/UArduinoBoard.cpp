@@ -3,16 +3,28 @@
 #include "Transport/UArduinoBoardProfile.h"
 #include "Transport/UArduinoFlasher.h"
 #include "Transport/UArduinoSerialSession.h"
+#include "Transport/UArduinoUploadJob.h"
 #include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QDebug>
 #include <QFile>
+#include <QMutexLocker>
 #include <QThread>
 
+#include <memory>
+
 namespace RDK {
+
+namespace {
+
+bool uploadUsesSyncPath()
+{
+    return qEnvironmentVariableIntValue("ARDUINO_SYNC_UPLOAD") != 0;
+}
+
+} // namespace
 
 UArduinoBoard::UArduinoBoard()
     : PortName("PortName", this, &UArduinoBoard::SetPortName)
@@ -131,6 +143,10 @@ void UArduinoBoard::AInit()
 
 void UArduinoBoard::AUnInit()
 {
+    if (UploadThread) {
+        UploadThread->wait(30000);
+        finishUploadThread();
+    }
     CloseConnection();
     delete Session;
     Session = nullptr;
@@ -143,7 +159,6 @@ UArduinoSerialSession* UArduinoBoard::session()
     if (!Session) {
         QObject* parent = QCoreApplication::instance();
         Session = new UArduinoSerialSession(parent);
-        // RX is pulled in ACalculate (engine thread). Do not connect bytesReceived to UNet.
     }
     return Session;
 }
@@ -160,7 +175,8 @@ void UArduinoBoard::SyncDerivedStates()
     IsOpening = (state == ArduinoOpening);
     HasError = (state == ArduinoError);
     IsDisconnected = (state == ArduinoDisconnected);
-    IsUploading = (UploadProgress > 0 && UploadProgress < 100);
+    const bool job_active = UploadJob && !UploadJob->finished.load();
+    IsUploading = job_active || (UploadProgress > 0 && UploadProgress < 100);
     UploadComplete = (*UploadLastResult == std::string("ok"));
 }
 
@@ -191,9 +207,16 @@ void UArduinoBoard::ProcessBoardEdges()
 
     const bool uploadRequested = UploadFirmware || UploadFirmwareFlag;
     if (uploadRequested) {
-        RunUpload();
         ResetEdge(UploadFirmware);
         UploadFirmwareFlag = false;
+        if (UploadJob && !UploadJob->finished.load()) {
+            UploadLastResult = UArduinoPropertyString::toStdProperty(
+                QStringLiteral("Upload already in progress"));
+        } else if (uploadUsesSyncPath()) {
+            RunUploadBlocking();
+        } else {
+            startUploadAsync();
+        }
     }
 }
 
@@ -244,12 +267,22 @@ QString UArduinoBoard::ResolveHexPath() const
         UArduinoPropertyString::fromStdProperty(*BundledFirmwareId), BoardProfile);
 }
 
-void UArduinoBoard::RunUpload()
+void UArduinoBoard::RunUploadBlocking()
 {
     const QString hex = ResolveHexPath();
     if (hex.isEmpty()) {
         UploadLastResult = "No firmware path resolved";
         UploadProgress = 0;
+        SyncDerivedStates();
+        return;
+    }
+
+    const QString validation_err =
+        UArduinoBoardProfileUtil::validateUploadTargets(BoardProfile, hex);
+    if (!validation_err.isEmpty()) {
+        UploadProgress = 0;
+        UploadLastResult = UArduinoPropertyString::toStdProperty(validation_err);
+        SyncDerivedStates();
         return;
     }
 
@@ -282,6 +315,97 @@ void UArduinoBoard::RunUpload()
 
     if (ConnectOnBuild && ok)
         EnsureConnected();
+    SyncDerivedStates();
+}
+
+void UArduinoBoard::startUploadAsync()
+{
+    const QString hex = ResolveHexPath();
+    if (hex.isEmpty()) {
+        UploadLastResult = "No firmware path resolved";
+        UploadProgress = 0;
+        SyncDerivedStates();
+        return;
+    }
+
+    const QString validation_err =
+        UArduinoBoardProfileUtil::validateUploadTargets(BoardProfile, hex);
+    if (!validation_err.isEmpty()) {
+        UploadProgress = 0;
+        UploadLastResult = UArduinoPropertyString::toStdProperty(validation_err);
+        SyncDerivedStates();
+        return;
+    }
+
+    CloseConnection();
+
+    UploadJob = std::make_unique<UArduinoUploadJobState>();
+    UploadJob->running = true;
+    UploadJob->progress = 5;
+    {
+        QMutexLocker lock(&UploadJob->messageMutex);
+        UploadJob->statusMessage = QStringLiteral("Preparing upload…");
+    }
+    UploadProgress = 5;
+    UploadLastResult = UArduinoPropertyString::toStdProperty(QStringLiteral("uploading"));
+    SyncDerivedStates();
+
+    const UArduinoBoardProfile profile =
+        UArduinoBoardProfileUtil::profileForKind(BoardProfile);
+    const QString port = UArduinoPropertyString::fromStdProperty(*PortName);
+
+    UArduinoUploadJobState* job_ptr = UploadJob.get();
+    UploadThread = QThread::create([job_ptr, profile, port, hex]() {
+        UArduinoUploadJob::runSync(job_ptr, nullptr, profile, port, hex);
+    });
+    QObject::connect(UploadThread, &QThread::finished, UploadThread, [this]() {
+        finishUploadThread();
+    });
+    UploadThread->start();
+}
+
+void UArduinoBoard::PollUploadJob()
+{
+    if (!UploadJob)
+        return;
+
+    if (!UploadJob->finished.load()) {
+        UploadProgress = UploadJob->progress.load();
+        {
+            QMutexLocker lock(&UploadJob->messageMutex);
+            if (!UploadJob->statusMessage.isEmpty())
+                UploadLastResult =
+                    UArduinoPropertyString::toStdProperty(UploadJob->statusMessage);
+        }
+        SyncDerivedStates();
+        return;
+    }
+
+    const bool ok = UploadJob->success.load();
+    UploadProgress = ok ? 100 : 0;
+    QString finalMsg;
+    {
+        QMutexLocker lock(&UploadJob->messageMutex);
+        finalMsg = ok ? QStringLiteral("ok") : UploadJob->errorMessage;
+    }
+    UploadLastResult = UArduinoPropertyString::toStdProperty(finalMsg);
+    if (ConnectOnBuild && ok)
+        EnsureConnected();
+    UploadJob.reset();
+    SyncDerivedStates();
+}
+
+void UArduinoBoard::finishUploadThread()
+{
+    if (UploadThread) {
+        UploadThread->deleteLater();
+        UploadThread = nullptr;
+    }
+}
+
+void UArduinoBoard::RunUpload()
+{
+    RunUploadBlocking();
 }
 
 void UArduinoBoard::HeartbeatTick()
@@ -317,6 +441,7 @@ void UArduinoBoard::OnBoardCalculate()
 
 bool UArduinoBoard::ACalculate()
 {
+    PollUploadJob();
     SyncDerivedStates();
     ProcessBoardEdges();
 
