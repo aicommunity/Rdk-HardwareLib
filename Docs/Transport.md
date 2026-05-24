@@ -40,9 +40,11 @@
 | `locateAvrdudeBinary` | `AVRDUDE` → PATH → **`ArduinoTools/bin` рядом с exe** → `~/.arduino15/.../avrdude` |
 | `locateAvrdudeConf` | `AVRUDUDE_CONF` → **`ArduinoTools/etc/avrdude.conf`** → `/etc/avrdude.conf` → рядом с бинарником → `.arduino15` |
 | `buildCommand` | Строка аргументов avrdude |
-| `flash(profile, port, hex, &err)` | `QProcess`, парсинг `%` в stdout → `progressChanged` |
+| `flash(profile, port, hex, &err)` | `QProcess`, парсинг `%` в stdout → `progressChanged` (блокирующий вызов) |
 
 **Сигналы:** `progressChanged(int)`, `finished(bool, message)`.
+
+**Async upload:** `UArduinoUploadJob::runSync` на `QThread`; `UArduinoBoard::PollUploadJob` в `ACalculate`. Env `ARDUINO_SYNC_UPLOAD=1` — синхронный `RunUploadBlocking` (интеграционные тесты).
 
 При ошибке permission или `not in sync` / `not responding` — расширенное сообщение в `errorOut`.
 
@@ -62,10 +64,12 @@
 
 | Kind | MCU | Protocol | Upload baud |
 |------|-----|----------|-------------|
-| Uno | atmega328p | stk500 | 115200 |
-| Mega2560 | atmega2560 | stk500v2 | 115200 |
+| Uno | atmega328p | arduino | 115200 |
+| Mega2560 | atmega2560 | wiring | 115200 |
 
-Используется в `UArduinoBoard::RunUpload()`.
+Mega2560 `wiring` matches Arduino IDE / avrdude 8.x bundled tools (`-cwiring`).
+
+Используется в `UArduinoBoard::RunUpload()` / async upload job.
 
 ## UFirmwareManifest
 
