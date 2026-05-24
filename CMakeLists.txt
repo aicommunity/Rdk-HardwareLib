@@ -13,13 +13,20 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol
 )
 
-file(GLOB HW_CORE_SOURCES
+file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/*.cpp
 )
 
-target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES})
+# Explicit list: file(GLOB) is evaluated at configure time; these were added after
+# many build trees were generated and must always link into Rdk-HardwareLib.qt.
+set(HW_CORE_REQUIRED_SOURCES
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/UArduinoPropertyString.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/UArduinoUploadJob.cpp
+)
+
+target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES} ${HW_CORE_REQUIRED_SOURCES})
 
 target_compile_definitions(${TARGET_NAME} PUBLIC RDK_QT RDK_LIB_CVS_REVISION=0)
 
