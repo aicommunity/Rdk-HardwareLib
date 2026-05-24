@@ -26,6 +26,7 @@ Run **NeuroModeler** from `Bin/Platform/Win` so upload finds bundled `avrdude` a
 | `avrdude.conf not found` | Check `ArduinoTools/etc/avrdude.conf` exists |
 | `HEX file not found` | Re-run setup or `build_arduino_firmware.ps1` |
 | COM port busy / permission | Close Arduino IDE Serial Monitor |
+| `not in sync` / `not responding` | Verify Board profile (Uno=0, Mega=1), correct COM port; disconnect other components using the same port; retry Upload after closing Serial Monitor |
 | `403` on downloads.arduino.cc | Build on another machine; copy `ArduinoTools` and `Bin/ArduinoFirmware` |
 
 ## Linux

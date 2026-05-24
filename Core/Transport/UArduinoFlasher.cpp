@@ -53,17 +53,29 @@ QString bundledAvrdudeConfCandidate()
 
 QString enrichUploadError(const QString& avrdudeOutput)
 {
-    if (!avrdudeOutput.contains(QStringLiteral("Permission denied"), Qt::CaseInsensitive))
-        return avrdudeOutput.trimmed();
+    const QString trimmed = avrdudeOutput.trimmed();
+    if (trimmed.contains(QStringLiteral("Permission denied"), Qt::CaseInsensitive)) {
+        const QString hint = QStringLiteral(
+            "Cannot open serial port (permission denied).\n"
+            "On Linux, add your user to group dialout:\n"
+            "  sudo usermod -aG dialout $USER\n"
+            "Then log out and log in again, or run: newgrp dialout\n"
+            "Close Arduino IDE / serial monitors that may hold the port.\n\n"
+            "--- avrdude output ---\n");
+        return hint + trimmed;
+    }
 
-    const QString hint = QStringLiteral(
-        "Cannot open serial port (permission denied).\n"
-        "On Linux, add your user to group dialout:\n"
-        "  sudo usermod -aG dialout $USER\n"
-        "Then log out and log in again, or run: newgrp dialout\n"
-        "Close Arduino IDE / serial monitors that may hold the port.\n\n"
-        "--- avrdude output ---\n");
-    return hint + avrdudeOutput.trimmed();
+    if (trimmed.contains(QStringLiteral("not in sync"), Qt::CaseInsensitive)
+        || trimmed.contains(QStringLiteral("not responding"), Qt::CaseInsensitive)) {
+        const QString hint = QStringLiteral(
+            "Bootloader did not respond (board may still be running the sketch).\n"
+            "Check Board profile (0=Uno, 1=Mega), correct COM port, and that nothing else uses the port.\n"
+            "Close Arduino IDE Serial Monitor, disconnect other components on the same port, then retry Upload.\n\n"
+            "--- avrdude output ---\n");
+        return hint + trimmed;
+    }
+
+    return trimmed;
 }
 
 void prepareBootloaderEntry(const QString& device_port, UArduinoBoardKind kind)
@@ -71,22 +83,32 @@ void prepareBootloaderEntry(const QString& device_port, UArduinoBoardKind kind)
     if (device_port.isEmpty())
         return;
 
+    const QString openName = UArduinoSerialPortUtil::preferredOpenName(device_port);
+
+    auto pulseDtr = [](QSerialPort& port) {
+        port.setDataTerminalReady(false);
+        QThread::msleep(80);
+        port.setDataTerminalReady(true);
+        QThread::msleep(80);
+    };
+
     if (kind == UArduinoBoardKind::Uno) {
         QSerialPort reset_port;
-        reset_port.setPortName(device_port);
+        reset_port.setPortName(openName);
         reset_port.setBaudRate(1200);
-        if (reset_port.open(QIODevice::ReadWrite))
+        if (reset_port.open(QIODevice::ReadWrite)) {
+            pulseDtr(reset_port);
             reset_port.close();
+        }
         QThread::msleep(2500);
         return;
     }
 
     QSerialPort reset_port;
-    reset_port.setPortName(device_port);
+    reset_port.setPortName(openName);
     reset_port.setBaudRate(1200);
     if (reset_port.open(QIODevice::ReadWrite)) {
-        reset_port.setDataTerminalReady(false);
-        reset_port.setDataTerminalReady(true);
+        pulseDtr(reset_port);
         reset_port.close();
     }
     QThread::msleep(1500);
@@ -186,7 +208,7 @@ QString UArduinoFlasher::buildCommand(const UArduinoBoardProfile& profile,
                                       const QString& hexPath,
                                       const QString& confPath)
 {
-    return QStringLiteral("-C\"%1\" -v -p%2 -c%3 -P%4 -b%5 -D -Uflash:w:\"%6\":i")
+    return QStringLiteral("-C\"%1\" -v -p%2 -c%3 -P\"%4\" -b%5 -D -Uflash:w:\"%6\":i")
         .arg(confPath, profile.mcu, profile.protocol, port)
         .arg(profile.uploadBaud)
         .arg(hexPath);
@@ -224,9 +246,9 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
         return false;
     }
 
-    const QString devicePort = UArduinoSerialPortUtil::normalizeDevicePath(port);
-    prepareBootloaderEntry(devicePort, profile.kind);
-    const QString args = buildCommand(profile, devicePort, hexPath, conf);
+    prepareBootloaderEntry(port, profile.kind);
+    const QString avrdudePort = UArduinoSerialPortUtil::avrdudePortArgument(port);
+    const QString args = buildCommand(profile, avrdudePort, hexPath, conf);
     QProcess process;
     process.setProgram(avrdude);
     process.setArguments(QProcess::splitCommand(args));

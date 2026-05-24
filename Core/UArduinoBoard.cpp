@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
+#include <QThread>
 
 namespace RDK {
 
@@ -255,6 +256,8 @@ void UArduinoBoard::RunUpload()
     }
 
     CloseConnection();
+    QThread::msleep(400);
+
     UploadProgress = 10;
 
     const UArduinoBoardProfile profile =

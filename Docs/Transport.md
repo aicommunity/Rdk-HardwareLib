@@ -44,7 +44,9 @@
 
 **Сигналы:** `progressChanged(int)`, `finished(bool, message)`.
 
-При ошибке permission — расширенное сообщение в `errorOut`.
+При ошибке permission или `not in sync` / `not responding` — расширенное сообщение в `errorOut`.
+
+Перед upload: `CloseConnection`, пауза ~400 ms, сброс в bootloader (1200 baud + DTR на Uno/клонах), avrdude на Windows использует `-P "\\.\COMn"`.
 
 ### Windows setup
 

@@ -129,6 +129,20 @@ QString UArduinoSerialPortUtil::preferredOpenName(const QString& port_name)
     return normalizeDevicePath(port_name);
 }
 
+QString UArduinoSerialPortUtil::avrdudePortArgument(const QString& port_name)
+{
+    const QString openName = preferredOpenName(port_name);
+#if defined(Q_OS_WIN)
+    if (openName.startsWith(QStringLiteral("\\\\.\\")))
+        return openName;
+    if (openName.startsWith(QStringLiteral("COM"), Qt::CaseInsensitive))
+        return QStringLiteral("\\\\.\\") + openName;
+    return openName;
+#else
+    return normalizeDevicePath(openName);
+#endif
+}
+
 QStringList UArduinoSerialPortUtil::listAvailableDevicePaths()
 {
     QStringList paths;
