@@ -12,6 +12,8 @@ struct UArduinoSerialPortEntry {
     QString DevicePath;
     QString DisplayLabel;
     bool LikelyAttachedDevice = false;
+    int SuggestedBoardProfile = -1;
+    QString BoardDetectSource;
 };
 
 class UArduinoSerialPortUtil {
@@ -26,6 +28,8 @@ public:
     static QStringList listAvailableDevicePaths();
     static QList<UArduinoSerialPortEntry> listPortsSorted();
     static bool portInfoForPath(const QString& port_name, QSerialPortInfo* out_info);
+    static int inferBoardProfileFromPortInfo(const QSerialPortInfo& info);
+    static int inferBoardProfileForDevicePath(const QString& device_path);
 };
 
 } // namespace RDK

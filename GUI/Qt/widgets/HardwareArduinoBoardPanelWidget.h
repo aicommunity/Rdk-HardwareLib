@@ -3,11 +3,13 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTimer>
 #include <QWidget>
 
 #include "../../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
@@ -32,11 +34,20 @@ private slots:
     void onHealthCheck();
     void onUpload();
     void onBrowseHex();
+    void onPortOrProfileChanged();
+    void onUploadPollTick();
 
 private:
+    void updateUploadPreview();
+    void updateUploadControlsEnabled();
+    void startUploadUiPoll();
+    void stopUploadUiPoll();
+
     UComponentGuiContext Context;
     QComboBox* PortCombo = nullptr;
     QComboBox* BoardProfileCombo = nullptr;
+    QCheckBox* AutoDetectBoardCheck = nullptr;
+    QLabel* UploadPreviewLabel = nullptr;
     QCheckBox* ConnectOnBuildCheck = nullptr;
     QCheckBox* AutoReconnectCheck = nullptr;
     QCheckBox* HeartbeatEnabledCheck = nullptr;
@@ -48,6 +59,12 @@ private:
     QLineEdit* FirmwarePathEdit = nullptr;
     QProgressBar* UploadProgress = nullptr;
     QPlainTextEdit* StatusLog = nullptr;
+    QPushButton* UploadBtn = nullptr;
+    QPushButton* ConnectBtn = nullptr;
+    QPushButton* DisconnectBtn = nullptr;
+    QPushButton* ReconnectBtn = nullptr;
+    QPushButton* HealthBtn = nullptr;
+    QTimer* UploadPollTimer = nullptr;
 };
 
 #endif

@@ -1,5 +1,7 @@
 #include "UArduinoSerialPortUtil.h"
 
+#include "UArduinoBoardProfile.h"
+
 #include <algorithm>
 
 #include <QFileInfo>
@@ -99,6 +101,26 @@ QString UArduinoSerialPortUtil::devicePathFromPortName(const QString& port_name)
     return normalizeDevicePath(port_name);
 }
 
+int UArduinoSerialPortUtil::inferBoardProfileFromPortInfo(const QSerialPortInfo& info)
+{
+    if (info.hasVendorIdentifier() && info.hasProductIdentifier()) {
+        const int from_usb = UArduinoBoardProfileUtil::boardProfileFromUsbIds(
+            info.vendorIdentifier(), info.productIdentifier());
+        if (from_usb >= 0)
+            return from_usb;
+    }
+    const QString blob = info.description() + QLatin1Char(' ') + info.manufacturer();
+    return UArduinoBoardProfileUtil::boardProfileFromDescription(blob);
+}
+
+int UArduinoSerialPortUtil::inferBoardProfileForDevicePath(const QString& device_path)
+{
+    QSerialPortInfo info;
+    if (!portInfoForPath(device_path, &info))
+        return -1;
+    return inferBoardProfileFromPortInfo(info);
+}
+
 bool UArduinoSerialPortUtil::portInfoForPath(const QString& port_name, QSerialPortInfo* out_info)
 {
     if (!out_info)
@@ -166,6 +188,15 @@ QList<UArduinoSerialPortEntry> UArduinoSerialPortUtil::listPortsSorted()
             continue;
         entry.LikelyAttachedDevice = isLikelyUsbSerialDevice(info) && !isLikelyHostUart(info);
         entry.DisplayLabel = displayLabelFor(info, entry.DevicePath);
+        entry.SuggestedBoardProfile = inferBoardProfileFromPortInfo(info);
+        if (entry.SuggestedBoardProfile >= 0) {
+            if (info.hasVendorIdentifier() && info.hasProductIdentifier()
+                && UArduinoBoardProfileUtil::boardProfileFromUsbIds(
+                       info.vendorIdentifier(), info.productIdentifier()) >= 0)
+                entry.BoardDetectSource = QStringLiteral("usb");
+            else
+                entry.BoardDetectSource = QStringLiteral("description");
+        }
         entries.append(entry);
     }
 

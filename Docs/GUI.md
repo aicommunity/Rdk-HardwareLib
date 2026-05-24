@@ -29,9 +29,12 @@
 
 [`HardwareArduinoBoardPanelWidget`](../GUI/Qt/widgets/HardwareArduinoBoardPanelWidget.cpp) — общая панель:
 
-- Порт, baud, bundled firmware, upload
+- Порт, baud, bundled firmware, upload (асинхронный: `QTimer` 200 ms + `envCalculate` для `PollUploadJob`)
+- **Board profile** Uno / Mega; **Auto-detect board when port changes** (USB VID/PID + description)
+- **Upload preview** — MCU, avrdude `-c`, HEX; предупреждение при несоответствии профиля и HEX
+- Progress bar: indeterminate на фазе bootloader, затем `%`; кнопки disabled при `IsUploading`
 - Connect / Disconnect / Reconnect / Health (`pulseEdge`)
-- Статус: `IsConnected`, `HasError`, `LastError` (read-only)
+- Статус: `IsConnected`, `HasError`, `LastError`, `UploadLastResult` (read-only)
 - **Disconnect не очищает `PortName`**
 
 Встроена во вкладку **Board** у SensorSketch, Firmata, DcDemo.
