@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "../../../Rdk/LLM/Core/Context/ILLMProjectContextProvider.h"
-#include "../../../Rdk/LLM/Core/Context/UDocSearchHelper.h"
+#include "../../../Rdk/LLM/Core/Context/UDocSearchIndex.h"
 #include "../../../Rdk/LLM/Core/Tools/ULLMToolRegistry.h"
 
 namespace fs = std::filesystem;
@@ -50,7 +50,7 @@ void RegisterHardwareLibLlmTools(RDK::LLM::ULLMToolRegistry& registry,
             std::vector<fs::path> roots;
             if(!root.empty())
                 roots.push_back(root);
-            auto snippets = RDK::LLM::UDocSearchHelper::searchRoots(roots, query, top_k);
+            auto snippets = RDK::LLM::searchDocsWithIndex(roots, query, top_k);
             r.result["snippets"] = nlohmann::json::array();
             r.result["library"] = "Rdk-HardwareLib";
             for(const auto& s : snippets)
