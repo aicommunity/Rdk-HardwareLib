@@ -32,8 +32,10 @@ fs::path hardwareDocsRoot(RDK::LLM::ILLMProjectContextProvider* ctx)
 } // namespace
 
 void RegisterHardwareLibLlmTools(RDK::LLM::ULLMToolRegistry& registry,
-                                 RDK::LLM::ILLMProjectContextProvider* project_context)
+                                 RDK::LLM::ILLMProjectContextProvider* project_context,
+                                 RDK::LLM::URdkDomainAccess& domain)
 {
+    (void)domain;
     registry.registerTool(
         makeDef("search_hardware_docs",
                 "Search Rdk-HardwareLib documentation (Arduino, Firmata, firmware)",

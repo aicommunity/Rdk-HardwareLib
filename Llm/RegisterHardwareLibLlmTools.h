@@ -3,10 +3,12 @@
 
 namespace RDK::LLM {
 class ILLMProjectContextProvider;
+class URdkDomainAccess;
 class ULLMToolRegistry;
 } // namespace RDK::LLM
 
 void RegisterHardwareLibLlmTools(RDK::LLM::ULLMToolRegistry& registry,
-                                 RDK::LLM::ILLMProjectContextProvider* project_context);
+                                 RDK::LLM::ILLMProjectContextProvider* project_context,
+                                 RDK::LLM::URdkDomainAccess& domain);
 
 #endif
