@@ -101,7 +101,7 @@ void UArduinoBinaryStreamParser::feedFramedV2(const QByteArray& data, const Fram
     const int kCrc = 1;
 
     while (V2Buffer.size() >= kHeader + kCrc) {
-        int start = V2Buffer.indexOf(char(0xAA));
+        int start = V2Buffer.indexOf(static_cast<char>(static_cast<unsigned char>(0xAA)));
         if (start < 0) {
             V2Buffer.clear();
             return;
