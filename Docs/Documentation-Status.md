@@ -72,7 +72,7 @@
 - [ ] Согласовать **ArduinoAdc** doc с именем класса `ArduinoAdc` (файл `ArduinoAdc.md` vs `UploadClass` `ArduinoAdc`)
 
 ### Приоритет P3 — навигация
-- [ ] В начале каждого компонента — «Каталог: [Component-Catalog.md](../Component-Catalog.md)»
+- [ ] В начале каждого компонента — «Каталог: [Component-Catalog.md](Component-Catalog.md)»
 - [ ] Пометить legacy-файлы (`ADC.md`, `Arduino.md`, …) явным баннером «deprecated → новый ClassName»
 
 ---
