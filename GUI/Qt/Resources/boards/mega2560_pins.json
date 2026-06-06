@@ -1,0 +1,845 @@
+{
+  "board": "mega2560",
+  "pins": [
+    {
+      "id": "D0",
+      "label": "D0",
+      "firmataPin": 0,
+      "kind": "digital",
+      "rect": [
+        0.02,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D1",
+      "label": "D1",
+      "firmataPin": 1,
+      "kind": "digital",
+      "rect": [
+        0.088,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D2",
+      "label": "D2",
+      "firmataPin": 2,
+      "kind": "digital",
+      "rect": [
+        0.156,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D3",
+      "label": "D3",
+      "firmataPin": 3,
+      "kind": "digital",
+      "rect": [
+        0.224,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D4",
+      "label": "D4",
+      "firmataPin": 4,
+      "kind": "digital",
+      "rect": [
+        0.292,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D5",
+      "label": "D5",
+      "firmataPin": 5,
+      "kind": "digital",
+      "rect": [
+        0.36,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D6",
+      "label": "D6",
+      "firmataPin": 6,
+      "kind": "digital",
+      "rect": [
+        0.428,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D7",
+      "label": "D7",
+      "firmataPin": 7,
+      "kind": "digital",
+      "rect": [
+        0.496,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D8",
+      "label": "D8",
+      "firmataPin": 8,
+      "kind": "digital",
+      "rect": [
+        0.564,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D9",
+      "label": "D9",
+      "firmataPin": 9,
+      "kind": "digital",
+      "rect": [
+        0.632,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D10",
+      "label": "D10",
+      "firmataPin": 10,
+      "kind": "digital",
+      "rect": [
+        0.7,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D11",
+      "label": "D11",
+      "firmataPin": 11,
+      "kind": "digital",
+      "rect": [
+        0.768,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D12",
+      "label": "D12",
+      "firmataPin": 12,
+      "kind": "digital",
+      "rect": [
+        0.836,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D13",
+      "label": "D13",
+      "firmataPin": 13,
+      "kind": "digital",
+      "rect": [
+        0.904,
+        0.05,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D14",
+      "label": "D14",
+      "firmataPin": 14,
+      "kind": "digital",
+      "rect": [
+        0.02,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D15",
+      "label": "D15",
+      "firmataPin": 15,
+      "kind": "digital",
+      "rect": [
+        0.088,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D16",
+      "label": "D16",
+      "firmataPin": 16,
+      "kind": "digital",
+      "rect": [
+        0.156,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D17",
+      "label": "D17",
+      "firmataPin": 17,
+      "kind": "digital",
+      "rect": [
+        0.224,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D18",
+      "label": "D18",
+      "firmataPin": 18,
+      "kind": "digital",
+      "rect": [
+        0.292,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D19",
+      "label": "D19",
+      "firmataPin": 19,
+      "kind": "digital",
+      "rect": [
+        0.36,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D20",
+      "label": "D20",
+      "firmataPin": 20,
+      "kind": "digital",
+      "rect": [
+        0.428,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D21",
+      "label": "D21",
+      "firmataPin": 21,
+      "kind": "digital",
+      "rect": [
+        0.496,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D22",
+      "label": "D22",
+      "firmataPin": 22,
+      "kind": "digital",
+      "rect": [
+        0.564,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D23",
+      "label": "D23",
+      "firmataPin": 23,
+      "kind": "digital",
+      "rect": [
+        0.632,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D24",
+      "label": "D24",
+      "firmataPin": 24,
+      "kind": "digital",
+      "rect": [
+        0.7,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D25",
+      "label": "D25",
+      "firmataPin": 25,
+      "kind": "digital",
+      "rect": [
+        0.768,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D26",
+      "label": "D26",
+      "firmataPin": 26,
+      "kind": "digital",
+      "rect": [
+        0.836,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D27",
+      "label": "D27",
+      "firmataPin": 27,
+      "kind": "digital",
+      "rect": [
+        0.904,
+        0.17,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D28",
+      "label": "D28",
+      "firmataPin": 28,
+      "kind": "digital",
+      "rect": [
+        0.02,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D29",
+      "label": "D29",
+      "firmataPin": 29,
+      "kind": "digital",
+      "rect": [
+        0.088,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D30",
+      "label": "D30",
+      "firmataPin": 30,
+      "kind": "digital",
+      "rect": [
+        0.156,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D31",
+      "label": "D31",
+      "firmataPin": 31,
+      "kind": "digital",
+      "rect": [
+        0.224,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D32",
+      "label": "D32",
+      "firmataPin": 32,
+      "kind": "digital",
+      "rect": [
+        0.292,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D33",
+      "label": "D33",
+      "firmataPin": 33,
+      "kind": "digital",
+      "rect": [
+        0.36,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D34",
+      "label": "D34",
+      "firmataPin": 34,
+      "kind": "digital",
+      "rect": [
+        0.428,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D35",
+      "label": "D35",
+      "firmataPin": 35,
+      "kind": "digital",
+      "rect": [
+        0.496,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D36",
+      "label": "D36",
+      "firmataPin": 36,
+      "kind": "digital",
+      "rect": [
+        0.564,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D37",
+      "label": "D37",
+      "firmataPin": 37,
+      "kind": "digital",
+      "rect": [
+        0.632,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D38",
+      "label": "D38",
+      "firmataPin": 38,
+      "kind": "digital",
+      "rect": [
+        0.7,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D39",
+      "label": "D39",
+      "firmataPin": 39,
+      "kind": "digital",
+      "rect": [
+        0.768,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D40",
+      "label": "D40",
+      "firmataPin": 40,
+      "kind": "digital",
+      "rect": [
+        0.836,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D41",
+      "label": "D41",
+      "firmataPin": 41,
+      "kind": "digital",
+      "rect": [
+        0.904,
+        0.29,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D42",
+      "label": "D42",
+      "firmataPin": 42,
+      "kind": "digital",
+      "rect": [
+        0.02,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D43",
+      "label": "D43",
+      "firmataPin": 43,
+      "kind": "digital",
+      "rect": [
+        0.088,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D44",
+      "label": "D44",
+      "firmataPin": 44,
+      "kind": "digital",
+      "rect": [
+        0.156,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D45",
+      "label": "D45",
+      "firmataPin": 45,
+      "kind": "digital",
+      "rect": [
+        0.224,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D46",
+      "label": "D46",
+      "firmataPin": 46,
+      "kind": "digital",
+      "rect": [
+        0.292,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D47",
+      "label": "D47",
+      "firmataPin": 47,
+      "kind": "digital",
+      "rect": [
+        0.36,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D48",
+      "label": "D48",
+      "firmataPin": 48,
+      "kind": "digital",
+      "rect": [
+        0.428,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D49",
+      "label": "D49",
+      "firmataPin": 49,
+      "kind": "digital",
+      "rect": [
+        0.496,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D50",
+      "label": "D50",
+      "firmataPin": 50,
+      "kind": "digital",
+      "rect": [
+        0.564,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D51",
+      "label": "D51",
+      "firmataPin": 51,
+      "kind": "digital",
+      "rect": [
+        0.632,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D52",
+      "label": "D52",
+      "firmataPin": 52,
+      "kind": "digital",
+      "rect": [
+        0.7,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "D53",
+      "label": "D53",
+      "firmataPin": 53,
+      "kind": "digital",
+      "rect": [
+        0.768,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A0",
+      "label": "A0",
+      "firmataPin": 54,
+      "kind": "analog",
+      "rect": [
+        0.836,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A1",
+      "label": "A1",
+      "firmataPin": 55,
+      "kind": "analog",
+      "rect": [
+        0.904,
+        0.41,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A2",
+      "label": "A2",
+      "firmataPin": 56,
+      "kind": "analog",
+      "rect": [
+        0.02,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A3",
+      "label": "A3",
+      "firmataPin": 57,
+      "kind": "analog",
+      "rect": [
+        0.088,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A4",
+      "label": "A4",
+      "firmataPin": 58,
+      "kind": "analog",
+      "rect": [
+        0.156,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A5",
+      "label": "A5",
+      "firmataPin": 59,
+      "kind": "analog",
+      "rect": [
+        0.224,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A6",
+      "label": "A6",
+      "firmataPin": 60,
+      "kind": "analog",
+      "rect": [
+        0.292,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A7",
+      "label": "A7",
+      "firmataPin": 61,
+      "kind": "analog",
+      "rect": [
+        0.36,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A8",
+      "label": "A8",
+      "firmataPin": 62,
+      "kind": "analog",
+      "rect": [
+        0.428,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A9",
+      "label": "A9",
+      "firmataPin": 63,
+      "kind": "analog",
+      "rect": [
+        0.496,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A10",
+      "label": "A10",
+      "firmataPin": 64,
+      "kind": "analog",
+      "rect": [
+        0.564,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A11",
+      "label": "A11",
+      "firmataPin": 65,
+      "kind": "analog",
+      "rect": [
+        0.632,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A12",
+      "label": "A12",
+      "firmataPin": 66,
+      "kind": "analog",
+      "rect": [
+        0.7,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A13",
+      "label": "A13",
+      "firmataPin": 67,
+      "kind": "analog",
+      "rect": [
+        0.768,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A14",
+      "label": "A14",
+      "firmataPin": 68,
+      "kind": "analog",
+      "rect": [
+        0.836,
+        0.53,
+        0.05,
+        0.04
+      ]
+    },
+    {
+      "id": "A15",
+      "label": "A15",
+      "firmataPin": 69,
+      "kind": "analog",
+      "rect": [
+        0.904,
+        0.53,
+        0.05,
+        0.04
+      ]
+    }
+  ]
+}

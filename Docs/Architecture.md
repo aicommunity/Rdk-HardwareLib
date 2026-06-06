@@ -1,343 +1,149 @@
 # Архитектура Rdk-HardwareLib
 
-## RU
+## Обзор
 
-### Обзор
+Библиотека предоставляет Storage-компоненты `UNet` для Arduino и внутренний transport/protocol слой (не в палитре). Расчёт идёт через `ABuild` / `ACalculate` в потоке движка; GUI читает и пульсирует edge-свойства через `MModel_*` API и `envCalculate`.
 
-Rdk-HardwareLib предоставляет компонентный интерфейс для работы с аппаратным обеспечением через последовательные порты.
-
-### Структура библиотеки
+## Иерархия классов
 
 ```mermaid
-flowchart TB
-    UArduinoConnect["UArduinoConnect (Подключение)"]
-    UArduinoControl["UArduinoControl (Управление)"]
-    UAdcSensor["UAdcSensor (Датчик_ADC)"]
-    UDcControlDemo["UDcControlDemo (Демо_контроллер)"]
-    
-    UArduinoConnect --> UArduinoControl
-    UArduinoControl --> UAdcSensor
-    UArduinoControl --> UDcControlDemo
+classDiagram
+  UNet <|-- UArduinoBoard
+  UArduinoBoard <|-- UArduinoCustomLink
+  UArduinoCustomLink <|-- UArduinoSensorSketch
+  UArduinoCustomLink <|-- UArduinoDcDemo
+  UArduinoBoard <|-- UArduinoFirmata
+  UNet <|-- UArduinoAdc
+  UArduinoBoard *-- UArduinoSerialSession
+  UArduinoBoard *-- UArduinoFlasher
+  UArduinoCustomLink *-- UArduinoBinaryStreamParser
+  UArduinoFirmata *-- UArduinoFirmataClient
+  UArduinoAdc ..> UArduinoFirmata : LinkedFirmataName
 ```
 
-### Основные модули
+`UArduinoCustomLink` абстрактен (`OnBinaryFrame` pure virtual) и **не** регистрируется в `UploadClass`.
 
-#### Подключение к Arduino
+## Threading (обязательный контракт)
 
-- **UArduinoConnect** - компонент для установления соединения с платой Arduino через последовательный порт (Serial/UART). Управляет подключением, настройкой параметров связи и обменом данными.
-  
-  **Основные функции:**
-  - Подключение к Arduino по COM-порту
-  - Настройка скорости передачи (baud rate)
-  - Отправка команд на Arduino
-  - Получение данных от Arduino
+Все методы `UNet` и производных (`ADefault`, `ABuild`, `ACalculate`, `AUnInit`, работа с `UProperty`) вызываются **только из потока движка расчёта** (`UStorage::Calculate` / `envCalculate`).
 
-#### Управление Arduino
+Запрещено:
 
-- **UArduinoControl** - компонент для управления Arduino, отправки команд управления и получения состояния. Расширяет функциональность UArduinoConnect для конкретных задач управления.
-  
-  **Основные функции:**
-  - Управление выходами (digital/analog)
-  - Чтение входов
-  - Управление сервоприводами
-  - Управление моторами
+- Вызывать `ACalculate`, `EnsureConnected`, `CloseConnection`, менять `UProperty` из слота `QSerialPort::readyRead`.
+- Подключать `UArduinoSerialSession::bytesReceived` к коду компонента.
+- Восстанавливать `UArduinoConnect` / отдельный `QThread` для вызовов `UNet`.
 
-#### Датчики
+Модель RX:
 
-- **UAdcSensor** - компонент для работы с аналоговыми датчиками через ADC (Analog-to-Digital Converter) Arduino. Позволяет читать значения с аналоговых входов.
-  
-  **Основные функции:**
-  - Чтение значений с аналоговых входов
-  - Калибровка датчиков
-  - Преобразование значений
+| Компонент | Поток | Поведение |
+|-----------|-------|-----------|
+| `UArduinoSerialSession` | поток владельца `QObject` (обычно Qt main / engine app) | `readyRead` только дописывает `RxBuffer` под mutex; `bytesReceived` **не подключён** в HardwareLib |
+| `UArduinoBoard::ACalculate` | Engine | `PollUploadJob()` → edges → serial RX; свойства `UploadProgress` / `UploadLastResult` |
+| `UArduinoUploadJob::runSync` | отдельный `QThread` (по умолчанию) | `UArduinoFlasher::flash`; прогресс в `UArduinoUploadJobState`, движок копирует в `PollUploadJob` |
+| `UArduinoFlasher::flash` | вызывающий поток (engine при sync, worker при async) | `progressChanged` → job или прямой slot в `RunUploadBlocking` |
 
-#### Демо контроллеры
+`UArduinoAdc` не открывает serial; при `ReadAdcFlag` выставляет флаги на связанном `ArduinoFirmata` и полагается на общий `Calculate` контейнера (вызов `firmata->Calculate()` только из `UArduinoAdc::ACalculate`).
 
-- **UDcControlDemo** - демонстрационный компонент для управления DC-двигателями. Используется для тестирования и примеров работы с двигателями через Arduino.
-  
-  **Основные функции:**
-  - Управление скоростью двигателя
-  - Управление направлением вращения
-  - Обратная связь по положению
+Legacy `UArduinoConnect` (`QThread`) **не используется** — его роль выполняют mutex-буфер + pull в `ACalculate`.
 
-### Ключевые классы
+## Регистрация Storage
 
-#### UHardwareLibrary
+[`UHardwareLibrary::CreateClassSamples`](../Core/UHardwareLibrary.cpp):
 
-Главный класс библиотеки:
+- `ArduinoBoard`, `ArduinoSensorSketch`, `ArduinoFirmata`, `ArduinoAdc`, `ArduinoDcDemo`
 
-```cpp
-class UHardwareLibrary: public ULibrary
-{
-public:
-    UHardwareLibrary(void);
-    virtual void CreateClassSamples(UStorage *storage);
-};
+## Runtime: цикл `ACalculate`
+
+### UArduinoBoard
+
+```
+PollUploadJob → SyncDerivedStates → ProcessBoardEdges → PortChanged →
+AutoReconnect → Heartbeat → RequestHealthCheck → OnBoardCalculate → SyncDerivedStates
 ```
 
-Библиотека автоматически загружается при инициализации:
+Edge: `Connect`, `Disconnect`, `Reconnect`, `UploadFirmware`, `ClearLastError` (legacy: `UploadFirmwareFlag`).
 
-```cpp
-libs_list.push_back(&RDK::HardwareLibrary);
+State: `IsConnected`, `IsOpening`, `HasError`, `IsDisconnected`, `IsUploading`, `UploadComplete`, `UploadProgress`, `UploadLastResult`.
+
+| Этап | Действие |
+|------|----------|
+| `ABuild` | При `ConnectOnBuild` и непустом `PortName` → `EnsureConnected()` |
+| `PollUploadJob` | В начале каждого `ACalculate`: копирует прогресс/статус из `UArduinoUploadJobState`; по `finished` — результат, `UploadJob.reset()`, опционально reconnect |
+| `ProcessBoardEdges` | Connect/Disconnect/Reconnect/Upload/ClearLastError |
+| Upload (edge) | `validateUploadTargets` → `CloseConnection` → async `startUploadAsync` **или** sync `RunUploadBlocking` (см. ниже) |
+
+**Прошивка (upload):**
+
+- По умолчанию — **асинхронно**: `startUploadAsync()` создаёт `UArduinoUploadJobState` и `QThread` с `UArduinoUploadJob::runSync`; GUI/тесты дергают `envCalculate` / `ACalculate`, чтобы `PollUploadJob` обновлял свойства без блокировки UI.
+- **Синхронный путь** (тесты, отладка): переменная окружения `ARDUINO_SYNC_UPLOAD=1` → `RunUploadBlocking()` в потоке движка (`flash` + `msleep` после `CloseConnection`).
+- Повторный edge при незавершённом job → `UploadLastResult` = `Upload already in progress`.
+- `RunUpload()` — legacy alias на `RunUploadBlocking()` (не вызывается из `ProcessBoardEdges`).
+
+### UArduinoCustomLink / UArduinoSensorSketch / UArduinoDcDemo
+
+```
+ProcessCustomLinkEdges → UArduinoBoard::ACalculate → negotiate/process/flush → SyncCustomLinkStates
 ```
 
-#### UArduinoConnect
+`OnBoardCalculate` (CustomLink): negotiate, `ProcessIncoming`, `FlushCommandQueue`.
 
-Базовый компонент для работы с Arduino:
+`UArduinoSensorSketch`: дополнительно `ProcessSketchEdges` (StartReading, GetPinsInfo, …).
 
-```cpp
-class UArduinoConnect: public UComponent
-{
-    // Свойства для настройки подключения
-    // - COM порт
-    // - Скорость передачи
-    // - Таймауты
-    
-    // Методы для:
-    // - Подключения/отключения
-    // - Отправки данных
-    // - Получения данных
-};
+`UArduinoDcDemo`: `ProcessDcDemoEdges` (GetSpeed); speed из `OnBinaryFrame` (тип `0x01`). `LinkedSketchName` — deprecated delegate на один релиз.
+
+### UArduinoFirmata
+
+```
+ProcessFirmataEdges → UArduinoBoard::ACalculate → OnBoardCalculate
+  → ProcessFirmata (RX) → RunFirmataActions (TX) → BuildPinStatusJson
 ```
 
-### Зависимости
+Edge: `RestartFirmata`, `ApplyPinConfig`, `SetPinMode`, `WriteDigital`, `ReadAnalog`, `RefreshPins`, `WritePwm`, `QueryPinState`, …  
+State: `PinStatusJson`, `HandshakeStage`, `AnalogPinValue`, `StreamLog`.  
+Vector I/O: `AnalogSamples` / `DigitalSamples` (`MDMatrix<double>`, `ptPubOutput | ptPubState`); batch input `DigitalOutputCommands`, `PinConfigBatch`.  
+GUI: только properties/edges (`HardwareGuiHelpers`), без прямого доступа к `UArduinoFirmataClient`.
 
-- **rdk.static.qt** - ядро Rdk (обязательно)
-- Стандартная библиотека C++
-- Платформо-зависимые библиотеки для работы с последовательными портами:
-  - Windows: WinAPI для COM-портов
-  - Linux: termios для последовательных портов
+## Transport
 
-### Зависимости от этой библиотеки
+См. [Transport.md](Transport.md): `UArduinoSerialSession`, `UArduinoFlasher`, `UArduinoUploadJob`, `UArduinoBoardProfile`, `UArduinoSerialPortUtil` (USB/description auto-detect, `validateUploadTargets`).
 
-- **Nmsdk-MotionControlLib** - использует компоненты работы с железом для управления двигателями и датчиками в робототехнических системах
+## Protocol
 
-### Примеры использования
+См. [Protocol.md](Protocol.md): legacy `0x01`/`0x04`, framed v2, текстовые команды.
 
-#### Подключение к Arduino
+## Firmware
 
-```cpp
-// Создание компонента подключения
-UArduinoConnect* arduino = storage->CreateComponent<UArduinoConnect>();
-// Настройка COM-порта и скорости
-arduino->SetComPort("COM3");
-arduino->SetBaudRate(9600);
-// Подключение
-arduino->Connect();
-```
+`UFirmwareManifest::resolveBundledHex` + env `RDK_HARDWARE_FIRMWARE_DIR`. Манифест: [`Firmware/manifest.json`](../Firmware/manifest.json).
 
-#### Чтение датчика
+## GUI
 
-```cpp
-// Создание компонента датчика
-UAdcSensor* sensor = storage->CreateComponent<UAdcSensor>();
-// Настройка пина и подключение к Arduino
-sensor->SetPin(0); // Аналоговый пин A0
-sensor->ConnectToArduino(arduino);
-// Чтение значения
-double value = sensor->ReadValue();
-```
+Статическая библиотека `Rdk-HardwareLib.gui`, регистрация форм в [`HardwareLibComponentGuiRegistration.cpp`](../GUI/Qt/HardwareLibComponentGuiRegistration.cpp).
 
-#### Управление двигателем
+Общая вкладка **Board** (`HardwareArduinoBoardPanelWidget`), edge через `HardwareGuiHelpers::pulseEdge`.
 
-```cpp
-// Создание демо контроллера двигателя
-UDcControlDemo* motor = storage->CreateComponent<UDcControlDemo>();
-// Настройка пинов и подключение к Arduino
-motor->SetPins(9, 10); // PWM и направление
-motor->ConnectToArduino(arduino);
-// Управление скоростью
-motor->SetSpeed(0.5); // 50% мощности
-```
+См. [GUI.md](GUI.md).
 
-### Интеграция с Arduino скетчами
-
-Библиотека предполагает наличие соответствующего кода на стороне Arduino для обработки команд и отправки данных. Пример скетча может быть предоставлен в документации или примерах.
-
-### Файлы библиотеки
-
-#### Core компоненты
-
-- `UHardwareLibrary.h` - главный класс библиотеки
-- `UArduinoConnect.h/cpp` - подключение к Arduino
-- `UArduinoControl.h/cpp` - управление Arduino
-- `UAdcSensor.h/cpp` - работа с датчиками
-- `UDcControlDemo.h/cpp` - демо контроллер двигателя
-
-### См. также
-
-- [Usage-Examples.md](Usage-Examples.md) - примеры использования
-- [API-Overview.md](API-Overview.md) - обзор API
-
----
-
-## EN
-
-### Overview
-
-Rdk-HardwareLib provides a component interface for working with hardware through serial ports.
-
-### Library Structure
+## Типичная схема на canvas
 
 ```mermaid
-flowchart TB
-    UArduinoConnect_EN["UArduinoConnect (Connection)"]
-    UArduinoControl_EN["UArduinoControl (Control)"]
-    UAdcSensor_EN["UAdcSensor (ADC_sensor)"]
-    UDcControlDemo_EN["UDcControlDemo (DC_demo)"]
-    
-    UArduinoConnect_EN --> UArduinoControl_EN
-    UArduinoControl_EN --> UAdcSensor_EN
-    UArduinoControl_EN --> UDcControlDemo_EN
+flowchart LR
+  Sketch[ArduinoSensorSketch]
+  Firmata[ArduinoFirmata]
+  Adc[ArduinoAdc]
+  Dc[ArduinoDcDemo]
+
+  Firmata --> Adc
 ```
 
-The library is organized around a simple control chain: connect to the device, send/receive commands, read sensors, and drive actuators. Qt SerialPort is typically used under the hood for communication.
+`ArduinoDcDemo` — **один узел** с собственным `PortName` и `sensor_lab_v1` (без `LinkedSketchName`).
 
-### Main Modules
+## Зависимости CMake
 
-#### Arduino Connection
+- `Rdk-HardwareLib.qt` — Core + Transport + Protocol
+- `Rdk-HardwareLib.gui` — Qt Widgets/Svg, линкуется из NeuroModeler
 
-- **UArduinoConnect** - component for establishing connection with Arduino board via serial port (Serial/UART). Manages connection, communication parameters setup, and data exchange.
-  
-  **Main functions:**
-  - Connect to Arduino via COM port
-  - Configure transmission speed (baud rate)
-  - Send commands to Arduino
-  - Receive data from Arduino
+## См. также
 
-#### Arduino Control
-
-- **UArduinoControl** - component for Arduino control, sending control commands and getting status. Extends UArduinoConnect functionality for specific control tasks.
-  
-  **Main functions:**
-  - Control outputs (digital/analog)
-  - Read inputs
-  - Control servos
-  - Control motors
-
-#### Sensors
-
-- **UAdcSensor** - component for working with analog sensors via Arduino ADC (Analog-to-Digital Converter). Allows reading values from analog inputs.
-  
-  **Main functions:**
-  - Read values from analog inputs
-  - Sensor calibration
-  - Value transformation
-
-#### Demo Controllers
-
-- **UDcControlDemo** - demonstration component for DC motor control. Used for testing and examples of motor work through Arduino.
-  
-  **Main functions:**
-  - Motor speed control
-  - Rotation direction control
-  - Position feedback
-
-### Key Classes
-
-#### UHardwareLibrary
-
-Main library class:
-
-```cpp
-class UHardwareLibrary: public ULibrary
-{
-public:
-    UHardwareLibrary(void);
-    virtual void CreateClassSamples(UStorage *storage);
-};
-```
-
-The library is automatically loaded during initialization:
-
-```cpp
-libs_list.push_back(&RDK::HardwareLibrary);
-```
-
-#### UArduinoConnect
-
-Base component for working with Arduino:
-
-```cpp
-class UArduinoConnect: public UComponent
-{
-    // Properties for connection setup
-    // - COM port
-    // - Transmission speed
-    // - Timeouts
-    
-    // Methods for:
-    // - Connection/disconnection
-    // - Sending data
-    // - Receiving data
-};
-```
-
-### Dependencies
-
-- **rdk.static.qt** - Rdk core (required)
-- Standard C++ library
-- Platform-dependent libraries for serial port operations:
-  - Windows: WinAPI for COM ports
-  - Linux: termios for serial ports
-
-### Libraries Depending on This Library
-
-- **Nmsdk-MotionControlLib** - uses hardware components for motor and sensor control in robotic systems
-
-### Usage Examples
-
-#### Arduino Connection
-
-```cpp
-// Create connection component
-UArduinoConnect* arduino = storage->CreateComponent<UArduinoConnect>();
-// Configure COM port and speed
-arduino->SetComPort("COM3");
-arduino->SetBaudRate(9600);
-// Connect
-arduino->Connect();
-```
-
-#### Sensor Reading
-
-```cpp
-// Create sensor component
-UAdcSensor* sensor = storage->CreateComponent<UAdcSensor>();
-// Configure pin and connect to Arduino
-sensor->SetPin(0); // Analog pin A0
-sensor->ConnectToArduino(arduino);
-// Read value
-double value = sensor->ReadValue();
-```
-
-#### Motor Control
-
-```cpp
-// Create motor demo controller
-UDcControlDemo* motor = storage->CreateComponent<UDcControlDemo>();
-// Configure pins and connect to Arduino
-motor->SetPins(9, 10); // PWM and direction
-motor->ConnectToArduino(arduino);
-// Control speed
-motor->SetSpeed(0.5); // 50% power
-```
-
-### Integration with Arduino Sketches
-
-The library assumes the presence of corresponding code on the Arduino side for command processing and data sending. Example sketch may be provided in documentation or examples.
-
-### Library Files
-
-#### Core Components
-
-- `UHardwareLibrary.h` - main library class
-- `UArduinoConnect.h/cpp` - Arduino connection
-- `UArduinoControl.h/cpp` - Arduino control
-- `UAdcSensor.h/cpp` - sensor operations
-- `UDcControlDemo.h/cpp` - motor demo controller
-
-### See Also
-
-- [Usage-Examples.md](Usage-Examples.md) - usage examples
-- [API-Overview.md](API-Overview.md) - API overview
+- [Component-Catalog.md](Component-Catalog.md)
+- [API-Overview.md](API-Overview.md)
+- [Legacy/README.md](Legacy/README.md) — удалённые классы

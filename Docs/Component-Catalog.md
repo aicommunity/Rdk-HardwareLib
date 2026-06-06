@@ -1,74 +1,54 @@
 # Rdk-HardwareLib — Component Catalog
 
-Компоненты из `UHardwareLibrary.cpp`, сгруппированы по роли.
+Компоненты из [`UHardwareLibrary.cpp`](../Core/UHardwareLibrary.cpp).
 
-## Connection / Controller
+## Board / transport / protocol
 
-- **Arduino** (`UArduinoControl`) — компонент управления подключением к плате Arduino через последовательный порт. Позволяет отправлять команды на Arduino, получать данные с датчиков, управлять пинами и обрабатывать данные через буферы. Использует `UArduinoConnect` для работы с последовательным портом.
-  
-  **Документация**: [`Arduino`](Components/Arduino.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием свойств, методов и примерами использования.
+| ClassName | C++ | Документация |
+|-----------|-----|--------------|
+| `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
+| `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
+| `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 
-## Sensors
+Внутренние (не в палитре Storage): `UArduinoCustomLink`, `UArduinoSerialSession`, `UArduinoFlasher`, `UArduinoBinaryStreamParser` — см. [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 
-- **ADC** (`UADC`) — компонент для работы с аналоговыми датчиками через ADC (Analog-to-Digital Converter) Arduino. Позволяет читать значения с аналоговых входов, выполнять калибровку датчиков и преобразование значений.
-  
-  **Документация**: [`ADC`](Components/ADC.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием предполагаемого интерфейса и примерами использования.
-  
-  **Примечание:** Текущая реализация компонента минимальна (пустой класс). Документация описывает предполагаемый интерфейс на основе архитектуры библиотеки.
+## Связанные компоненты
 
-## Actuators
+| ClassName | C++ | Связь | Документация |
+|-----------|-----|-------|--------------|
+| `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
+| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | один узел (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
-- **DC** (`UDcControlDemo`) — демонстрационный компонент для управления DC-двигателем через Arduino. Позволяет отправлять команды управления двигателем (скорость, направление), получать обратную связь по скорости и ускорению. Использует `UArduinoControl` для отправки команд на Arduino.
-  
-  **Документация**: [`DC`](Components/DC.md) — полная документация с UML-диаграммами (Class, Sequence, State, Activity, Component), описанием свойств, методов и примерами использования.
+## GUI (NeuroModeler)
 
-## Вспомогательные классы
+Target `Rdk-HardwareLib.gui`: diagram + контроллеры Board / SensorSketch / Firmata / DcDemo / Adc; общая вкладка Board.
 
-- **ArduinoConnect** (`UArduinoConnect`) — вспомогательный класс для работы с последовательным портом Arduino. Не является Storage-компонентом, используется внутри `UArduinoControl` для низкоуровневой работы с последовательным портом.
-  
-  **Документация**: [`ArduinoConnect`](Components/ArduinoConnect.md) — полная документация с UML-диаграммами, описанием протокола обмена данными, методов и примеров использования.
+См. [GUI.md](GUI.md). Ресурсы: `GUI/Qt/Resources/boards/*.svg`, `*_pins.json`.
 
-## Вспомогательные классы
+## Firmware
 
-- **ArduinoConnect** (`UArduinoConnect`) — вспомогательный класс для работы с последовательным портом Arduino. Не является Storage-компонентом, используется внутри `UArduinoControl` для низкоуровневой работы с последовательным портом.
-  
-  **Документация**: [`ArduinoConnect`](Components/ArduinoConnect.md) — полная документация с UML-диаграммами, описанием протокола обмена данными, методов и примеров использования.
+| ID | Описание |
+|----|----------|
+| `sensor_lab_v1` | Custom sketch DHT/Hall/Servo @ 57600 |
+| `standard_firmata` | StandardFirmata Uno/Mega |
 
-## Статус документации
+- Манифест: [`Firmware/manifest.json`](../Firmware/manifest.json)
+- Сборка: [firmware_build.md](firmware_build.md)
+- Чеклист: [Firmware/README.md](../Firmware/README.md)
 
-Все компоненты библиотеки Rdk-HardwareLib имеют полную документацию, включающую:
+## Миграция
 
-- ✅ UML-диаграмма классов (Class Diagram)
-- ✅ UML-диаграмма последовательности (Sequence Diagram)
-- ✅ UML-диаграмма состояний (State Diagram)
-- ✅ UML-диаграмма активности (Activity Diagram)
-- ✅ UML-диаграмма компонентов (Component Diagram)
-- ✅ Детальное описание всех свойств
-- ✅ Детальное описание всех методов
-- ✅ Примеры использования в C++
-- ✅ Примеры XML-конфигураций
-- ✅ Документация на русском и английском языках
+| Старое ClassName | Новое |
+|------------------|--------|
+| `Arduino` | `ArduinoBoard` + `ArduinoSensorSketch` (или `ArduinoFirmata`) |
+| `ADC` | `ArduinoAdc` |
+| `DC` | `ArduinoDcDemo` |
 
-**Всего документировано:**
-- 3 Storage-компонента (Arduino, ADC, DC)
-- 1 вспомогательный класс (ArduinoConnect)
-
-**Всего документировано:**
-- 3 Storage-компонента (Arduino, ADC, DC)
-- 1 вспомогательный класс (ArduinoConnect)
-
-## Использование в конфигурациях
-
-Примечание: в `Bin/Configs` явных ссылок на компоненты Rdk-HardwareLib немного. При описании акцент сделан на настройку портов/скоростей и типовые сценарии подключения. Примеры конфигураций созданы на основе структуры компонентов и архитектуры библиотеки.
-
-## Связи между компонентами
-
-- `UArduinoControl` использует `UArduinoConnect` (композиция) для работы с последовательным портом
-- `UDcControlDemo` использует `UArduinoControl` (композиция) для отправки команд на Arduino
-- `UADC` использует `UArduinoControl` (зависимость) для получения данных с датчиков
+Скрипт: `Scripts/migrate_arduino_classnames.py`. Legacy: [Legacy/README.md](Legacy/README.md).
 
 ## См. также
 
-- [Architecture.md](Architecture.md) — архитектура библиотеки
-- [API-Overview.md](API-Overview.md) — обзор API
-- [Usage-Examples.md](Usage-Examples.md) — примеры использования
+- [Architecture.md](Architecture.md)
+- [API-Overview.md](API-Overview.md)
+- [Usage-Examples.md](Usage-Examples.md)
+- [firmata_spike.md](firmata_spike.md)

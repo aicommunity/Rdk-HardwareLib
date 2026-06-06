@@ -1,15 +1,27 @@
 # Диаграммы Rdk-HardwareLib
 
-## RU
+## Актуальные диаграммы (markdown)
 
-### Назначение
+| Тема | Файл |
+|------|------|
+| Иерархия классов, runtime | [Architecture.md](../Architecture.md) |
+| Связи компонентов | [Components/](../Components/) (mermaid в каждой странице) |
+| Firmata scope | [firmata_spike.md](../firmata_spike.md) |
 
-Диаграммы структуры библиотеки Rdk-HardwareLib и взаимодействия с аппаратным обеспечением.
+## Pinout (SVG + JSON)
 
----
+Интерактивная diagram в GUI:
 
-## EN
+- `GUI/Qt/Resources/boards/arduino_uno_pinout.svg`
+- `GUI/Qt/Resources/boards/arduino_mega2560_pinout.svg`
+- `GUI/Qt/Resources/boards/uno_pins.json`, `mega2560_pins.json`
 
-### Purpose
+См. [GUI.md](../GUI.md).
 
-Diagrams of Rdk-HardwareLib library structure and hardware interaction.
+## Legacy
+
+Исторические sequence/state диаграммы для `UArduinoControl` / `UArduinoConnect` — [Legacy/](../Legacy/).
+
+## Doxygen
+
+UML из исходников (если сгенерировано): `Docs/Doxygen/html/` — см. [README.md](../README.md#doxygen).

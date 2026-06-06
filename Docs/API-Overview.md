@@ -1,95 +1,156 @@
 # Обзор API Rdk-HardwareLib
 
-## RU
+Краткий справочник свойств. Источник правды — заголовки в `Libraries/Rdk-HardwareLib/Core/`.
 
-### Основные классы
+**Edge** — `bool` вход: `true` на тик → действие → сброс в `false`. **State** — только чтение схемой/GUI.
 
-#### HardwareLib
+## ConnectionState (`UArduinoBoard`)
 
-Главный класс библиотеки, наследник `ULibrary`.
+| Значение | Смысл |
+|----------|--------|
+| 0 | Disconnected |
+| 1 | Opening |
+| 2 | Connected |
+| 3 | Error |
 
-#### UArduinoConnect
+## ArduinoBoard (`UArduinoBoard`)
 
-Подключение к Arduino.
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `PortName` | string | `/dev/ttyACM0`, `COM3`, … |
+| `BaudRate` | int | По умолчанию **57600** |
+| `BoardProfile` | int | 0 = Uno, 1 = Mega 2560 |
+| `AutoReconnect` | bool | Retry при ошибке |
+| `ConnectOnBuild` | bool | `ABuild` → connect |
+| `Connect` | bool | **edge** — открыть порт |
+| `Disconnect` | bool | **edge** — закрыть (не очищает `PortName`) |
+| `Reconnect` | bool | **edge** — close + open |
+| `UploadFirmware` | bool | **edge** — прошивка |
+| `ClearLastError` | bool | **edge** |
+| `ConnectionState` | int | state |
+| `LastError` | string | state |
+| `LastActivityMs` | double | state |
+| `IsConnected` | bool | state |
+| `IsOpening` | bool | state |
+| `HasError` | bool | state |
+| `IsDisconnected` | bool | state |
+| `IsUploading` | bool | state |
+| `UploadComplete` | bool | state |
+| `HeartbeatEnabled` | bool | param |
+| `HeartbeatIntervalMs` | int | param |
+| `HeartbeatTimeoutMs` | int | param |
+| `MissedHeartbeats` | int | state |
+| `RequestHealthCheck` | bool | edge (legacy) |
+| `FirmwarePath` | string | param |
+| `BundledFirmwareId` | string | `sensor_lab_v1`, `standard_firmata` |
+| `UploadFirmwareFlag` | bool | edge (legacy ≡ `UploadFirmware`) |
+| `UploadProgress` | int | state 0–100 |
+| `UploadLastResult` | string | state |
+| `ShowDebug` | bool | param |
 
-**Основные свойства:**
-- `PortName` - имя порта (COM3, /dev/ttyUSB0)
-- `BaudRate` - скорость передачи данных
-- `IsConnected` - статус подключения
+## ArduinoCustomLink (база, не в палитре)
 
-**Основные методы:**
-- `Connect()` - подключение к Arduino
-- `Disconnect()` - отключение
+Наследует `ArduinoBoard` + :
 
-#### UArduinoControl
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `Command` | string | param |
+| `SendCommand` | bool | **edge** + `Command` |
+| `RequestGetStatus` | bool | **edge** |
+| `RequestProtocolNegotiate` | bool | **edge** |
+| `SendCommandFlag` | bool | legacy edge |
+| `SentCommand` | string | state |
+| `InputCommand` | string | input (IsNewData) |
+| `ProtocolVersion` | int | 1 = legacy, 2 = framed |
+| `RxFrameCount` | int | state |
+| `TxCommandCount` | int | state |
+| `IsProtocolReady` | bool | state |
+| `HasPendingCommands` | bool | state |
+| `LastSentCommand` | string | state |
 
-Управление Arduino.
+## ArduinoSensorSketch (`UArduinoSensorSketch`)
 
-**Основные свойства:**
-- `ArduinoConnection` - соединение с Arduino
-- `CommandQueue` - очередь команд
+Плюс CustomLink + Board:
 
-**Основные методы:**
-- `SendCommand(string)` - отправка команды
-- `ReadResponse()` - чтение ответа
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `LowerSensorLimit` / `UpperSensorLimit` | double | param |
+| `MatrixCols` | int | param |
+| `GetDataFromBuffers` | bool | edge |
+| `GetPinsInfo` | bool | edge |
+| `StartReading` / `StopReading` | bool | edge |
+| `Rotate` / `StopRotate` | bool | edge |
+| `DoubleMatrixReadings` | MDMatrix | state |
+| `PinStatusJson` | string | state |
 
-#### UAdcSensor
+## ArduinoFirmata (`UArduinoFirmata`)
 
-Датчик ADC.
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `RestartFirmata` | bool | **edge** |
+| `ApplyPinConfig` | bool | **edge** |
+| `FirmataReady` | bool | state (legacy) |
+| `IsFirmataReady` | bool | state |
+| `IsLinkReady` | bool | state (= connected ∧ firmata ready) |
+| `FirmataFirmwareVersion` | string | state |
+| `SelectedPin` / `SelectedPinMode` | int | param |
+| `DigitalPinValue` / `AnalogPinValue` | int | param/state |
+| `SetPinModeFlag` / `WriteDigitalFlag` / `ReadAnalogFlag` | bool | legacy edge |
+| `ReportAnalogEnable` | bool | param |
 
-**Основные свойства:**
-- `ArduinoControl` - управление Arduino
-- `PinNumber` - номер пина
-- `SensorValue` - значение датчика
+Плюс все свойства `ArduinoBoard`. Default `BundledFirmwareId` = `standard_firmata`.
 
-### См. также
+## ArduinoAdc (`UArduinoAdc`)
 
-- Исходный код: `Libraries/Rdk-HardwareLib/Core/`
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `LinkedFirmataName` | string | Имя `ArduinoFirmata` на canvas |
+| `AnalogPin` | int | Firmata pin # |
+| `AdcValue` | int | state |
+| `AdcReadOk` | bool | state |
+| `ReadAdcFlag` | bool | edge |
 
----
+Не открывает serial — только через Firmata.
 
-## EN
+## ArduinoDcDemo (`UArduinoDcDemo`)
 
-### Main Classes
+Наследует **ArduinoCustomLink** (один узел на canvas):
 
-#### HardwareLib
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `Command` | string | param |
+| `SendCommand` | bool | **edge** |
+| `GetSpeed` | bool | **edge** |
+| `Speed` / `Acceleration` | float | state |
+| `LinkedSketchName` | string | **deprecated** — delegate на sketch |
 
-Main library class, inherits from `ULibrary`.
+Default `BundledFirmwareId` = `sensor_lab_v1`.
 
-#### UArduinoConnect
+## Вспомогательные классы
 
-Arduino connection.
+| Класс | Назначение |
+|-------|------------|
+| `UArduinoSerialSession` | QSerialPort wrapper |
+| `UArduinoFlasher` | avrdude via QProcess |
+| `UArduinoBoardProfile` | Uno/Mega avrdude args |
+| `UArduinoBinaryStreamParser` | RX framing |
+| `UArduinoFirmataClient` | Firmata MVP |
+| `UFirmwareManifest` | Resolve bundled hex |
 
-**Main Properties:**
-- `PortName` - port name (COM3, /dev/ttyUSB0)
-- `BaudRate` - baud rate
-- `IsConnected` - connection status
+Подробнее: [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 
-**Main Methods:**
-- `Connect()` - connect to Arduino
-- `Disconnect()` - disconnect
+## GUI form id
 
-#### UArduinoControl
+| ClassName | `componentGuiId` |
+|-----------|-------------------|
+| `ArduinoBoard` | `hw.arduino.board` |
+| `ArduinoSensorSketch` | `hw.arduino.sensor_sketch` |
+| `ArduinoFirmata` | `hw.arduino.firmata` |
+| `ArduinoDcDemo` | `hw.arduino.dc_demo` |
+| `ArduinoAdc` | `hw.arduino.adc` |
 
-Arduino control.
+## См. также
 
-**Main Properties:**
-- `ArduinoConnection` - Arduino connection
-- `CommandQueue` - command queue
-
-**Main Methods:**
-- `SendCommand(string)` - send command
-- `ReadResponse()` - read response
-
-#### UAdcSensor
-
-ADC sensor.
-
-**Main Properties:**
-- `ArduinoControl` - Arduino control
-- `PinNumber` - pin number
-- `SensorValue` - sensor value
-
-### See Also
-
-- Source code: `Libraries/Rdk-HardwareLib/Core/`
+- [Components/](Components/) — страницы по каждому ClassName
+- [Usage-Examples.md](Usage-Examples.md)
+- [Architecture.md](Architecture.md) — threading
