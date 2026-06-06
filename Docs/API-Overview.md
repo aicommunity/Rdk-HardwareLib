@@ -1,5 +1,7 @@
 # Обзор API Rdk-HardwareLib
 
+## RU
+
 Краткий справочник свойств. Источник правды — заголовки в `Libraries/Rdk-HardwareLib/Core/`.
 
 **Edge** — `bool` вход: `true` на тик → действие → сброс в `false`. **State** — только чтение схемой/GUI.
@@ -152,5 +154,164 @@ Default `BundledFirmwareId` = `sensor_lab_v1`.
 ## См. также
 
 - [Components/](Components/) — страницы по каждому ClassName
+- [Usage-Examples.md](Usage-Examples.md)
+- [Architecture.md](Architecture.md) — threading
+
+---
+
+## EN
+
+Brief property reference. Source of truth — headers in `Libraries/Rdk-HardwareLib/Core/`.
+
+**Edge** — `bool` input: `true` on tick → action → reset to `false`. **State** — read-only by schema/GUI.
+
+## ConnectionState (`UArduinoBoard`)
+
+| Value | Meaning |
+|-------|---------|
+| 0 | Disconnected |
+| 1 | Opening |
+| 2 | Connected |
+| 3 | Error |
+
+## ArduinoBoard (`UArduinoBoard`)
+
+| Property | Type | Role |
+|----------|------|------|
+| `PortName` | string | `/dev/ttyACM0`, `COM3`, … |
+| `BaudRate` | int | Default **57600** |
+| `BoardProfile` | int | 0 = Uno, 1 = Mega 2560 |
+| `AutoReconnect` | bool | Retry on error |
+| `ConnectOnBuild` | bool | `ABuild` → connect |
+| `Connect` | bool | **edge** — open port |
+| `Disconnect` | bool | **edge** — close (does not clear `PortName`) |
+| `Reconnect` | bool | **edge** — close + open |
+| `UploadFirmware` | bool | **edge** — firmware upload |
+| `ClearLastError` | bool | **edge** |
+| `ConnectionState` | int | state |
+| `LastError` | string | state |
+| `LastActivityMs` | double | state |
+| `IsConnected` | bool | state |
+| `IsOpening` | bool | state |
+| `HasError` | bool | state |
+| `IsDisconnected` | bool | state |
+| `IsUploading` | bool | state |
+| `UploadComplete` | bool | state |
+| `HeartbeatEnabled` | bool | param |
+| `HeartbeatIntervalMs` | int | param |
+| `HeartbeatTimeoutMs` | int | param |
+| `MissedHeartbeats` | int | state |
+| `RequestHealthCheck` | bool | edge (legacy) |
+| `FirmwarePath` | string | param |
+| `BundledFirmwareId` | string | `sensor_lab_v1`, `standard_firmata` |
+| `UploadFirmwareFlag` | bool | edge (legacy ≡ `UploadFirmware`) |
+| `UploadProgress` | int | state 0–100 |
+| `UploadLastResult` | string | state |
+| `ShowDebug` | bool | param |
+
+## ArduinoCustomLink (base, not in palette)
+
+Inherits `ArduinoBoard` + :
+
+| Property | Type | Role |
+|----------|------|------|
+| `Command` | string | param |
+| `SendCommand` | bool | **edge** + `Command` |
+| `RequestGetStatus` | bool | **edge** |
+| `RequestProtocolNegotiate` | bool | **edge** |
+| `SendCommandFlag` | bool | legacy edge |
+| `SentCommand` | string | state |
+| `InputCommand` | string | input (IsNewData) |
+| `ProtocolVersion` | int | 1 = legacy, 2 = framed |
+| `RxFrameCount` | int | state |
+| `TxCommandCount` | int | state |
+| `IsProtocolReady` | bool | state |
+| `HasPendingCommands` | bool | state |
+| `LastSentCommand` | string | state |
+
+## ArduinoSensorSketch (`UArduinoSensorSketch`)
+
+Plus CustomLink + Board:
+
+| Property | Type | Role |
+|----------|------|------|
+| `LowerSensorLimit` / `UpperSensorLimit` | double | param |
+| `MatrixCols` | int | param |
+| `GetDataFromBuffers` | bool | edge |
+| `GetPinsInfo` | bool | edge |
+| `StartReading` / `StopReading` | bool | edge |
+| `Rotate` / `StopRotate` | bool | edge |
+| `DoubleMatrixReadings` | MDMatrix | state |
+| `PinStatusJson` | string | state |
+
+## ArduinoFirmata (`UArduinoFirmata`)
+
+| Property | Type | Role |
+|----------|------|------|
+| `RestartFirmata` | bool | **edge** |
+| `ApplyPinConfig` | bool | **edge** |
+| `FirmataReady` | bool | state (legacy) |
+| `IsFirmataReady` | bool | state |
+| `IsLinkReady` | bool | state (= connected ∧ firmata ready) |
+| `FirmataFirmwareVersion` | string | state |
+| `SelectedPin` / `SelectedPinMode` | int | param |
+| `DigitalPinValue` / `AnalogPinValue` | int | param/state |
+| `SetPinModeFlag` / `WriteDigitalFlag` / `ReadAnalogFlag` | bool | legacy edge |
+| `ReportAnalogEnable` | bool | param |
+
+Plus all `ArduinoBoard` properties. Default `BundledFirmwareId` = `standard_firmata`.
+
+## ArduinoAdc (`UArduinoAdc`)
+
+| Property | Type | Role |
+|----------|------|------|
+| `LinkedFirmataName` | string | Name of `ArduinoFirmata` on canvas |
+| `AnalogPin` | int | Firmata pin # |
+| `AdcValue` | int | state |
+| `AdcReadOk` | bool | state |
+| `ReadAdcFlag` | bool | edge |
+
+Does not open serial — only via Firmata.
+
+## ArduinoDcDemo (`UArduinoDcDemo`)
+
+Inherits **ArduinoCustomLink** (single node on canvas):
+
+| Property | Type | Role |
+|----------|------|------|
+| `Command` | string | param |
+| `SendCommand` | bool | **edge** |
+| `GetSpeed` | bool | **edge** |
+| `Speed` / `Acceleration` | float | state |
+| `LinkedSketchName` | string | **deprecated** — delegate to sketch |
+
+Default `BundledFirmwareId` = `sensor_lab_v1`.
+
+## Helper classes
+
+| Class | Purpose |
+|-------|---------|
+| `UArduinoSerialSession` | QSerialPort wrapper |
+| `UArduinoFlasher` | avrdude via QProcess |
+| `UArduinoBoardProfile` | Uno/Mega avrdude args |
+| `UArduinoBinaryStreamParser` | RX framing |
+| `UArduinoFirmataClient` | Firmata MVP |
+| `UFirmwareManifest` | Resolve bundled hex |
+
+Details: [Transport.md](Transport.md), [Protocol.md](Protocol.md).
+
+## GUI form id
+
+| ClassName | `componentGuiId` |
+|-----------|------------------|
+| `ArduinoBoard` | `hw.arduino.board` |
+| `ArduinoSensorSketch` | `hw.arduino.sensor_sketch` |
+| `ArduinoFirmata` | `hw.arduino.firmata` |
+| `ArduinoDcDemo` | `hw.arduino.dc_demo` |
+| `ArduinoAdc` | `hw.arduino.adc` |
+
+## See also
+
+- [Components/](Components/) — pages per ClassName
 - [Usage-Examples.md](Usage-Examples.md)
 - [Architecture.md](Architecture.md) — threading

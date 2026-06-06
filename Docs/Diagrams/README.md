@@ -1,5 +1,7 @@
 # Диаграммы Rdk-HardwareLib
 
+## RU
+
 ## Актуальные диаграммы (markdown)
 
 | Тема | Файл |
@@ -25,3 +27,33 @@
 ## Doxygen
 
 UML из исходников (если сгенерировано): `Docs/Doxygen/html/` — см. [README.md](../README.md#doxygen).
+
+---
+
+## EN
+
+## Current diagrams (markdown)
+
+| Topic | File |
+|-------|------|
+| Class hierarchy, runtime | [Architecture.md](../Architecture.md) |
+| Component relationships | [Components/](../Components/) (mermaid on each page) |
+| Firmata scope | [firmata_spike.md](../firmata_spike.md) |
+
+## Pinout (SVG + JSON)
+
+Interactive diagram in the GUI:
+
+- `GUI/Qt/Resources/boards/arduino_uno_pinout.svg`
+- `GUI/Qt/Resources/boards/arduino_mega2560_pinout.svg`
+- `GUI/Qt/Resources/boards/uno_pins.json`, `mega2560_pins.json`
+
+See [GUI.md](../GUI.md).
+
+## Legacy
+
+Historical sequence/state diagrams for `UArduinoControl` / `UArduinoConnect` — [Legacy/](../Legacy/).
+
+## Doxygen
+
+UML from sources (if generated): `Docs/Doxygen/html/` — see [README.md](../README.md#doxygen).

@@ -1,5 +1,7 @@
 # ArduinoDcDemo
 
+## RU
+
 ## Назначение
 
 **ClassName:** `ArduinoDcDemo`  
@@ -45,3 +47,53 @@ flowchart LR
 ## Миграция
 
 Два узла `SensorSketch` + `DcDemo` → один `DcDemo`: `Scripts/migrate_arduino_board_hierarchy.py` или regen `Scripts/generate_arduino_hardware_configs.py`.
+
+---
+
+## EN
+
+## Purpose
+
+**ClassName:** `ArduinoDcDemo`  
+**C++:** `UArduinoDcDemo` : `UArduinoCustomLink` : `UArduinoBoard`  
+**Role:** DC motor demo — serial, `sensor_lab_v1` firmware, commands and speed reading in **one node**.
+
+## Key properties
+
+| Property | Role |
+|----------|------|
+| `PortName`, `BundledFirmwareId` | Port and firmware (as in Board/Sketch) |
+| `Connect` / `Disconnect` | Connection edges (Board tab in GUI) |
+| `Command` | Command string |
+| `SendCommand` | Edge: send `Command` |
+| `GetSpeed` | Edge: request speed |
+| `Speed` / `Acceleration` | State (from binary frame `0x01` in `OnBinaryFrame`) |
+
+## Deprecated
+
+`LinkedSketchName` — if non-empty, delegates commands to `ArduinoSensorSketch` (transitional release). **New schematics:** single `ArduinoDcDemo` without sketch.
+
+## Typical layout
+
+```mermaid
+flowchart LR
+  Dc[ArduinoDcDemo]
+```
+
+Firmware: `sensor_lab_v1`, `BaudRate` 57600.
+
+## GUI
+
+`hw.arduino.dc_demo` — **DC** (commands, presets) and **Board** (port, Connect, upload) tabs.
+
+## Test config
+
+`Bin/Configs/SpikeSamples/Hardware/05-ArduinoDcDemo/`
+
+## ClDesc
+
+`Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoDcDemo.xml`
+
+## Migration
+
+Two nodes `SensorSketch` + `DcDemo` → one `DcDemo`: `Scripts/migrate_arduino_board_hierarchy.py` or regen `Scripts/generate_arduino_hardware_configs.py`.

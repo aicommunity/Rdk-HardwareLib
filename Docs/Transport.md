@@ -1,5 +1,7 @@
 # Transport layer
 
+## RU
+
 Внутренние классы в `Core/Transport/` (не регистрируются в Storage).
 
 ## UArduinoSerialSession
@@ -82,6 +84,96 @@ Mega2560 `wiring` matches Arduino IDE / avrdude 8.x bundled tools (`-cwiring`).
 - `resolveBundledHex(...)` — абсолютный путь к `.hex` из `manifest.json`
 
 ## См. также
+
+- [firmware_build.md](firmware_build.md)
+- [Architecture.md](Architecture.md)
+
+---
+
+## EN
+
+Internal classes in `Core/Transport/` (not registered in Storage).
+
+## UArduinoSerialSession
+
+**Files:** `UArduinoSerialSession.{h,cpp}`
+
+| API | Description |
+|-----|-------------|
+| `open(port, baud)` | Multiple candidate names (systemLocation, normalized path) |
+| `close()` | |
+| `isOpen()` | |
+| `bytesToWrite()` | Command queue waits for `== 0` before next write |
+| `write(data)` | |
+| `takeReceivedBytes()` | Swap RX buffer (thread-safe) |
+| `lastError()` | Text on failed open |
+| `availablePorts()` | Path list via `UArduinoSerialPortUtil` |
+
+**Signals:** `bytesReceived`, `errorOccurred`.
+
+**Threading:** `readyRead` only writes to a mutex-protected buffer. In HardwareLib there is **no** `connect(bytesReceived, …)` to `UNet` — components fetch data in `UArduinoBoard::ACalculate` via `takeReceivedBytes()` (engine thread). See [Architecture.md](Architecture.md).
+
+**Linux permissions:** on `Permission denied` in `lastError` — hint about the `dialout` group.
+
+## UArduinoSerialPortUtil
+
+| API | Description |
+|-----|-------------|
+| `normalizeDevicePath` | `ttyACM0` → `/dev/ttyACM0` |
+| `preferredOpenName` | Best name for `QSerialPort::open` |
+| `listPortsSorted` | USB ports on top, host UART grayed in GUI |
+
+## UArduinoFlasher
+
+**Files:** `UArduinoFlasher.{h,cpp}`
+
+| API | Description |
+|-----|-------------|
+| `locateAvrdudeBinary` | `AVRDUDE` → PATH → **`ArduinoTools/bin` next to exe** → `~/.arduino15/.../avrdude` |
+| `locateAvrdudeConf` | `AVRUDUDE_CONF` → **`ArduinoTools/etc/avrdude.conf`** → `/etc/avrdude.conf` → next to binary → `.arduino15` |
+| `buildCommand` | avrdude argument string |
+| `flash(profile, port, hex, &err)` | `QProcess`, parse `%` in stdout → `progressChanged` (blocking call) |
+
+**Signals:** `progressChanged(int)`, `finished(bool, message)`.
+
+**Async upload:** `UArduinoUploadJob::runSync` on `QThread`; `UArduinoBoard::PollUploadJob` in `ACalculate`. Env `ARDUINO_SYNC_UPLOAD=1` — synchronous `RunUploadBlocking` (integration tests).
+
+On permission error or `not in sync` / `not responding` — extended message in `errorOut`.
+
+Before upload: `CloseConnection`, pause ~400 ms, bootloader reset (1200 baud + DTR on Uno/clones), avrdude on Windows uses `-P "\\.\COMn"`.
+
+### Windows setup
+
+Run [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) — copies `avrdude` to `Bin/Platform/Win/ArduinoTools/`. Details: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
+
+### Linux
+
+Install packaged `avrdude` (`apt` / `dnf` / `pacman`), add user to `dialout`. Directory `Bin/Platform/Linux/ArduinoTools` is **not required**.
+
+## UArduinoBoardProfile
+
+**Files:** `UArduinoBoardProfile.{h,cpp}`
+
+| Kind | MCU | Protocol | Upload baud |
+|------|-----|----------|-------------|
+| Uno | atmega328p | arduino | 115200 |
+| Mega2560 | atmega2560 | wiring | 115200 |
+
+Mega2560 `wiring` matches Arduino IDE / avrdude 8.x bundled tools (`-cwiring`).
+
+Used in `UArduinoBoard::RunUpload()` / async upload job.
+
+## UFirmwareManifest
+
+**Files:** `UFirmwareManifest.{h,cpp}`
+
+- `bundledFirmwareRelativeRoot()` — `../../ArduinoFirmware` (`Bin/ArduinoFirmware`) relative to `Bin/Platform/<OS>/`
+- `bundledHexRelativePath(bundled_id, board_profile)` — relative path to `.hex` for default `FirmwarePath`
+- `resolveFromApplicationDir(relative)` — resolves path from exe directory
+- `firmwareRoot()` — `RDK_HARDWARE_FIRMWARE_DIR`, then relative root, then `NMSDK_SOURCE_DIR`
+- `resolveBundledHex(...)` — absolute path to `.hex` from `manifest.json`
+
+## See also
 
 - [firmware_build.md](firmware_build.md)
 - [Architecture.md](Architecture.md)

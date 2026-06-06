@@ -1,5 +1,7 @@
 # Bundled firmware (sources + dev copy)
 
+## RU
+
 **Runtime (по умолчанию в приложении):** `Bin/ArduinoFirmware/` — см. `Bin/ArduinoFirmware/README.md`.
 
 | Path | Description |
@@ -97,3 +99,105 @@ If `downloads.arduino.cc` returns 403, build on a machine with working Arduino C
 Минимальные проекты для каждого ClassName: `Bin/Configs/SpikeSamples/Hardware/` (см. [README.md](../../../Bin/Configs/SpikeSamples/Hardware/README.md)).
 
 Перегенерация: `python3 Scripts/generate_arduino_hardware_configs.py`
+
+---
+
+## EN
+
+**Runtime (default in the application):** `Bin/ArduinoFirmware/` — see `Bin/ArduinoFirmware/README.md`.
+
+| Path | Description |
+|------|-------------|
+| `sensor_lab/sensor_lab.ino` | Custom protocol sketch (57600 baud) |
+| `sensor_lab/uno.hex`, `mega2560.hex` | Prebuilt sensor_lab (copied to `Bin/ArduinoFirmware` by the build script) |
+| `firmata/standard_firmata_*.hex` | StandardFirmata for Uno / Mega |
+| `manifest.json` | Manifest template (copied to `Bin/ArduinoFirmware`) |
+
+Build all HEX files:
+
+```bash
+./Scripts/build_arduino_firmware.sh
+```
+
+If `downloads.arduino.cc` returns 403, build on a machine with working Arduino CLI and commit the `.hex` files.
+
+## Hardware manual verification checklist
+
+Use NeuroModeler (GUI) or a config with `ArduinoBoard` + `ArduinoSensorSketch` / `ArduinoFirmata` components.  
+Default port speed: **57600**. Close Serial Monitor in Arduino IDE before flashing.
+
+### Preparation
+
+- [ ] Board connected via USB, port visible in the system (`/dev/ttyACM0`, `COM3`, …).
+- [ ] **Windows:** `Bin/Platform/Win/SetupArduinoTools.bat` run or `avrdude` in PATH.
+- [ ] **Linux:** `avrdude` package installed; user in `dialout` group (`sudo usermod -aG dialout $USER`).
+- [ ] Correct **Board profile** selected in the model: `0` = Uno, `1` = Mega 2560 (GUI: auto-detect when selecting COM for official Arduino; CH340 clones — manual).
+- [ ] Bundled HEX exist (see table above) or a custom path is set in **Firmware path**.
+
+### A. Flash sensor_lab (`sensor_lab_v1`)
+
+Component: **ArduinoBoard**.
+
+1. [ ] `BundledFirmwareId` = `sensor_lab_v1` (or empty `FirmwarePath` — taken from manifest).
+2. [ ] `PortName` = your COM/tty.
+3. [ ] Press **Upload firmware** (or `UploadFirmwareFlag` + Calculate).
+4. [ ] `UploadProgress` → 100, `UploadLastResult` without error.
+5. [ ] After upload the board rebooted; reopen the port if needed.
+
+**Expected:** avrdude finishes with `avrdude done.  Thank you.` (or equivalent in the log).
+
+### B. Custom protocol (ArduinoSensorSketch)
+
+Component: **ArduinoSensorSketch** (may inherit port from Board or set its own).
+
+1. [ ] `ConnectOnBuild` = true, `BaudRate` = 57600, **Connect** / Calculate.
+2. [ ] `ConnectionState` = 2 (Connected), `LastError` empty.
+3. [ ] Send preset **GET STATUS** — no parser error in log/debug.
+4. [ ] Enable **Get data from buffers**, Calculate — GUI **Readings** table fills (or `DoubleMatrixReadings` is non-empty).
+5. [ ] **Get pins info** — `PinStatusJson` / response 0x04; D2, A2, D9 highlighted on the diagram.
+6. [ ] **START READING** / **STOP READING**, **ROTATE** / **STOP ROTATE** commands — board responds (servo/reading), port does not hang.
+
+**Optional (PROTO 2):** `ProtocolVersion` = 2, reconnect — host sends `PROTO 2`, firmware replies `PROTO OK 2`, frames accepted (`RxFrameCount` increases).
+
+### C. Flash StandardFirmata (`standard_firmata`)
+
+1. [ ] On **ArduinoBoard**: `BundledFirmwareId` = `standard_firmata`, upload as in block A.
+2. [ ] **ArduinoFirmata** component, same port and 57600.
+3. [ ] After Calculate: `FirmataReady` = true, `FirmataFirmwareVersion` non-empty (e.g. `2.x`).
+4. [ ] Click a pin on the diagram → `SelectedPin` updated.
+5. [ ] **Set pin mode** (Output) + **Write digital** on LED pin (Uno: D13) — LED toggles.
+6. [ ] **Read analog** on A0 (potentiometer/ground) — `AnalogPinValue` changes.
+
+### D. Heartbeat and reconnect (ArduinoBoard)
+
+1. [ ] `HeartbeatEnabled` = true, default interval/timeout (3 s / 10 s).
+2. [ ] **Health check** — `MissedHeartbeats` does not increase with live connection.
+3. [ ] Disconnect USB for 15 s, reconnect: with `AutoReconnect` = true port restores (or manually Refresh + Connect).
+
+### E. Mega 2560 (if board available)
+
+- [ ] Upload `mega2560.hex` / Firmata mega — no avrdude error (`stk500v2`).
+- [ ] Sensor sketch and Firmata work the same as on Uno.
+
+### F. GUI regression
+
+- [ ] **ArduinoBoard** controller opens — Uno/Mega diagram, Connect/Heartbeat checkboxes.
+- [ ] **ArduinoSensorSketch** — matrix and DHT/Hall/Servo pin roles.
+- [ ] **ArduinoFirmata** — click pin on diagram.
+
+### Common issues
+
+| Symptom | What to check |
+|---------|---------------|
+| Upload failed | Port not busy with IDE Monitor; permissions on `/dev/ttyACM*`; correct Board profile |
+| Connected but no data | 57600; same firmware (sensor_lab vs Firmata); DTR/reboot after flash |
+| Firmata not ready | Flashed `standard_firmata`, not sensor_lab |
+| Empty matrix | `GetDataFromBuffers` + `START READING`; DHT sensor on D2 |
+
+After completing the checklist, note date, board, and OS in an issue/PR comment.
+
+## Ready-made NeuroModeler configurations
+
+Minimal projects for each ClassName: `Bin/Configs/SpikeSamples/Hardware/` (see [README.md](../../../Bin/Configs/SpikeSamples/Hardware/README.md)).
+
+Regeneration: `python3 Scripts/generate_arduino_hardware_configs.py`
