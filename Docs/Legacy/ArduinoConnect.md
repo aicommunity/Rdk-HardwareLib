@@ -255,9 +255,9 @@ graph TB
     ArduinoControl -->|использует| ArduinoConnect
     
     subgraph Interfaces["Интерфейсы"]
-        SerialPort[QSerialPort<br/>Последовательный порт]
-        DataBuffer[DataBuffer<br/>Буфер данных]
-        Signals[Qt Signals<br/>Сигналы]
+        SerialPort["QSerialPort<br/>Последовательный порт"]
+        DataBuffer["DataBuffer<br/>Буфер данных"]
+        Signals["Qt Signals<br/>Сигналы"]
     end
     
     ArduinoConnect --> SerialPort

@@ -164,7 +164,7 @@ flowchart TD
     SetSentCommand --> ClearFlag[SendCommandFlag = false]
     ClearFlag --> CheckGetSpeed
     CheckSendFlag -->|Нет| CheckGetSpeed{GetSpeed?}
-    CheckGetSpeed -->|Да| CheckSpeedValues{SpeedValues<br/>не пуст?}
+    CheckGetSpeed -->|Да| CheckSpeedValues["SpeedValues<br/>не пуст?"]
     CheckSpeedValues -->|Да| GetLastSpeed[Speed = SpeedValues.last()]
     CheckSpeedValues -->|Нет| ClearGetSpeed
     GetLastSpeed --> ClearGetSpeed[GetSpeed = false]
@@ -202,10 +202,10 @@ graph TB
     UStorage -->|управляет| DcControl
     
     subgraph Interfaces["Интерфейсы"]
-        InputProps[Входные свойства<br/>ptInput]
-        OutputProps[Выходные свойства<br/>ptOutput]
-        Parameters[Параметры<br/>ptPubParameter]
-        States[Состояния<br/>ptPubState]
+        InputProps["Входные свойства<br/>ptInput"]
+        OutputProps["Выходные свойства<br/>ptOutput"]
+        Parameters["Параметры<br/>ptPubParameter"]
+        States["Состояния<br/>ptPubState"]
     end
     
     DcControl --> Parameters

@@ -261,10 +261,10 @@ graph TB
     UStorage -->|управляет| ArduinoControl
     
     subgraph Interfaces["Интерфейсы"]
-        InputProps[Входные свойства<br/>ptInput]
-        OutputProps[Выходные свойства<br/>ptOutput]
-        Parameters[Параметры<br/>ptPubParameter]
-        States[Состояния<br/>ptPubState]
+        InputProps["Входные свойства<br/>ptInput"]
+        OutputProps["Выходные свойства<br/>ptOutput"]
+        Parameters["Параметры<br/>ptPubParameter"]
+        States["Состояния<br/>ptPubState"]
     end
     
     ArduinoControl --> InputProps

@@ -141,16 +141,16 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Start ACalculate]) --> CheckArduino{ArduinoControl<br/>подключен?}
+    Start([Start ACalculate]) --> CheckArduino["ArduinoControl<br/>подключен?"]
     CheckArduino -->|Нет| End([End])
-    CheckArduino -->|Да| CheckData{Данные<br/>доступны?}
+    CheckArduino -->|Да| CheckData["Данные<br/>доступны?"]
     CheckData -->|Нет| End
-    CheckData -->|Да| GetMatrix[Получить DoubleMatrixReadings<br/>из ArduinoControl]
+    CheckData -->|Да| GetMatrix["Получить DoubleMatrixReadings<br/>из ArduinoControl"]
     GetMatrix --> FindPin[Найти данные для PinNumber]
-    FindPin --> CheckFound{Данные<br/>найдены?}
+    FindPin --> CheckFound["Данные<br/>найдены?"]
     CheckFound -->|Нет| End
-    CheckFound -->|Да| ExtractValue[Извлечь значение<br/>для пина]
-    ExtractValue --> ApplyCalibration{Калибровка<br/>включена?}
+    CheckFound -->|Да| ExtractValue["Извлечь значение<br/>для пина"]
+    ExtractValue --> ApplyCalibration["Калибровка<br/>включена?"]
     ApplyCalibration -->|Да| Calibrate[Применить калибровку]
     ApplyCalibration -->|Нет| SetValue
     Calibrate --> Transform[Преобразовать значение]
@@ -186,10 +186,10 @@ graph TB
     UStorage -->|управляет| ADC
     
     subgraph Interfaces["Интерфейсы"]
-        InputProps[Входные свойства<br/>ptInput]
-        OutputProps[Выходные свойства<br/>ptOutput]
-        Parameters[Параметры<br/>ptPubParameter]
-        States[Состояния<br/>ptPubState]
+        InputProps["Входные свойства<br/>ptInput"]
+        OutputProps["Выходные свойства<br/>ptOutput"]
+        Parameters["Параметры<br/>ptPubParameter"]
+        States["Состояния<br/>ptPubState"]
     end
     
     ADC --> Parameters
