@@ -79,16 +79,73 @@ Markdown в `Docs/` — основное руководство. API из заг
 
 ### Purpose
 
-**Rdk-HardwareLib** provides NeuroModeler components for Arduino boards over USB serial (firmware upload, sensor_lab, Firmata, GUI pinout).
+**Rdk-HardwareLib** provides NeuroModeler components for Arduino boards (Uno / Mega 2560) over USB serial: HEX firmware upload, custom `sensor_lab` sketch, Standard Firmata, GUI pinout.
 
-### Components
+### Components (ClassName)
 
-See [Component-Catalog.md](Component-Catalog.md) for `ArduinoBoard`, `ArduinoSensorSketch`, `ArduinoFirmata`, `ArduinoAdc`, `ArduinoDcDemo`.
+| ClassName | Purpose |
+|-----------|---------|
+| `ArduinoBoard` | Port, avrdude upload, heartbeat, reconnect |
+| `ArduinoSensorSketch` | sensor_lab protocol, commands, readings matrix |
+| `ArduinoFirmata` | Firmata: pin mode / digital / analog |
+| `ArduinoAdc` | ADC reading via linked `ArduinoFirmata` |
+| `ArduinoDcDemo` | DC demo (single node, `UArduinoCustomLink` + sensor_lab_v1) |
+
+Full catalog: [Component-Catalog.md](Component-Catalog.md).
+
+### C++ naming conventions
+
+- **Class members** (fields, including private): `CamelCase` (`Session`, `ProtocolVersionValue`, `BoardPanel`).
+- **Local variables and method parameters**: `snake_case` (`port_name`, `param_count`, `board_profile`).
+- **`UProperty` names** (XML/schema): unchanged (`PortName`, `Connect`, …).
+
+### Property-driven control
+
+Connection and actions use **edge properties** (`Connect`, `SendCommand`, `UploadFirmware`, …): pulse `true` for one calculation tick, then reset to `false`. GUI: `HardwareGuiHelpers::pulseEdge`. See [Architecture.md](Architecture.md), [API-Overview.md](API-Overview.md).
 
 ### Quick start
 
-Set `PortName`, `BaudRate` **57600**, flash via `ArduinoBoard`, then use `ArduinoSensorSketch` or `ArduinoFirmata`. Sample configs: `Bin/Configs/SpikeSamples/Hardware/`.
+1. Connect the board and verify the port (`/dev/ttyACM0` on Linux).
+2. Add your user to the `dialout` group (Linux): `sudo usermod -aG dialout $USER`, then re-login.
+3. In the model: `ArduinoBoard` component → `PortName`, `BaudRate` **57600**, `BundledFirmwareId` = `sensor_lab_v1`.
+4. In the GUI: **Upload firmware**, then `ArduinoSensorSketch` with `ConnectOnBuild` = true.
 
-### Detailed docs
+Sample configs: [Bin/Configs/SpikeSamples/Hardware/README.md](../../../Bin/Configs/SpikeSamples/Hardware/README.md).
 
-[Architecture.md](Architecture.md), [API-Overview.md](API-Overview.md), [Usage-Examples.md](Usage-Examples.md).
+### Baud rate and firmware
+
+- Runtime baud: **57600** (sensor_lab and bundled Firmata).
+- Bundled HEX: `Firmware/manifest.json` — `sensor_lab_v1`, `standard_firmata`.
+- Build: [firmware_build.md](firmware_build.md), hardware checklist: [Firmware/README.md](../Firmware/README.md).
+
+### Migration from legacy names
+
+| Old | New |
+|-----|-----|
+| `Arduino` | `ArduinoBoard` + `ArduinoSensorSketch` (or `ArduinoFirmata`) |
+| `ADC` | `ArduinoAdc` |
+| `DC` | `ArduinoDcDemo` |
+
+Script: `Scripts/migrate_arduino_classnames.py`. Historical docs: [Legacy/README.md](Legacy/README.md).
+
+### Navigation
+
+- [Architecture.md](Architecture.md) — class hierarchy and runtime
+- [API-Overview.md](API-Overview.md) — component properties
+- [Usage-Examples.md](Usage-Examples.md) — XML and scenarios
+- [Transport.md](Transport.md) — serial, avrdude, board profiles
+- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — SetupArduinoTools.bat, bundled ArduinoTools
+- [Protocol.md](Protocol.md) — sensor_lab binary protocol
+- [GUI.md](GUI.md) — NeuroModeler forms and diagram
+- [firmata_spike.md](firmata_spike.md) — Firmata MVP scope
+- [FirmataTechDebt.md](FirmataTechDebt.md) — tech debt log (Firmata implementation)
+
+### Doxygen
+
+Markdown in `Docs/` is the primary guide. API from `Core/` headers — see [DOXYGEN.md](DOXYGEN.md).
+
+### Nmsdk root documentation
+
+- [Docs/Libraries/Rdk-HardwareLib.md](../../../Docs/Libraries/Rdk-HardwareLib.md)
+
+---

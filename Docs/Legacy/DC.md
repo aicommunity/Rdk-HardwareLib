@@ -487,7 +487,7 @@ for (int step = 0; step < 1000; step++) {
 
 **Class**: `UDcControlDemo` — demonstration component for DC motor control via Arduino.  
 **Registration**: `UHardwareLibrary.cpp` → `UploadClass("DC", ...)`.  
-**Instances**: `ClassName = "DC"` in `Bin/Configs/*/Model_*.xml`.
+**Storage instances**: `ClassName = "DC"` in `Bin/Configs/*/Model_*.xml`.
 
 `UDcControlDemo` extends `UNet` with DC motor control functionality. Allows sending motor control commands (speed, direction), receiving speed and acceleration feedback. Uses `UArduinoControl` to send commands to Arduino.
 
@@ -500,40 +500,96 @@ classDiagram
     class UNet {
         +ADefault() bool
         +ABuild() bool
+        +AReset() bool
         +ACalculate() bool
+        +AInit() void
+        +AUnInit() void
     }
     class UDcControlDemo {
         +Command : string
         +SendCommandFlag : bool
+        +SentCommand : string
         +Speed : float
+        +Acceleration : float
         +GetSpeed : bool
+        -UArdContr : UEPtr~UArduinoControl~
         +New() UDcControlDemo*
+        #ADefault() bool
+        #ABuild() bool
+        #AReset() bool
         #ACalculate() bool
+        #AInit() void
+        #AUnInit() void
+    }
+    class UArduinoControl {
+        +InputCommand : string
+        +SpeedValues : QVector~double~
     }
 ```
+
+**Inheritance hierarchy:**
+- `UNet` — base network component class from Rdk-BasicLib
+- `UDcControlDemo` — DC motor control component
+
+**Relationships with other components:**
+- `UDcControlDemo` uses `UArduinoControl` (composition via `UEPtr`) to send commands to Arduino
+- `UArduinoControl` provides speed data via `SpeedValues`
 
 ### UML Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Storage
+    participant Storage as UStorage
     participant DC as UDcControlDemo
     participant Arduino as UArduinoControl
+    participant Connect as UArduinoConnect
     
-    Storage->>DC: New() + Default()
+    Storage->>DC: New()
+    Storage->>DC: Default()
+    DC->>DC: ADefault()
+    Note over DC: Initialize default<br/>parameters
+    Storage->>DC: SetCommand("SET_SPEED 50")
     Storage->>DC: Build()
-    loop Each step
+    DC->>DC: ABuild()
+    Note over DC: Initialize structure
+    DC-->>Storage: Ready = true
+    loop Each calculation step
         Storage->>DC: Calculate()
         DC->>DC: ACalculate()
-        alt SendCommandFlag
-            DC->>Arduino: InputCommand = Command
+        alt UArdContr == nullptr
+            DC->>Arduino: new UArduinoControl()
+            Note over Arduino: Create Arduino<br/>control component
         end
-        alt GetSpeed
-            DC->>Arduino: Get SpeedValues
-            Arduino-->>DC: Speed value
+        alt SendCommandFlag == true
+            DC->>Arduino: InputCommand = Command
+            DC->>DC: SentCommand = Command
+            DC->>DC: SendCommandFlag = false
+            Arduino->>Connect: Send command to Arduino
+        end
+        alt GetSpeed == true
+            DC->>Arduino: Check SpeedValues
+            alt SpeedValues not empty
+                Arduino-->>DC: SpeedValues.last()
+                DC->>DC: Speed = SpeedValues.last()
+            end
+            DC->>DC: GetSpeed = false
         end
     end
+    Storage->>DC: Reset()
+    DC->>DC: AReset()
+    Note over DC: Reset state
 ```
+
+**Lifecycle:**
+1. **Creation** — component is created via constructor
+2. **Initialization** — default parameters set via `ADefault()`
+3. **Configuration** — control command set via `Command`
+4. **Build** — structure initialized via `ABuild()`
+5. **Calculation** — on each step:
+   - Check and create `UArduinoControl` if necessary
+   - Send command via `InputCommand` (if `SendCommandFlag == true`)
+   - Obtain speed from `UArduinoControl->SpeedValues` (if `GetSpeed == true`)
+6. **Reset** — state reset via `AReset()`
 
 ### UML State Diagram
 
@@ -541,14 +597,40 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Uninitialized: New()
     Uninitialized --> Defaulted: Default()
-    Defaulted --> Configuring: Configure
+    Defaulted --> Configuring: SetCommand()
     Configuring --> Building: Build()
-    Building --> Ready: Ready = true
-    Ready --> SendingCommand: SendCommandFlag
-    SendingCommand --> Ready: Command sent
-    Ready --> GettingSpeed: GetSpeed
-    GettingSpeed --> Ready: Speed received
+    Building --> Built: ABuild() success
+    Note right of Building: Structure initialized
+    Built --> Ready: Ready = true
+    Ready --> CreatingArduino: Calculate() && UArdContr == nullptr
+    CreatingArduino --> Created: UArduinoControl created
+    Created --> Ready: Connection established
+    Ready --> SendingCommand: Calculate() && SendCommandFlag
+    SendingCommand --> CommandSent: Command sent
+    Note right of SendingCommand: InputCommand = Command<br/>SendCommandFlag = false
+    CommandSent --> Ready: Command processed
+    Ready --> GettingSpeed: Calculate() && GetSpeed
+    GettingSpeed --> SpeedReceived: Speed received
+    Note right of GettingSpeed: Speed = SpeedValues.last()<br/>GetSpeed = false
+    SpeedReceived --> Ready: Data updated
+    Ready --> Resetting: Reset()
+    Resetting --> Ready: AReset() complete
 ```
+
+**States:**
+- **Uninitialized** — created but not initialized
+- **Defaulted** — default parameters set
+- **Configuring** — configuring parameters (control command)
+- **Building** — structure build in progress
+- **Built** — structure built
+- **Ready** — ready for calculations
+- **CreatingArduino** — creating `UArduinoControl` component
+- **Created** — `UArduinoControl` component created
+- **SendingCommand** — sending command to Arduino
+- **CommandSent** — command sent
+- **GettingSpeed** — obtaining motor speed
+- **SpeedReceived** — speed received
+- **Resetting** — state reset in progress
 
 ### UML Activity Diagram
 
@@ -556,70 +638,324 @@ stateDiagram-v2
 flowchart TD
     Start([Start ACalculate]) --> CheckArduino{UArdContr == nullptr?}
     CheckArduino -->|Yes| CreateArduino[Create UArduinoControl]
-    CheckArduino -->|No| CheckSendFlag{SendCommandFlag?}
     CreateArduino --> CheckSendFlag
-    CheckSendFlag -->|Yes| SendCommand[Send command]
+    CheckArduino -->|No| CheckSendFlag{SendCommandFlag?}
+    CheckSendFlag -->|Yes| SetInputCommand[UArdContr->InputCommand = Command]
+    SetInputCommand --> SetSentCommand[SentCommand = Command]
+    SetSentCommand --> ClearFlag[SendCommandFlag = false]
+    ClearFlag --> CheckGetSpeed
     CheckSendFlag -->|No| CheckGetSpeed{GetSpeed?}
-    SendCommand --> CheckGetSpeed
-    CheckGetSpeed -->|Yes| GetSpeed[Get speed value]
-    CheckGetSpeed -->|No| End([End])
-    GetSpeed --> End
+    CheckGetSpeed -->|Yes| CheckSpeedValues["SpeedValues<br/>not empty?"]
+    CheckSpeedValues -->|Yes| GetLastSpeed[Speed = SpeedValues.last()]
+    CheckSpeedValues -->|No| ClearGetSpeed
+    GetLastSpeed --> ClearGetSpeed[GetSpeed = false]
+    CheckGetSpeed -->|No| End
+    ClearGetSpeed --> End([End])
 ```
+
+**ACalculate() algorithm:**
+1. Check for `UArduinoControl`, create if necessary
+2. If `SendCommandFlag == true`:
+   - Set `UArdContr->InputCommand = Command`
+   - Save command in `SentCommand`
+   - Reset `SendCommandFlag = false`
+3. If `GetSpeed == true`:
+   - Check for data in `UArdContr->SpeedValues`
+   - If data exists: set `Speed = SpeedValues.last()`
+   - Reset `GetSpeed = false`
 
 ### UML Component Diagram
 
 ```mermaid
 graph TB
-    DcControl[UDcControlDemo] --> UNet[UNet]
-    DcControl --> ArduinoControl[UArduinoControl]
+    subgraph RdkHardwareLib["Rdk-HardwareLib"]
+        DcControl[UDcControlDemo]
+        ArduinoControl[UArduinoControl]
+    end
+    
+    subgraph RdkBasicLib["Rdk-BasicLib"]
+        UNet[UNet]
+        UStorage[UStorage]
+    end
+    
+    DcControl -->|inherits| UNet
+    DcControl -->|uses| ArduinoControl
+    UStorage -->|manages| DcControl
+    
+    subgraph Interfaces["Interfaces"]
+        InputProps["Input properties<br/>ptInput"]
+        OutputProps["Output properties<br/>ptOutput"]
+        Parameters["Parameters<br/>ptPubParameter"]
+        States["States<br/>ptPubState"]
+    end
+    
+    DcControl --> Parameters
+    DcControl --> States
+    DcControl --> OutputProps
 ```
+
+**Dependencies:**
+- **Rdk-BasicLib** — base classes (`UNet`, `UStorage`, `UProperty`)
+- **UArduinoControl** — Arduino control component (for sending commands and obtaining data)
+
+**Interfaces:**
+- **Inputs** — properties with `ptInput` flag: none
+- **Outputs** — properties with `ptOutput` flag: `Command`
+- **Parameters** — properties with `ptPubParameter` flag: `Command`
+- **States** — properties with `ptPubState` flag: `SendCommandFlag`, `SentCommand`, `Speed`, `Acceleration`, `GetSpeed`
 
 ### Properties
 
 #### Parameters (ptPubParameter)
 
-- **`Command`** (string, ptPubParameter | ptOutput) — command for DC motor control
+- **`Command`** (string, ptPubParameter | ptOutput) — command for DC motor control. Can be set as a parameter or used as an output property for connection to other components. Command is sent to Arduino via `UArduinoControl->InputCommand` when `SendCommandFlag = true`. Command format depends on Arduino protocol (e.g., "SET_SPEED 50", "SET_DIRECTION FORWARD"). Default: empty string.
 
 #### States (ptPubState)
 
-- **`SendCommandFlag`** (bool) — flag to send command
-- **`SentCommand`** (string) — last sent command
-- **`Speed`** (float) — current motor speed
-- **`Acceleration`** (float) — current motor acceleration
-- **`GetSpeed`** (bool) — flag to get speed
+- **`SendCommandFlag`** (bool) — flag to send command from `Command` property. When set to `true` in `ACalculate()`, command is passed to `UArduinoControl->InputCommand`, then flag is reset to `false`. Default: `false`.
+
+- **`SentCommand`** (string) — last sent command. Updated after setting command in `UArduinoControl->InputCommand`. Default: empty string.
+
+- **`Speed`** (float) — current motor speed. Updated from `UArduinoControl->SpeedValues.last()` when `GetSpeed = true`. Default: 0.0. Range: depends on Arduino protocol and motor type.
+
+- **`Acceleration`** (float) — current motor acceleration. Not updated automatically in current implementation. Default: 0.0.
+
+- **`GetSpeed`** (bool) — flag to obtain motor speed. When set to `true` in `ACalculate()`, speed is read from `UArduinoControl->SpeedValues`, then flag is reset to `false`. Default: `false`.
+
+#### Protected fields
+
+- **`UArdContr`** (UEPtr<UArduinoControl>) — pointer to Arduino control object. Created automatically in `ACalculate()` on first call if equal to `nullptr`. Released in `AUnInit()`.
 
 ### Methods
 
-#### Public Methods
+#### Public methods
 
-- **`New()`** → `UDcControlDemo*` — creates new instance
+- **`New()`** → `UDcControlDemo*` — creates a new class instance. Used by the `UStorage` system to create components.
 
-#### Protected Lifecycle Methods
+#### Protected lifecycle methods
 
-- **`ADefault()`** → `bool` — initializes default parameters
-- **`ABuild()`** → `bool` — builds internal structure
-- **`AReset()`** → `bool` — resets component state
-- **`ACalculate()`** → `bool` — performs calculation step
+- **`ADefault()`** → `bool` — initializes default parameters. Always returns `true` in current implementation. Called automatically on `Default()`.
+
+- **`ABuild()`** → `bool` — builds internal component structure. Always returns `true` in current implementation. Called automatically on `Build()`. Returns `true` on successful build.
+
+- **`AReset()`** → `bool` — resets component state. Always returns `true` in current implementation. Called automatically on `Reset()`. Returns `true`.
+
+- **`ACalculate()`** → `bool` — performs component calculation on each step. Checks and creates `UArduinoControl` if necessary, processes commands and obtains speed data. Called automatically on `Calculate()`. Returns `true`.
+
+#### Protected initialization methods
+
+- **`AInit()`** → `void` — component initialization. Empty in current implementation. Called automatically on `Init()`.
+
+- **`AUnInit()`** → `void` — component deinitialization. Empty in current implementation. Called automatically on `UnInit()`.
 
 ### Usage Examples in C++
 
+#### Example 1: Creating and configuring the component
+
+```cpp
+// Create DC motor control component
+auto dcControl = storage->CreateComponent<UDcControlDemo>();
+dcControl->SetName("DCMotor1");
+
+// Initialization
+dcControl->Default();
+
+// Configure parameters
+dcControl->Command = "SET_SPEED 50";
+
+// Build
+dcControl->Build();
+
+// Usage
+for (int step = 0; step < 1000; step++) {
+    // Set command for sending
+    dcControl->Command = "SET_SPEED " + std::to_string(step % 100);
+    dcControl->SendCommandFlag = true;
+    
+    // Get speed
+    dcControl->GetSpeed = true;
+    
+    // Perform calculation
+    dcControl->Calculate();
+    
+    // Get data
+    float speed = dcControl->Speed;
+    std::string sentCommand = dcControl->SentCommand;
+    
+    std::cout << "Step " << step << ": Command=" << sentCommand 
+              << ", Speed=" << speed << std::endl;
+}
+```
+
+#### Example 2: Using output connection
+
+```cpp
+// Create command source component
+auto commandSource = storage->CreateComponent<UScalarSource>();
+commandSource->SetName("CommandSource");
+
+// Create DC motor control component
+auto dcControl = storage->CreateComponent<UDcControlDemo>();
+dcControl->SetName("DCMotor1");
+dcControl->Build();
+
+// Create link
+storage->CreateLink(commandSource->Output, dcControl->Command);
+
+// In the calculation loop commands are automatically transferred
+// from CommandSource to DCMotor via Command
+// To send command set SendCommandFlag = true
+```
+
+#### Example 3: Speed control with feedback
+
 ```cpp
 auto dcControl = storage->CreateComponent<UDcControlDemo>();
-dcControl->Command = "SET_SPEED 50";
-dcControl->SendCommandFlag = true;
-dcControl->GetSpeed = true;
-dcControl->Calculate();
+dcControl->SetName("DCMotor1");
+dcControl->Build();
 
-float speed = dcControl->Speed;
+// Target speed
+float targetSpeed = 75.0f;
+
+for (int step = 0; step < 1000; step++) {
+    // Get current speed
+    dcControl->GetSpeed = true;
+    dcControl->Calculate();
+    float currentSpeed = dcControl->Speed;
+    
+    // PID controller (simplified)
+    float error = targetSpeed - currentSpeed;
+    float controlSignal = error * 0.1f;  // Simple proportional control
+    
+    // Set new command
+    dcControl->Command = "SET_SPEED " + std::to_string(static_cast<int>(controlSignal));
+    dcControl->SendCommandFlag = true;
+    
+    // Perform calculation
+    dcControl->Calculate();
+    
+    std::cout << "Step " << step << ": Target=" << targetSpeed 
+              << ", Current=" << currentSpeed 
+              << ", Error=" << error << std::endl;
+}
 ```
 
 ### XML Configuration Examples
 
+#### Example 1: Basic configuration
+
 ```xml
-<DCMotor1 Class="DC">
-    <Parameters>
-        <Command>SET_SPEED 50</Command>
-        <SendCommandFlag>true</SendCommandFlag>
-    </Parameters>
-</DCMotor1>
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>COM3</PortToConnect>
+                <MatrixCols>100</MatrixCols>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <DCMotor1 Class="DC">
+            <Parameters>
+                <Command>SET_SPEED 50</Command>
+            </Parameters>
+        </DCMotor1>
+    </Components>
+</Model>
 ```
+
+#### Example 2: Configuration with input connection
+
+```xml
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>/dev/ttyUSB0</PortToConnect>
+                <MatrixCols>50</MatrixCols>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <CommandSource Class="UScalarSource">
+            <Parameters>
+                <Value>"SET_SPEED 75"</Value>
+            </Parameters>
+        </CommandSource>
+        
+        <DCMotor1 Class="DC">
+            <Parameters>
+                <SendCommandFlag>true</SendCommandFlag>
+            </Parameters>
+        </DCMotor1>
+    </Components>
+    
+    <Links>
+        <elem>
+            <Item>CommandSource.Output</Item>
+            <Connector>DCMotor1.Command</Connector>
+        </elem>
+    </Links>
+</Model>
+```
+
+#### Example 3: Configuration with speed monitoring
+
+```xml
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>COM3</PortToConnect>
+                <MatrixCols>200</MatrixCols>
+                <GetDataFromBuffers>true</GetDataFromBuffers>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <DCMotor1 Class="DC">
+            <Parameters>
+                <Command>SET_SPEED 60</Command>
+                <SendCommandFlag>true</SendCommandFlag>
+                <GetSpeed>true</GetSpeed>
+            </Parameters>
+        </DCMotor1>
+        
+        <SpeedMonitor Class="UStatisticDoubleMatrix">
+            <Parameters>
+                <!-- Speed monitoring parameters -->
+            </Parameters>
+        </SpeedMonitor>
+    </Components>
+    
+    <Links>
+        <elem>
+            <Item>DCMotor1.Speed</Item>
+            <Connector>SpeedMonitor.Input</Connector>
+        </elem>
+    </Links>
+</Model>
+```
+
+### Usage in Configurations
+
+`UDcControlDemo` is used to control DC motors via Arduino in configuration projects. Typical use cases:
+
+1. **Speed control** — sending commands to set motor speed via `Command` and `SendCommandFlag`
+2. **Direction control** — sending commands to change rotation direction
+3. **Feedback** — obtaining current speed data via `GetSpeed` and `Speed`
+4. **Controller integration** — using `Command` as output property for connection to other components
+
+**Typical parameter values:**
+- **Command**: "SET_SPEED 50", "SET_DIRECTION FORWARD", "SET_DIRECTION REVERSE", "STOP" (depends on Arduino protocol)
+- **SendCommandFlag**: `true` to send command, `false` after sending
+- **GetSpeed**: `true` to obtain speed, `false` after obtaining
+
+**Command format (example, depends on Arduino protocol):**
+- `SET_SPEED <value>` — set speed (0-100 or 0-255)
+- `SET_DIRECTION <FORWARD|REVERSE>` — set direction
+- `STOP` — stop motor
+- `BRAKE` — brake motor
+
+### See Also
+
+- [`UArduinoControl`](Arduino.md) — Arduino control component
+- [`UADC`](ADC.md) — analog sensor component
+- [Architecture.md](../Architecture.md) — library architecture

@@ -484,11 +484,11 @@ double value1 = adcSensor1->SensorValue;
 
 **Class**: `UADC` — component for working with analog sensors via Arduino ADC (Analog-to-Digital Converter).  
 **Registration**: `UHardwareLibrary.cpp` → `UploadClass("ADC", ...)`.  
-**Instances**: `ClassName = "ADC"` in `Bin/Configs/*/Model_*.xml`.
+**Storage instances**: `ClassName = "ADC"` in `Bin/Configs/*/Model_*.xml`.
 
-`UADC` extends `UNet` with functionality for reading analog values from Arduino pins. Allows reading values from analog inputs, performing sensor calibration, and value transformation. Current implementation is minimal (empty class) and requires extension for full functionality.
+`UADC` extends `UNet` with functionality for reading analog values from Arduino pins. Allows reading values from analog inputs, performing sensor calibration, and value transformation. In the current implementation the class is basic and requires extension for full functionality.
 
-**Note:** Current implementation is minimal. Documentation describes expected interface based on library architecture and usage examples.
+**Note:** The current component implementation is minimal (empty class). Documentation describes the expected interface based on library architecture and usage examples.
 
 ### UML Class Diagram
 
@@ -499,35 +499,87 @@ classDiagram
     class UNet {
         +ADefault() bool
         +ABuild() bool
+        +AReset() bool
         +ACalculate() bool
+        +AInit() void
+        +AUnInit() void
     }
     class UADC {
         +PinNumber : int
         +SensorValue : double
         +ArduinoControl : UArduinoControl*
         +New() UADC*
+        #ADefault() bool
+        #ABuild() bool
+        #AReset() bool
         #ACalculate() bool
     }
+    class UArduinoControl {
+        +DoubleMatrixReadings : MDMatrix~double~
+        +GetDataFromBuffers : bool
+    }
 ```
+
+**Inheritance hierarchy:**
+- `UNet` — base network component class from Rdk-BasicLib
+- `UADC` — component for working with analog sensors
+
+**Relationships with other components:**
+- `UADC` uses `UArduinoControl` to obtain data from Arduino (dependency)
+- `UArduinoControl` provides data via `DoubleMatrixReadings`
+
+**Note:** In the current implementation the `UADC` class is empty. The expected interface is described based on library architecture and usage examples.
 
 ### UML Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Storage
+    participant Storage as UStorage
     participant ADC as UADC
     participant Arduino as UArduinoControl
+    participant Connect as UArduinoConnect
     
-    Storage->>ADC: New() + Default()
+    Storage->>ADC: New()
+    Storage->>ADC: Default()
+    ADC->>ADC: ADefault()
+    Note over ADC: Initialize default<br/>parameters
     Storage->>ADC: SetPinNumber(0)
+    Storage->>ADC: SetArduinoControl(arduinoControl)
     Storage->>ADC: Build()
-    loop Each step
+    ADC->>ADC: ABuild()
+    Note over ADC: Initialize connection<br/>to ArduinoControl
+    ADC-->>Storage: Ready = true
+    loop Each calculation step
         Storage->>ADC: Calculate()
-        ADC->>Arduino: Get data
+        ADC->>ADC: ACalculate()
+        ADC->>Arduino: Check connection
+        alt GetDataFromBuffers == true
+            Arduino->>Connect: GetAndClearAllData()
+            Connect-->>Arduino: QVector~double~ data
+            Arduino->>Arduino: PutDataToMatrix()
+            Note over Arduino: Data written to<br/>DoubleMatrixReadings
+        end
+        ADC->>Arduino: Read data for pin PinNumber
         Arduino-->>ADC: Sensor value
-        ADC->>ADC: Update SensorValue
+        ADC->>ADC: Process and calibrate value
+        ADC->>ADC: SensorValue = processed value
     end
+    Storage->>ADC: Reset()
+    ADC->>ADC: AReset()
+    Note over ADC: Reset state
 ```
+
+**Lifecycle (expected):**
+1. **Creation** — component is created via constructor
+2. **Initialization** — default parameters set via `ADefault()`
+3. **Configuration** — pin number and `UArduinoControl` reference set
+4. **Build** — connection to `UArduinoControl` initialized via `ABuild()`
+5. **Calculation** — on each step:
+   - Obtain data from `UArduinoControl`
+   - Extract value for the specified pin
+   - Process and calibrate value
+   - Update `SensorValue`
+6. **Reset** — state reset via `AReset()`
 
 ### UML State Diagram
 
@@ -535,85 +587,369 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Uninitialized: New()
     Uninitialized --> Defaulted: Default()
-    Defaulted --> Configuring: Configure
+    Defaulted --> Configuring: SetPinNumber() / SetArduinoControl()
     Configuring --> Building: Build()
-    Building --> Ready: Ready = true
-    Ready --> ReadingData: Calculate()
-    ReadingData --> Processing: Process data
-    Processing --> Ready: SensorValue updated
+    Building --> Built: ABuild() success
+    Note right of Building: Connection to ArduinoControl<br/>established
+    Built --> Ready: Ready = true
+    Ready --> WaitingData: Calculate() && data unavailable
+    WaitingData --> ReadingData: Data available
+    ReadingData --> Processing: Extract value for pin
+    Processing --> Calibrating: Calibrate value
+    Calibrating --> Ready: SensorValue updated
+    WaitingData --> Ready: Skip step
+    Ready --> Resetting: Reset()
+    Resetting --> Ready: AReset() complete
 ```
+
+**States (expected):**
+- **Uninitialized** — created but not initialized
+- **Defaulted** — default parameters set
+- **Configuring** — configuring parameters (pin number, ArduinoControl)
+- **Building** — structure build in progress
+- **Built** — structure built, connection established
+- **Ready** — ready for calculations
+- **WaitingData** — waiting for data from ArduinoControl
+- **ReadingData** — reading data from ArduinoControl
+- **Processing** — processing data for specified pin
+- **Calibrating** — calibrating sensor value
+- **Resetting** — state reset in progress
 
 ### UML Activity Diagram
 
 ```mermaid
 flowchart TD
-    Start([Start ACalculate]) --> CheckArduino{ArduinoControl?}
+    Start([Start ACalculate]) --> CheckArduino["ArduinoControl<br/>connected?"]
     CheckArduino -->|No| End([End])
-    CheckArduino -->|Yes| GetData[Get data from ArduinoControl]
-    GetData --> FindPin[Find data for PinNumber]
-    FindPin --> ExtractValue[Extract value]
-    ExtractValue --> SetValue[SensorValue = value]
+    CheckArduino -->|Yes| CheckData["Data<br/>available?"]
+    CheckData -->|No| End
+    CheckData -->|Yes| GetMatrix["Get DoubleMatrixReadings<br/>from ArduinoControl"]
+    GetMatrix --> FindPin[Find data for PinNumber]
+    FindPin --> CheckFound["Data<br/>found?"]
+    CheckFound -->|No| End
+    CheckFound -->|Yes| ExtractValue["Extract value<br/>for pin"]
+    ExtractValue --> ApplyCalibration["Calibration<br/>enabled?"]
+    ApplyCalibration -->|Yes| Calibrate[Apply calibration]
+    ApplyCalibration -->|No| SetValue
+    Calibrate --> Transform[Transform value]
+    Transform --> SetValue[SensorValue = value]
     SetValue --> End
 ```
+
+**ACalculate() algorithm (expected):**
+1. Check connection to `UArduinoControl`
+2. Check data availability in `DoubleMatrixReadings`
+3. Find data for the specified pin (`PinNumber`)
+4. Extract value for the pin
+5. Apply calibration (if enabled)
+6. Transform value (if necessary)
+7. Update `SensorValue`
 
 ### UML Component Diagram
 
 ```mermaid
 graph TB
-    ADC[UADC] --> UNet[UNet]
-    ADC --> ArduinoControl[UArduinoControl]
+    subgraph RdkHardwareLib["Rdk-HardwareLib"]
+        ADC[UADC]
+        ArduinoControl[UArduinoControl]
+    end
+    
+    subgraph RdkBasicLib["Rdk-BasicLib"]
+        UNet[UNet]
+        UStorage[UStorage]
+    end
+    
+    ADC -->|inherits| UNet
+    ADC -->|uses| ArduinoControl
+    UStorage -->|manages| ADC
+    
+    subgraph Interfaces["Interfaces"]
+        InputProps["Input properties<br/>ptInput"]
+        OutputProps["Output properties<br/>ptOutput"]
+        Parameters["Parameters<br/>ptPubParameter"]
+        States["States<br/>ptPubState"]
+    end
+    
+    ADC --> Parameters
+    ADC --> States
+    ADC --> OutputProps
 ```
+
+**Dependencies:**
+- **Rdk-BasicLib** — base classes (`UNet`, `UStorage`, `UProperty`)
+- **UArduinoControl** — Arduino control component (for data acquisition)
+
+**Interfaces (expected):**
+- **Inputs** — properties with `ptInput` flag: none
+- **Outputs** — properties with `ptOutput` flag: `SensorValue`
+- **Parameters** — properties with `ptPubParameter` flag: `PinNumber`, `ArduinoControl`
+- **States** — properties with `ptPubState` flag: `SensorValue`
 
 ### Properties
 
-**Note:** Current implementation is empty. Properties described based on expected interface.
+**Note:** In the current implementation the class is empty. Properties are described based on the expected interface.
 
-#### Parameters (ptPubParameter) — Expected
+#### Parameters (ptPubParameter) — expected
 
-- **`PinNumber`** (int) — Arduino analog pin number (A0-A5)
-- **`ArduinoControl`** (UArduinoControl*) — pointer to `UArduinoControl` component
+- **`PinNumber`** (int) — Arduino analog pin number for reading (A0-A5, corresponding to pins 14-19). Default: not set. Range: 0-5 (A0-A5) or 14-19 (pin numbers).
 
-#### States (ptPubState) — Expected
+- **`ArduinoControl`** (UArduinoControl*) — pointer to the `UArduinoControl` component used to obtain data from Arduino. Default: `nullptr`.
 
-- **`SensorValue`** (double, ptPubState | ptOutput) — current analog sensor value
+#### States (ptPubState) — expected
+
+- **`SensorValue`** (double, ptPubState | ptOutput) — current analog sensor value. Updated on each `ACalculate()` step based on data from `UArduinoControl`. Can be used as an output property for connection to other components. Default: 0.0. Range: 0.0-1023.0 (for 10-bit ADC) or normalized value 0.0-1.0.
 
 ### Methods
 
-**Note:** Current implementation is empty. Methods described based on expected interface.
+**Note:** In the current implementation the class is empty. Methods are described based on the expected interface.
 
-#### Public Methods — Expected
+#### Public methods — expected
 
-- **`New()`** → `UADC*` — creates new instance
+- **`New()`** → `UADC*` — creates a new class instance. Used by the `UStorage` system to create components.
 
-#### Protected Lifecycle Methods — Expected
+#### Protected lifecycle methods — expected
 
-- **`ADefault()`** → `bool` — initializes default parameters
-- **`ABuild()`** → `bool` — builds internal structure
-- **`AReset()`** → `bool` — resets component state
-- **`ACalculate()`** → `bool` — performs calculation step
+- **`ADefault()`** → `bool` — initializes default parameters. Sets `PinNumber = 0`, `ArduinoControl = nullptr`, `SensorValue = 0.0`. Called automatically on `Default()`. Returns `true`.
+
+- **`ABuild()`** → `bool` — builds internal component structure. Checks for `ArduinoControl`, initializes connection. Called automatically on `Build()`. Returns `true` on successful build.
+
+- **`AReset()`** → `bool` — resets component state. Resets `SensorValue` to 0.0. Called automatically on `Reset()`. Returns `true`.
+
+- **`ACalculate()`** → `bool` — performs component calculation on each step. Obtains data from `UArduinoControl`, extracts value for the specified pin, applies calibration, and updates `SensorValue`. Called automatically on `Calculate()`. Returns `true`.
+
+#### Protected initialization methods — expected
+
+- **`AInit()`** → `void` — component initialization. Empty in current implementation. Called automatically on `Init()`.
+
+- **`AUnInit()`** → `void` — component deinitialization. Clears references to `ArduinoControl`. Called automatically on `UnInit()`.
 
 ### Usage Examples in C++
 
+**Note:** Examples are based on the expected component interface.
+
+#### Example 1: Creating and configuring the component
+
 ```cpp
+// Create Arduino control component
 auto arduinoControl = storage->CreateComponent<UArduinoControl>();
+arduinoControl->SetName("ArduinoControl1");
 arduinoControl->PortToConnect = "COM3";
+arduinoControl->MatrixCols = 100;
+arduinoControl->GetDataFromBuffers = true;
 arduinoControl->Build();
 
+// Create ADC component
 auto adcSensor = storage->CreateComponent<UADC>();
-adcSensor->PinNumber = 0;
+adcSensor->SetName("ADCSensor1");
+
+// Initialization
+adcSensor->Default();
+
+// Configure parameters
+adcSensor->PinNumber = 0;  // A0
+adcSensor->ArduinoControl = arduinoControl;
+
+// Build
+adcSensor->Build();
+
+// Usage
+for (int step = 0; step < 1000; step++) {
+    // Update data in ArduinoControl
+    arduinoControl->Calculate();
+    
+    // Read sensor value
+    adcSensor->Calculate();
+    
+    // Get value
+    double sensorValue = adcSensor->SensorValue;
+    std::cout << "Step " << step << ": Sensor Value = " 
+              << sensorValue << std::endl;
+}
+```
+
+#### Example 2: Using output connection
+
+```cpp
+// Create ADC component
+auto adcSensor = storage->CreateComponent<UADC>();
+adcSensor->SetName("ADCSensor1");
+adcSensor->PinNumber = 1;  // A1
 adcSensor->ArduinoControl = arduinoControl;
 adcSensor->Build();
 
-adcSensor->Calculate();
-double value = adcSensor->SensorValue;
+// Create data receiver component
+auto dataProcessor = storage->CreateComponent<UStatisticDoubleMatrix>();
+dataProcessor->SetName("DataProcessor");
+
+// Create link
+storage->CreateLink(adcSensor->SensorValue, dataProcessor->Input);
+
+// In the calculation loop values are automatically transferred
+// from ADCSensor to DataProcessor
+```
+
+#### Example 3: Working with multiple sensors
+
+```cpp
+// Create multiple ADC sensors
+auto adcSensor0 = storage->CreateComponent<UADC>();
+adcSensor0->SetName("ADCSensor0");
+adcSensor0->PinNumber = 0;  // A0
+adcSensor0->ArduinoControl = arduinoControl;
+adcSensor0->Build();
+
+auto adcSensor1 = storage->CreateComponent<UADC>();
+adcSensor1->SetName("ADCSensor1");
+adcSensor1->PinNumber = 1;  // A1
+adcSensor1->ArduinoControl = arduinoControl;
+adcSensor1->Build();
+
+// In calculation loop
+arduinoControl->Calculate();
+adcSensor0->Calculate();
+adcSensor1->Calculate();
+
+double value0 = adcSensor0->SensorValue;
+double value1 = adcSensor1->SensorValue;
 ```
 
 ### XML Configuration Examples
 
+**Note:** Examples are based on the expected component interface.
+
+#### Example 1: Basic configuration
+
 ```xml
-<ADCSensor1 Class="ADC">
-    <Parameters>
-        <PinNumber>0</PinNumber>
-    </Parameters>
-</ADCSensor1>
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>COM3</PortToConnect>
+                <MatrixCols>100</MatrixCols>
+                <GetDataFromBuffers>true</GetDataFromBuffers>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <ADCSensor1 Class="ADC">
+            <Parameters>
+                <PinNumber>0</PinNumber>
+            </Parameters>
+        </ADCSensor1>
+    </Components>
+    
+    <Links>
+        <elem>
+            <Item>ArduinoControl1</Item>
+            <Connector>ADCSensor1.ArduinoControl</Connector>
+        </elem>
+    </Links>
+</Model>
 ```
+
+#### Example 2: Configuration with output connection
+
+```xml
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>/dev/ttyUSB0</PortToConnect>
+                <MatrixCols>50</MatrixCols>
+                <GetDataFromBuffers>true</GetDataFromBuffers>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <ADCSensor1 Class="ADC">
+            <Parameters>
+                <PinNumber>1</PinNumber>
+            </Parameters>
+        </ADCSensor1>
+        
+        <DataProcessor Class="UStatisticDoubleMatrix">
+            <Parameters>
+                <!-- Data processing parameters -->
+            </Parameters>
+        </DataProcessor>
+    </Components>
+    
+    <Links>
+        <elem>
+            <Item>ArduinoControl1</Item>
+            <Connector>ADCSensor1.ArduinoControl</Connector>
+        </elem>
+        <elem>
+            <Item>ADCSensor1.SensorValue</Item>
+            <Connector>DataProcessor.Input</Connector>
+        </elem>
+    </Links>
+</Model>
+```
+
+#### Example 3: Configuration with multiple sensors
+
+```xml
+<Model Class="NModel">
+    <Components>
+        <ArduinoControl1 Class="Arduino">
+            <Parameters>
+                <PortToConnect>COM3</PortToConnect>
+                <MatrixCols>200</MatrixCols>
+                <GetDataFromBuffers>true</GetDataFromBuffers>
+            </Parameters>
+        </ArduinoControl1>
+        
+        <ADCSensor0 Class="ADC">
+            <Parameters>
+                <PinNumber>0</PinNumber>
+            </Parameters>
+        </ADCSensor0>
+        
+        <ADCSensor1 Class="ADC">
+            <Parameters>
+                <PinNumber>1</PinNumber>
+            </Parameters>
+        </ADCSensor1>
+        
+        <ADCSensor2 Class="ADC">
+            <Parameters>
+                <PinNumber>2</PinNumber>
+            </Parameters>
+        </ADCSensor2>
+    </Components>
+    
+    <Links>
+        <elem>
+            <Item>ArduinoControl1</Item>
+            <Connector>ADCSensor0.ArduinoControl</Connector>
+        </elem>
+        <elem>
+            <Item>ArduinoControl1</Item>
+            <Connector>ADCSensor1.ArduinoControl</Connector>
+        </elem>
+        <elem>
+            <Item>ArduinoControl1</Item>
+            <Connector>ADCSensor2.ArduinoControl</Connector>
+        </elem>
+    </Links>
+</Model>
+```
+
+### Usage in Configurations
+
+`UADC` is used to read analog sensor values from Arduino in configuration projects. Typical use cases:
+
+1. **Reading sensor data** — obtaining values from Arduino analog inputs (A0-A5)
+2. **Data processing integration** — passing values via `SensorValue` output property to other components
+3. **Monitoring multiple sensors** — creating multiple `UADC` instances for different pins
+
+**Typical parameter values:**
+- **PinNumber**: 0-5 (A0-A5) or 14-19 (Arduino pin numbers)
+- **ArduinoControl**: reference to `UArduinoControl` component configured for Arduino
+
+**Note:** In the current implementation the component requires further development for full functionality. It is expected that the component will obtain data from `UArduinoControl`'s `DoubleMatrixReadings` and extract values for the specified pin.
+
+### See Also
+
+- [`UArduinoControl`](Arduino.md) — Arduino control component
+- [`UDcControlDemo`](DC.md) — DC motor control component
+- [Architecture.md](../Architecture.md) — library architecture

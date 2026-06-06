@@ -565,3 +565,32 @@ Commands are sent as UTF-8 text with newline character (`\n`) at the end.
 
 - [`UArduinoControl`](Arduino.md) — Arduino control component (uses `UArduinoConnect`)
 - [Architecture.md](../Architecture.md) — library architecture
+
+```mermaid
+graph TB
+    subgraph RdkHardwareLib["Rdk-HardwareLib"]
+        ArduinoConnect[UArduinoConnect]
+        ArduinoControl[UArduinoControl]
+    end
+    
+    subgraph Qt5["Qt5 Libraries"]
+        QtCore[Qt5::Core]
+        QtSerialPort[Qt5::SerialPort]
+        QtThread[Qt5::Core QThread]
+    end
+    
+    ArduinoConnect -->|inherits| QtThread
+    ArduinoConnect -->|uses| QtCore
+    ArduinoConnect -->|uses| QtSerialPort
+    ArduinoControl -->|uses| ArduinoConnect
+    
+    subgraph Interfaces["Интерфейсы"]
+        SerialPort["QSerialPort<br/>Последовательный порт"]
+        DataBuffer["DataBuffer<br/>Буфер данных"]
+        Signals["Qt Signals<br/>Сигналы"]
+    end
+    
+    ArduinoConnect --> SerialPort
+    ArduinoConnect --> DataBuffer
+    ArduinoConnect --> Signals
+```

@@ -70,12 +70,12 @@
 ### Приоритет P2 — качество компонентной документации
 - [ ] Создать **Component-Documentation-Template.md** (UML, edge-свойства, примеры XML)
 - [ ] В каждом компоненте — таблицы всех `UProperty` из заголовков `Core/*.h`
-- [ ] В блоке «Использование» — ссылки на `Bin/Configs/SpikeSamples/Hardware/`
+- [ ] В blockе «Использование» — ссылки на `Bin/Configs/SpikeSamples/Hardware/`
 - [ ] Согласовать **ArduinoAdc** doc с именем класса `ArduinoAdc` (файл `ArduinoAdc.md` vs `UploadClass` `ArduinoAdc`)
 
 ### Приоритет P3 — навигация
 - [ ] В начале каждого компонента — «Каталог: [Component-Catalog.md](Component-Catalog.md)»
-- [ ] Пометить legacy-файлы (`ADC.md`, `Arduino.md`, …) явным баннером «deprecated → новый ClassName»
+- [ ] Пометить legacy-файлы (`ADC.md`, `Arduino.md`, …) явным баннером «deprecated → new ClassName»
 
 ---
 
@@ -131,4 +131,4 @@ Update Component-Catalog, component docs, API-Overview, Transport/Protocol/GUI d
 
 ---
 
-*Источники: [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json); шаблон — [Nmsdk-MotionControlLib/Docs/Documentation-Status.md](../../Nmsdk-MotionControlLib/Docs/Documentation-Status.md).*
+*References: [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json); template — [Nmsdk-MotionControlLib/Docs/Documentation-Status.md](../../Nmsdk-MotionControlLib/Docs/Documentation-Status.md).*
