@@ -23,6 +23,11 @@
 | `ConnectionState` | 0–3 (см. [API-Overview.md](../API-Overview.md)) |
 | `LastError` | Текст ошибки serial/upload |
 
+## Примеры конфигураций (Bin/SpikeSamples)
+
+- [Hardware/01-ArduinoBoard](../../../../Bin/Configs/SpikeSamples/Hardware/01-ArduinoBoard/README.md)
+- Обзор темы: [Bin/Docs/SpikeSamples/Overview.md](../../../../Bin/Docs/SpikeSamples/Overview.md)
+
 ## Типичная схема
 
 ```mermaid
