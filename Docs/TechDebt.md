@@ -18,7 +18,7 @@ Legend: `[ ]` open · `[x]` closed · **AU-** = Arduino upload / board profile.
 | [x] AU-08 | Transport/GUI docs outdated (protocol, async upload) | plan | §7 |
 | [x] AU-09 | Integration test assumes synchronous ProcessBoardEdges upload | plan | §3 |
 | [ ] AU-10 | CH340 clones: cannot distinguish Uno vs Mega by USB | plan | — (documented in Firmware/README, GUI) |
-| [ ] AU-11 | No cancel-upload / kill avrdude | plan | — (out of v1) |
+| [x] AU-11 | No cancel-upload / kill avrdude | plan | 2026-07-27: `CancelUpload` edge + `UArduinoFlasher` kill + GUI Cancel button |
 | [x] AU-12 | Sample configs default BoardProfile=0 while user has Mega on desk | plan | §5–§6 |
 
 ---
@@ -41,5 +41,5 @@ Legend: `[ ]` open · `[x]` closed · **AU-** = Arduino upload / board profile.
 | [x] AU-08 | Transport/GUI docs outdated (protocol, async upload) | plan | §7 |
 | [x] AU-09 | Integration test assumes synchronous ProcessBoardEdges upload | plan | §3 |
 | [ ] AU-10 | CH340 clones: cannot distinguish Uno vs Mega by USB | plan | — (documented in Firmware/README, GUI) |
-| [ ] AU-11 | No cancel-upload / kill avrdude | plan | — (out of v1) |
+| [x] AU-11 | No cancel-upload / kill avrdude | plan | 2026-07-27: `CancelUpload` edge + `UArduinoFlasher` kill + GUI Cancel button |
 | [x] AU-12 | Sample configs default BoardProfile=0 while user has Mega on desk | plan | §5–§6 |

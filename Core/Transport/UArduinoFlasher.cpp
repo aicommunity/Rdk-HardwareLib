@@ -214,11 +214,18 @@ QString UArduinoFlasher::buildCommand(const UArduinoBoardProfile& profile,
         .arg(hexPath);
 }
 
+void UArduinoFlasher::requestCancel()
+{
+    m_localCancel.store(true);
+}
+
 bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
                             const QString& port,
                             const QString& hexPath,
-                            QString* errorOut)
+                            QString* errorOut,
+                            std::atomic<bool>* cancelFlag)
 {
+    m_localCancel.store(false);
     const QString avrdude = locateAvrdudeBinary();
     const QString conf = locateAvrdudeConf();
 
@@ -284,11 +291,34 @@ bool UArduinoFlasher::flash(const UArduinoBoardProfile& profile,
         return false;
     }
 
+    auto isCancelled = [this, cancelFlag]() {
+        return m_localCancel.load() || (cancelFlag && cancelFlag->load());
+    };
+
     while (process.state() != QProcess::NotRunning) {
+        if (isCancelled()) {
+            process.kill();
+            process.waitForFinished(5000);
+            const QString msg = QStringLiteral("Upload cancelled");
+            if (errorOut)
+                *errorOut = msg;
+            emit progressChanged(0);
+            emit finished(false, msg);
+            return false;
+        }
         process.waitForReadyRead(200);
         reportProgress(process.readAllStandardOutput());
     }
     reportProgress(process.readAllStandardOutput());
+
+    if (isCancelled()) {
+        const QString msg = QStringLiteral("Upload cancelled");
+        if (errorOut)
+            *errorOut = msg;
+        emit progressChanged(0);
+        emit finished(false, msg);
+        return false;
+    }
 
     const bool ok = process.exitCode() == 0;
     emit progressChanged(ok ? 100 : 0);

@@ -36,6 +36,7 @@ UArduinoBoard::UArduinoBoard()
     , Disconnect("Disconnect", this)
     , Reconnect("Reconnect", this)
     , UploadFirmware("UploadFirmware", this)
+    , CancelUpload("CancelUpload", this)
     , ClearLastError("ClearLastError", this)
     , ConnectionState("ConnectionState", this)
     , LastError("LastError", this)
@@ -96,6 +97,7 @@ bool UArduinoBoard::ADefault()
     Disconnect = false;
     Reconnect = false;
     UploadFirmware = false;
+    CancelUpload = false;
     ClearLastError = false;
     ConnectionState = ArduinoDisconnected;
     LastError = "";
@@ -130,6 +132,7 @@ bool UArduinoBoard::AReset()
     RequestHealthCheck = false;
     UploadFirmwareFlag = false;
     UploadFirmware = false;
+    CancelUpload = false;
     Connect = false;
     Disconnect = false;
     Reconnect = false;
@@ -143,6 +146,7 @@ void UArduinoBoard::AInit()
 
 void UArduinoBoard::AUnInit()
 {
+    requestCancelUpload();
     if (UploadThread) {
         UploadThread->wait(30000);
         finishUploadThread();
@@ -187,6 +191,11 @@ void UArduinoBoard::ProcessBoardEdges()
         ResetEdge(ClearLastError);
     }
 
+    if (CancelUpload) {
+        requestCancelUpload();
+        ResetEdge(CancelUpload);
+    }
+
     if (Disconnect) {
         CloseConnection();
         ResetEdge(Disconnect);
@@ -218,6 +227,17 @@ void UArduinoBoard::ProcessBoardEdges()
             startUploadAsync();
         }
     }
+}
+
+void UArduinoBoard::requestCancelUpload()
+{
+    if (UploadJob && !UploadJob->finished.load()) {
+        UploadJob->cancelRequested.store(true);
+        UploadLastResult = UArduinoPropertyString::toStdProperty(QStringLiteral("cancelling"));
+        SyncDerivedStates();
+    }
+    if (Flasher)
+        Flasher->requestCancel();
 }
 
 bool UArduinoBoard::EnsureConnected()
@@ -307,7 +327,7 @@ void UArduinoBoard::RunUploadBlocking()
         [this](int percent) { UploadProgress = percent; });
 
     QString err;
-    const bool ok = Flasher->flash(profile, port, hex, &err);
+    const bool ok = Flasher->flash(profile, port, hex, &err, nullptr);
     QObject::disconnect(progressConn);
     UploadProgress = ok ? 100 : 0;
     UploadLastResult =

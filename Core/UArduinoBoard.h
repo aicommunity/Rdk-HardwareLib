@@ -34,6 +34,7 @@ public:
     UProperty<bool, UArduinoBoard, ptPubParameter | ptInput> Disconnect;
     UProperty<bool, UArduinoBoard, ptPubParameter | ptInput> Reconnect;
     UProperty<bool, UArduinoBoard, ptPubParameter | ptInput> UploadFirmware;
+    UProperty<bool, UArduinoBoard, ptPubParameter | ptInput> CancelUpload;
     UProperty<bool, UArduinoBoard, ptPubParameter | ptInput> ClearLastError;
 
     UProperty<int, UArduinoBoard, ptPubState> ConnectionState;
@@ -84,6 +85,7 @@ protected:
     void RunUpload();
     void RunUploadBlocking();
     void startUploadAsync();
+    void requestCancelUpload();
     void PollUploadJob();
     void finishUploadThread();
     void HeartbeatTick();

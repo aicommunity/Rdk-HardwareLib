@@ -106,6 +106,10 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     UploadBtn = new QPushButton(tr("Upload firmware"), this);
 
+    CancelUploadBtn = new QPushButton(tr("Cancel upload"), this);
+
+    CancelUploadBtn->setEnabled(false);
+
     connect(ConnectBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onConnect);
 
     connect(DisconnectBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onDisconnect);
@@ -115,6 +119,8 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     connect(HealthBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onHealthCheck);
 
     connect(UploadBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onUpload);
+
+    connect(CancelUploadBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onCancelUpload);
 
     auto* applyBtn = new QPushButton(tr("Apply parameters"), this);
 
@@ -168,7 +174,17 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     form->addRow(tr("HEX path:"), hexRow);
 
-    form->addRow(tr("Upload:"), UploadBtn);
+    auto* uploadRow = new QWidget(this);
+
+    auto* uploadRowLayout = new QHBoxLayout(uploadRow);
+
+    uploadRowLayout->setContentsMargins(0, 0, 0, 0);
+
+    uploadRowLayout->addWidget(UploadBtn);
+
+    uploadRowLayout->addWidget(CancelUploadBtn);
+
+    form->addRow(tr("Upload:"), uploadRow);
 
     form->addRow(QString(), UploadProgress);
 
@@ -324,6 +340,8 @@ void HardwareArduinoBoardPanelWidget::updateUploadControlsEnabled()
     const bool uploading = HardwareGuiHelpers::getPropBool(Context, "IsUploading", false);
 
     UploadBtn->setEnabled(!uploading);
+
+    CancelUploadBtn->setEnabled(uploading);
 
     ConnectBtn->setEnabled(!uploading);
 
@@ -687,6 +705,22 @@ void HardwareArduinoBoardPanelWidget::onUpload()
     startUploadUiPoll();
 
 }
+
+void HardwareArduinoBoardPanelWidget::onCancelUpload()
+
+{
+
+    if (Context.componentLongName.isEmpty())
+
+        return;
+
+    HardwareGuiHelpers::pulseEdge(Context, "CancelUpload");
+
+    startUploadUiPoll();
+
+}
+
+
 
 void HardwareArduinoBoardPanelWidget::onBrowseHex()
 

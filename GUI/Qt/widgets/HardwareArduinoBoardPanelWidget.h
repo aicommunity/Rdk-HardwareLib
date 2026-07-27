@@ -33,6 +33,7 @@ private slots:
     void onReconnect();
     void onHealthCheck();
     void onUpload();
+    void onCancelUpload();
     void onBrowseHex();
     void onPortOrProfileChanged();
     void onUploadPollTick();
@@ -62,6 +63,7 @@ private:
     QProgressBar* UploadProgress = nullptr;
     QPlainTextEdit* StatusLog = nullptr;
     QPushButton* UploadBtn = nullptr;
+    QPushButton* CancelUploadBtn = nullptr;
     QPushButton* ConnectBtn = nullptr;
     QPushButton* DisconnectBtn = nullptr;
     QPushButton* ReconnectBtn = nullptr;

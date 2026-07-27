@@ -16,6 +16,7 @@ struct UArduinoUploadJobState {
     std::atomic<bool> running{false};
     std::atomic<bool> finished{false};
     std::atomic<bool> success{false};
+    std::atomic<bool> cancelRequested{false};
     std::atomic<int> progress{0};
     QMutex messageMutex;
     QString statusMessage;

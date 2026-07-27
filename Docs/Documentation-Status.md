@@ -4,7 +4,8 @@
 
 Краткий статус документации библиотеки Rdk-HardwareLib и чеклист синхронизации с кодом.
 
-**Аудит:** 2026-06-06 — [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json)
+**Аудит:** 2026-06-06 — [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json)  
+**Обновление Track 3:** 2026-07-27
 
 ---
 
@@ -19,7 +20,8 @@
 | Отсутствуют в Component-Catalog | **0** |
 | Регистрация | `Core/UHardwareLibrary.cpp` |
 
-**Прогресс по классам:** 5/5 (100%) ✅ — все `UploadClass` имеют per-class документацию.
+**Прогресс по классам:** 5/5 (100%) ✅ — все `UploadClass` имеют per-class документацию.  
+**Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и во все 5 per-class компонентов.
 
 ---
 
@@ -27,18 +29,18 @@
 
 ### Общая документация
 - ✅ **README.md** — обзор, быстрый старт, соглашения именования (RU/EN)
-- ✅ **Architecture.md** — архитектура transport/protocol/GUI (RU-only)
-- ✅ **API-Overview.md** — edge-свойства, публичный API (RU-only)
-- ✅ **Usage-Examples.md** — примеры конфигураций (RU-only)
-- ✅ **Component-Catalog.md** — полный каталог с таблицами (RU-only)
-- ✅ **Transport.md**, **Protocol.md** — serial-сессия, Firmata, binary parser
-- ✅ **GUI.md** — Qt-контроллеры и pinout
+- ✅ **Architecture.md** — архитектура transport/protocol/GUI (RU/EN)
+- ✅ **API-Overview.md** — edge-свойства, публичный API (RU/EN)
+- ✅ **Usage-Examples.md** — примеры конфигураций (RU/EN)
+- ✅ **Component-Catalog.md** — полный каталог с таблицами (RU/EN)
+- ✅ **Transport.md**, **Protocol.md** — serial-сессия, Firmata, binary parser (RU/EN)
+- ✅ **GUI.md** — Qt-контроллеры и pinout (RU/EN)
 - ✅ **firmware_build.md**, **firmata_spike.md**, **Arduino-Setup-Windows.md**
 - ✅ **TechDebt.md**, **FirmataTechDebt.md**, **DOXYGEN.md**
 - ✅ **Diagrams/README.md**
 - ✅ **Legacy/** — редиректы со старых ClassName
 
-### Компоненты (все зарегистрированные классы)
+### Компоненты (все зарегистрированные классы, RU/EN)
 - ✅ **ArduinoAdc** — [`Components/ArduinoAdc.md`](Components/ArduinoAdc.md)
 - ✅ **ArduinoBoard** — [`Components/ArduinoBoard.md`](Components/ArduinoBoard.md)
 - ✅ **ArduinoDcDemo** — [`Components/ArduinoDcDemo.md`](Components/ArduinoDcDemo.md)
@@ -62,16 +64,10 @@
 
 ## Планируется / рекомендации
 
-### Приоритет P1 — bilingual parity
-- [ ] Добавить `## EN` в **Architecture.md**, **API-Overview.md**, **Usage-Examples.md**, **Component-Catalog.md**
-- [ ] Добавить `## EN` во все **5** per-class компонентов в `Components/` (сейчас RU-only)
-- [ ] Добавить `## EN` в **Transport.md**, **Protocol.md**, **GUI.md**, **firmata_spike.md**
-
 ### Приоритет P2 — качество компонентной документации
 - [ ] Создать **Component-Documentation-Template.md** (UML, edge-свойства, примеры XML)
 - [ ] В каждом компоненте — таблицы всех `UProperty` из заголовков `Core/*.h`
 - [ ] В blockе «Использование» — ссылки на `Bin/Configs/SpikeSamples/Hardware/`
-- [ ] Согласовать **ArduinoAdc** doc с именем класса `ArduinoAdc` (файл `ArduinoAdc.md` vs `UploadClass` `ArduinoAdc`)
 
 ### Приоритет P3 — навигация
 - [ ] В начале каждого компонента — «Каталог: [Component-Catalog.md](Component-Catalog.md)»
@@ -83,13 +79,13 @@
 
 Регистрация: `Libraries/Rdk-HardwareLib/Core/UHardwareLibrary.cpp`.
 
-| ClassName | Doc-файл | В каталоге | Статус |
-|-----------|----------|------------|--------|
-| `ArduinoAdc` | `Components/ArduinoAdc.md` | ✅ | ✅ |
-| `ArduinoBoard` | `Components/ArduinoBoard.md` | ✅ | ✅ |
-| `ArduinoDcDemo` | `Components/ArduinoDcDemo.md` | ✅ | ✅ |
-| `ArduinoFirmata` | `Components/ArduinoFirmata.md` | ✅ | ✅ |
-| `ArduinoSensorSketch` | `Components/ArduinoSensorSketch.md` | ✅ | ✅ |
+| ClassName | Doc-файл | В каталоге | EN | Статус |
+|-----------|----------|------------|----|--------|
+| `ArduinoAdc` | `Components/ArduinoAdc.md` | ✅ | ✅ | ✅ |
+| `ArduinoBoard` | `Components/ArduinoBoard.md` | ✅ | ✅ | ✅ |
+| `ArduinoDcDemo` | `Components/ArduinoDcDemo.md` | ✅ | ✅ | ✅ |
+| `ArduinoFirmata` | `Components/ArduinoFirmata.md` | ✅ | ✅ | ✅ |
+| `ArduinoSensorSketch` | `Components/ArduinoSensorSketch.md` | ✅ | ✅ | ✅ |
 
 **Прогресс: 5/5 (100%)** ✅
 
@@ -115,13 +111,12 @@
 
 ### Documentation status summary
 
-Rdk-HardwareLib has **5** registered `UploadClass` entries; **all 5** have per-class component documentation. **4** orphan docs are expected legacy redirects (`ADC`, `Arduino`, `ArduinoConnect`, `DC`). Component-Catalog is complete (0 missing).
+Rdk-HardwareLib has **5** registered `UploadClass` entries; **all 5** have per-class component documentation with RU/EN. Infrastructure docs (Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike) include `## EN`. **4** orphan docs are expected legacy redirects.
 
-**Progress:** 5/5 classes (100%) ✅
+**Progress:** 5/5 classes (100%) ✅ · bilingual Track 3 infra/components: done
 
 ### Remaining work
 
-- Add `## EN` sections to component docs and infrastructure docs (Architecture, API-Overview, Transport, Protocol, GUI)
 - Introduce Component-Documentation-Template.md for consistent UML and property tables
 - Keep firmware manifest and SpikeSamples Hardware configs in sync with docs
 

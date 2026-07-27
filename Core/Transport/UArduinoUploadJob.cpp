@@ -47,8 +47,22 @@ void UArduinoUploadJob::runSync(UArduinoUploadJobState* state,
         },
         Qt::DirectConnection);
 
+    if (state->cancelRequested.load()) {
+        state->success = false;
+        state->progress = 0;
+        {
+            QMutexLocker lock(&state->messageMutex);
+            state->errorMessage = QStringLiteral("Upload cancelled");
+            state->statusMessage = state->errorMessage;
+        }
+        state->running = false;
+        state->finished = true;
+        QObject::disconnect(progressConn);
+        return;
+    }
+
     QString err;
-    const bool ok = flasher.flash(profile, port, hexPath, &err);
+    const bool ok = flasher.flash(profile, port, hexPath, &err, &state->cancelRequested);
     QObject::disconnect(progressConn);
 
     state->success = ok;
