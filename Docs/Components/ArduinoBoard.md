@@ -62,6 +62,17 @@ flowchart LR
 
 ---
 
+### Ключевые свойства / Favorites
+
+| Свойство | Роль |
+|----------|------|
+| `PortName` / `BaudRate` / `BoardProfile` | Serial и профиль платы |
+| `ConnectOnBuild` / `Connect` / `Disconnect` / `Reconnect` | Подключение |
+| `UploadFirmware` / `BundledFirmwareId` | Прошивка |
+| `IsConnected` / `HasError` / `LastError` | Состояние |
+
+ClDesc: `Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoBoard.xml` (Properties выровнены с runtime).
+
 ## EN
 
 ## Purpose

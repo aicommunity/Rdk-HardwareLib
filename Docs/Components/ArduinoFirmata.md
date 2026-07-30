@@ -64,7 +64,7 @@ flowchart LR
 
 ## ClDesc
 
-`Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoFirmata.xml`
+`Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoFirmata.xml` — curated **Favorites** (direct): SelectedPin, AutoRefreshPins, RestartFirmata, edge-действия, AnalogSamples/DigitalSamples, readiness. Secondary (`Activity`, `Coord`, …) не в Favorites.
 
 ## Техдолг
 
@@ -136,7 +136,7 @@ flowchart LR
 
 ## ClDesc
 
-`Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoFirmata.xml`
+`Bin/ClDesc/HardwareLibrary/ru-RU/ArduinoFirmata.xml` — curated **Favorites** (direct): SelectedPin, AutoRefreshPins, edge actions, samples, readiness. Secondary props omitted.
 
 ## Tech debt
 
