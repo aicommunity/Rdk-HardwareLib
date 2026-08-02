@@ -57,7 +57,7 @@
 
 Вкладки **Pins** | **Monitor** | **I2C** | **Board**. Пульт пинов: `SetPinMode`, `WriteDigital`, `ReadAnalog`, пресеты, `Monitor all` → `AutoRefreshPins`. Monitor: превью `AnalogSamples`, `StreamLog`. Диаграмма: `applyPinStatusJson` + клик по пину (Mega — полный `mega2560_pins.json`).
 
-**Watch:** привяжите downstream к свойству `AnalogSamples` (`ptOutput`) для графика/статистики без встроенного `UGraphWidget`.
+**Watch:** привяжите downstream к свойству `AnalogSamples` (`ptOutput`) для графика/статистики через `UWatch` (без отдельного legacy Graph widget).
 
 ## DcDemo widget
 
@@ -140,7 +140,7 @@ Tabs **Sensor** | **Board**. Sensor: commands (`pulseEdge("SendCommand")`), pres
 
 Tabs **Pins** | **Monitor** | **I2C** | **Board**. Pin console: `SetPinMode`, `WriteDigital`, `ReadAnalog`, presets, `Monitor all` → `AutoRefreshPins`. Monitor: preview `AnalogSamples`, `StreamLog`. Diagram: `applyPinStatusJson` + pin click (Mega — full `mega2560_pins.json`).
 
-**Watch:** bind downstream to `AnalogSamples` property (`ptOutput`) for chart/statistics without built-in `UGraphWidget`.
+**Watch:** bind downstream to `AnalogSamples` property (`ptOutput`) for chart/statistics via `UWatch` (no separate legacy Graph widget).
 
 ## DcDemo widget
 
