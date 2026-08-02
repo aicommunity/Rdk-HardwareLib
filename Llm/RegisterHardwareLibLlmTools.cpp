@@ -4,6 +4,7 @@
 
 #include "../../../Rdk/LLM/Core/Context/ILLMProjectContextProvider.h"
 #include "../../../Rdk/LLM/Core/Context/UDocSearchIndex.h"
+#include "../../../Rdk/LLM/Core/Domain/URdkDomainAccess.h"
 #include "../../../Rdk/LLM/Core/Tools/ULLMToolRegistry.h"
 
 namespace fs = std::filesystem;
@@ -35,7 +36,6 @@ void RegisterHardwareLibLlmTools(RDK::LLM::ULLMToolRegistry& registry,
                                  RDK::LLM::ILLMProjectContextProvider* project_context,
                                  RDK::LLM::URdkDomainAccess& domain)
 {
-    (void)domain;
     registry.registerTool(
         makeDef("search_hardware_docs",
                 "Search Rdk-HardwareLib documentation (Arduino, Firmata, firmware)",
@@ -66,18 +66,16 @@ void RegisterHardwareLibLlmTools(RDK::LLM::ULLMToolRegistry& registry,
 
     registry.registerTool(
         makeDef("list_hardware_component_classes",
-                "Lists hardware library component class names and short descriptions",
+                "Lists hardware library component class names from the live registry",
                 {{"type", "object"}, {"additionalProperties", false}}),
-        [](const nlohmann::json& args) -> RDK::LLM::ToolGatewayResult {
+        [&domain](const nlohmann::json& args) -> RDK::LLM::ToolGatewayResult {
             (void)args;
             RDK::LLM::ToolGatewayResult r;
-            r.result["classes"] = nlohmann::json::array({
-                {{"class_name", "ArduinoBoard"}, {"summary", "Arduino board transport node"}},
-                {{"class_name", "ArduinoSensorSketch"}, {"summary", "Custom sensor sketch link"}},
-                {{"class_name", "ArduinoFirmata"}, {"summary", "Standard Firmata protocol"}},
-                {{"class_name", "ArduinoAdc"}, {"summary", "ADC via linked Firmata"}},
-                {{"class_name", "ArduinoDcDemo"}, {"summary", "DC demo (deprecated sketch link)"}},
-            });
+            nlohmann::json out;
+            if(domain.listRegisteredClasses(out, "HardwareLibrary").ok())
+                r.result = std::move(out);
+            else
+                r.result["classes"] = nlohmann::json::array();
             r.result["docs_hint"] = "Libraries/Rdk-HardwareLib/Docs/Component-Catalog.md";
             r.ok = true;
             return r;
