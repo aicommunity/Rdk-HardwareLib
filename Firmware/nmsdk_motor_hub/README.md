@@ -1,5 +1,9 @@
 # Nmsdk Motor Hub
 
-Tier C DC motor channel control for Arduino Motor Shield Rev3 / Seeed Motor Shield.
+Tier C firmware for Motor Shield DIR/PWM channel A with framed status reports.
 
-Catalog id `nmsdk_motor_hub_v1` stays `available: false` until HEX is published via CI.
+- Sketch: `nmsdk_motor_hub.ino`
+- Catalog: `nmsdk_motor_hub_v1`
+- Host plugin: `nmsdk_motor_hub_v1`
+- Commands: `MOTOR A <0..255>`, `MOTOR A DIR <0|1>`, `MOTOR STOP`, `PING`, `PROTO 2`
+- Build: `Scripts/build_arduino_firmware.ps1`

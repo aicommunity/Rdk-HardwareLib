@@ -1,5 +1,7 @@
 #include "UArduinoProtocolPluginRegistry.h"
 
+#include "UNmsdkMotorHubProtocolPlugin.h"
+#include "UNmsdkSensorHubProtocolPlugin.h"
 #include "USensorLabProtocolPlugin.h"
 
 #include <QMap>
@@ -57,6 +59,8 @@ void registerBuiltinArduinoProtocolPlugins()
         return;
     done = true;
     registerArduinoProtocolPlugin(new USensorLabProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkSensorHubProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkMotorHubProtocolPlugin);
 }
 
 } // namespace RDK

@@ -2,7 +2,7 @@
 
 Tier C firmware for timing-sensitive sensors (DHT, HC-SR04) that Standard Firmata cannot host reliably.
 
-- Sketch: `nmsdk_sensor_hub.ino` (stub until CI HEX)
-- Catalog: `nmsdk_sensor_hub_v1` (`available: false` until HEX published)
-- Protocol: framed v2; host plugin to register in phase 6 completion
-- Template base: `Firmware/templates/framed_v2_hub/`
+- Sketch: `nmsdk_sensor_hub.ino`
+- Catalog: `nmsdk_sensor_hub_v1` (`available: true` when HEX present under `ArduinoFirmware/nmsdk_sensor_hub/`)
+- Protocol: framed v2; host plugin `nmsdk_sensor_hub_v1`
+- Build: `Scripts/build_arduino_firmware.ps1`

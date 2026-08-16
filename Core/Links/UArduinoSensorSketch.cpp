@@ -2,6 +2,7 @@
 
 #include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
+#include "Protocol/UArduinoProtocolPluginRegistry.h"
 #include "Protocol/USensorLabFrameDecoder.h"
 
 #include <QDebug>
@@ -47,6 +48,7 @@ bool UArduinoSensorSketch::ADefault()
     BundledFirmwareId = "sensor_lab_v1";
     FirmwarePath = UArduinoPropertyString::toStdProperty(
         UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0));
+    registerBuiltinArduinoProtocolPlugins();
     return true;
 }
 
@@ -67,6 +69,73 @@ bool UArduinoSensorSketch::AReset()
     Rotate = false;
     StopRotate = false;
     return UArduinoCustomLink::AReset();
+}
+
+IArduinoProtocolPlugin* UArduinoSensorSketch::resolvePlugin() const
+{
+    registerBuiltinArduinoProtocolPlugins();
+    QString id = UArduinoPropertyString::fromStdProperty(*BundledFirmwareId);
+    if (id.isEmpty())
+        id = QStringLiteral("sensor_lab_v1");
+    return findArduinoProtocolPlugin(id);
+}
+
+void UArduinoSensorSketch::enqueueCommand(const QString& line)
+{
+    EnqueueCommand(UArduinoPropertyString::toStdProperty(line));
+}
+
+int UArduinoSensorSketch::boardProfile() const
+{
+    return BoardProfile;
+}
+
+int UArduinoSensorSketch::protocolVersion() const
+{
+    return ProtocolVersion;
+}
+
+void UArduinoSensorSketch::setProtocolReady(bool ready)
+{
+    ProtocolNegotiated = ready;
+}
+
+void UArduinoSensorSketch::setLastError(const QString& error)
+{
+    LastError = UArduinoPropertyString::toStdProperty(error);
+}
+
+void UArduinoSensorSketch::publishSensorMatrixRow(const QVector<double>& row)
+{
+    if (row.size() < 1)
+        return;
+    const int param_count = static_cast<int>(row[0]);
+    const float t = row.size() > 1 ? static_cast<float>(row[1]) : 0.f;
+    const float h = row.size() > 2 ? static_cast<float>(row[2]) : 0.f;
+    const float hall = row.size() > 3 ? static_cast<float>(row[3]) : 0.f;
+    const float speed = row.size() > 4 ? static_cast<float>(row[4]) : 0.f;
+    FillSensorBuffer(UArduinoBinaryStreamParser::legacyTimestamp(),
+                     static_cast<uint8_t>(qBound(1, param_count, 8)), t, h, hall, speed);
+}
+
+void UArduinoSensorSketch::publishPinStatusJson(const QString& json)
+{
+    PinStatusJson = UArduinoPropertyString::toStdProperty(json);
+}
+
+void UArduinoSensorSketch::appendFrameLog(const QString& line)
+{
+    Q_UNUSED(line);
+}
+
+void UArduinoSensorSketch::NegotiateProtocol()
+{
+    IArduinoProtocolPlugin* plugin = resolvePlugin();
+    if (!plugin) {
+        ProtocolNegotiated = false;
+        return;
+    }
+    plugin->negotiate(this, ProtocolVersion);
 }
 
 void UArduinoSensorSketch::RunPresetCommand(const char* text)
@@ -134,22 +203,12 @@ void UArduinoSensorSketch::FillSensorBuffer(double timestamp,
 
 void UArduinoSensorSketch::OnBinaryFrame(uint8_t type, const QByteArray& payload)
 {
-    if (type == 0x01) {
-        const auto decoded = USensorLabFrameDecoder::decodeSensors(payload);
-        if (!decoded.ok)
-            return;
-        FillSensorBuffer(UArduinoBinaryStreamParser::legacyTimestamp(), decoded.paramCount,
-                         decoded.values[0], decoded.values[1], decoded.values[2],
-                         decoded.values[3]);
-    } else if (type == 0x04) {
-        const auto decoded = USensorLabFrameDecoder::decodePinStatus(payload, BoardProfile);
-        if (!decoded.ok)
-            return;
-        PinStatusJson = UArduinoPropertyString::toStdProperty(
-            QStringLiteral("{\"analog\":[%1],\"dht\":\"%2\",\"servo\":\"%3\"}")
-                .arg(decoded.analogPins.join(QStringLiteral(",")), decoded.dhtPin,
-                     decoded.servoPin));
+    IArduinoProtocolPlugin* plugin = resolvePlugin();
+    if (plugin) {
+        plugin->onBinaryFrame(this, type, payload);
+        return;
     }
+    setLastError(QStringLiteral("No protocol plugin for BundledFirmwareId"));
 }
 
 void UArduinoSensorSketch::PutDataToMatrix()

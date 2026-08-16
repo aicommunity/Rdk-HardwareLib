@@ -88,6 +88,11 @@ void HardwareArduinoAssemblyTabHost::applyToModel()
             issuesText.append('\n');
         issuesText.append(issue.code + QStringLiteral(": ") + issue.message);
     }
+    const QString json = QString::fromUtf8(setup.toJson(true));
+    HardwareGuiHelpers::setProp(Context, "HardwareSetupJson", json);
+    const QString path = HardwareGuiHelpers::getProp(Context, "HardwareSetupPath");
+    if (!path.isEmpty())
+        setup.saveToFile(path, nullptr);
     HardwareGuiHelpers::setProp(Context, "HardwareSetupValid", ok ? QStringLiteral("1")
                                                                   : QStringLiteral("0"));
     HardwareGuiHelpers::setProp(Context, "HardwareSetupIssues", issuesText);

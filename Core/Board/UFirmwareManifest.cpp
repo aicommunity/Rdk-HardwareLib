@@ -1,5 +1,6 @@
 #include "UFirmwareManifest.h"
 
+#include "Catalog/UHardwareCatalog.h"
 #include "Transport/UArduinoBoardProfile.h"
 
 #include <QCoreApplication>
@@ -147,6 +148,14 @@ QString UFirmwareManifest::bundledHexRelativePath(const QString& bundled_id, int
 QString UFirmwareManifest::bundledHexRelativePath(const QString& bundled_id,
                                                   const QString& board_key)
 {
+    UHardwareCatalog& catalog = UHardwareCatalog::instance();
+    if (!catalog.isLoaded())
+        catalog.load(nullptr);
+    if (const UHwFirmwareInfo* fw = catalog.firmware(bundled_id)) {
+        const QString hex_rel = fw->hex.value(board_key);
+        if (!hex_rel.isEmpty())
+            return bundledFirmwareRelativeRoot() + QLatin1Char('/') + hex_rel;
+    }
     return hexRelativeFromManifest(bundled_id, board_key);
 }
 
@@ -191,21 +200,36 @@ QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, int boar
 
 QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, const QString& board_key)
 {
-    const QString relative = bundledHexRelativePath(bundled_id, board_key);
-    if (relative.isEmpty())
-        return QString();
+    UHardwareCatalog& catalog = UHardwareCatalog::instance();
+    if (!catalog.isLoaded())
+        catalog.load(nullptr);
+    if (const UHwFirmwareInfo* fw = catalog.firmware(bundled_id)) {
+        const QString hex_rel = fw->hex.value(board_key);
+        if (!hex_rel.isEmpty()) {
+            const QString via_fw_root = QDir(firmwareRoot()).filePath(hex_rel);
+            if (QFile::exists(via_fw_root))
+                return via_fw_root;
+            const QString via_app = resolveFromApplicationDir(bundledFirmwareRelativeRoot() + QLatin1Char('/')
+                                                              + hex_rel);
+            if (QFile::exists(via_app))
+                return via_app;
+        }
+    }
 
-    const QString resolved = resolveFromApplicationDir(relative);
-    if (QFile::exists(resolved))
-        return resolved;
+    const QString relative = hexRelativeFromManifest(bundled_id, board_key);
+    if (!relative.isEmpty()) {
+        const QString resolved = resolveFromApplicationDir(relative);
+        if (QFile::exists(resolved))
+            return resolved;
+    }
 
     const QString manifest_path = manifestPath();
     if (manifest_path.isEmpty())
-        return resolved;
+        return relative.isEmpty() ? QString() : resolveFromApplicationDir(relative);
 
     QFile file(manifest_path);
     if (!file.open(QIODevice::ReadOnly))
-        return resolved;
+        return relative.isEmpty() ? QString() : resolveFromApplicationDir(relative);
 
     const QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     const QJsonArray bundled = doc.object().value(QStringLiteral("bundled")).toArray();
@@ -219,11 +243,24 @@ QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, const QS
             return QString();
         return QDir(QFileInfo(manifest_path).absolutePath()).filePath(hex_rel);
     }
-    return QString();
+    return relative.isEmpty() ? QString() : resolveFromApplicationDir(relative);
 }
 
 QStringList UFirmwareManifest::bundledDefaultPinLabels(const QString& bundled_id)
 {
+    UHardwareCatalog& catalog = UHardwareCatalog::instance();
+    if (!catalog.isLoaded())
+        catalog.load(nullptr);
+    if (const UHwFirmwareInfo* fw = catalog.firmware(bundled_id)) {
+        QStringList labels;
+        for (auto it = fw->defaultPins.constBegin(); it != fw->defaultPins.constEnd(); ++it) {
+            const QString label = it.value().trimmed();
+            if (!label.isEmpty() && !labels.contains(label))
+                labels.append(label);
+        }
+        if (!labels.isEmpty())
+            return labels;
+    }
     const QJsonObject pins = bundledEntryObject(bundled_id).value(QStringLiteral("defaultPins")).toObject();
     QStringList labels;
     for (auto it = pins.begin(); it != pins.end(); ++it) {
@@ -236,6 +273,20 @@ QStringList UFirmwareManifest::bundledDefaultPinLabels(const QString& bundled_id
 
 QMap<QString, QString> UFirmwareManifest::bundledDefaultPinRoles(const QString& bundled_id)
 {
+    UHardwareCatalog& catalog = UHardwareCatalog::instance();
+    if (!catalog.isLoaded())
+        catalog.load(nullptr);
+    if (const UHwFirmwareInfo* fw = catalog.firmware(bundled_id)) {
+        QMap<QString, QString> roles;
+        for (auto it = fw->defaultPins.constBegin(); it != fw->defaultPins.constEnd(); ++it) {
+            const QString label = it.value().trimmed();
+            if (label.isEmpty())
+                continue;
+            roles.insert(label, it.key());
+        }
+        if (!roles.isEmpty())
+            return roles;
+    }
     const QJsonObject pins = bundledEntryObject(bundled_id).value(QStringLiteral("defaultPins")).toObject();
     QMap<QString, QString> roles;
     for (auto it = pins.begin(); it != pins.end(); ++it) {

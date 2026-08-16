@@ -65,6 +65,45 @@ bool UHardwareSetup::loadFromJson(const QByteArray& json, QString* error)
     return true;
 }
 
+QByteArray UHardwareSetup::toJson(bool compact) const
+{
+    QJsonObject obj;
+    obj.insert(QStringLiteral("schemaVersion"), Doc.schemaVersion);
+    obj.insert(QStringLiteral("board"), Doc.board);
+    obj.insert(QStringLiteral("firmwareId"), Doc.firmwareId);
+    QJsonArray stack;
+    for (const QString& s : Doc.stack)
+        stack.append(s);
+    obj.insert(QStringLiteral("stack"), stack);
+    QJsonArray devices;
+    for (const UHwSetupDevice& d : Doc.devices) {
+        QJsonObject o;
+        o.insert(QStringLiteral("id"), d.id);
+        o.insert(QStringLiteral("module"), d.module);
+        if (!d.port.isEmpty())
+            o.insert(QStringLiteral("port"), d.port);
+        if (!d.channel.isEmpty())
+            o.insert(QStringLiteral("channel"), d.channel);
+        if (!d.role.isEmpty())
+            o.insert(QStringLiteral("role"), d.role);
+        devices.append(o);
+    }
+    obj.insert(QStringLiteral("devices"), devices);
+    return QJsonDocument(obj).toJson(compact ? QJsonDocument::Compact : QJsonDocument::Indented);
+}
+
+bool UHardwareSetup::saveToFile(const QString& path, QString* error) const
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (error)
+            *error = QStringLiteral("Cannot write setup: %1").arg(path);
+        return false;
+    }
+    file.write(toJson(false));
+    return true;
+}
+
 UHwSetupDocument UHardwareSetup::fromFirmwareDefaults(const UHwFirmwareInfo& firmware, const QString& boardId)
 {
     UHwSetupDocument doc;

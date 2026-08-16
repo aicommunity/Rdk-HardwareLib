@@ -15,6 +15,8 @@
 | `ArduinoFirmata` | `hw.arduino.firmata` | `HardwareArduinoFirmataControllerWidget` |
 | `ArduinoDcDemo` | `hw.arduino.dc_demo` | `HardwareArduinoDcDemoControllerWidget` |
 | `ArduinoAdc` | `hw.arduino.adc` | `HardwareArduinoAdcControllerWidget` |
+| `ArduinoDeviceIO` | `hw.arduino.device_io` | `HardwareArduinoDeviceIOControllerWidget` |
+| `ArduinoCustomFirmware` | `hw.arduino.custom_firmware` | `HardwareArduinoCustomFirmwareControllerWidget` |
 
 ## Доступ к модели
 
@@ -43,11 +45,11 @@
 
 ## Assembly
 
-Вкладка **Assembly** (`HardwareArduinoAssemblyTabHost`): редактор Hardware Setup + `UArduinoAssemblyViewWidget` (схема сборки, Export SVG). Подробнее: [Assembly-View.md](Assembly-View.md).
+Вкладка **Assembly** (`HardwareArduinoAssemblyTabHost`): редактор Hardware Setup + `UArduinoAssemblyViewWidget` (схема сборки с SVG assets, Export SVG). Apply пишет `HardwareSetupJson` и при наличии path — файл. Подробнее: [Assembly-View.md](Assembly-View.md).
 
 - Board: вкладки **Assembly** | **Pinout** + панель Board
-- SensorSketch / Firmata / DcDemo: вкладка **Assembly** рядом с Board
-- Adc: Assembly **read-only** (setup с компонента; без записи props)
+- SensorSketch / Firmata / DcDemo / CustomFirmware: вкладка **Assembly** рядом с Board
+- Adc / DeviceIO: Assembly **read-only** где применимо (setup с компонента; без записи props)
 - Editor: смена board/firmware, **Add/Remove device**, правка Port/Module/Channel/Role → Validate → rebuild view
 
 ## Diagram
@@ -107,6 +109,8 @@ Static library **Rdk-HardwareLib.gui** (CMake target), linked from NeuroModeler 
 | `ArduinoFirmata` | `hw.arduino.firmata` | `HardwareArduinoFirmataControllerWidget` |
 | `ArduinoDcDemo` | `hw.arduino.dc_demo` | `HardwareArduinoDcDemoControllerWidget` |
 | `ArduinoAdc` | `hw.arduino.adc` | `HardwareArduinoAdcControllerWidget` |
+| `ArduinoDeviceIO` | `hw.arduino.device_io` | `HardwareArduinoDeviceIOControllerWidget` |
+| `ArduinoCustomFirmware` | `hw.arduino.custom_firmware` | `HardwareArduinoCustomFirmwareControllerWidget` |
 
 ## Model access
 

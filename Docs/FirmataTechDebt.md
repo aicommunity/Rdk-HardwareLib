@@ -8,7 +8,7 @@ Living document for the Firmata UX implementation plan. Update on every phase ga
 
 | ID | Opened | Summary | Reason deferred | Target | Blocker |
 |----|--------|---------|-----------------|--------|---------|
-| TD-001 | P5 | Manual PWM / Servo / I2C on Uno/Mega (not in integration suite) | needs-hardware | before-release | Physical board; see `Test_ArduinoFirmataExtendedProtocols` (skips without hardware) |
+| TD-001 | P5 | Manual PWM / Servo / I2C on Uno/Mega | needs-hardware | before-release | `Test_ArduinoFirmataExtendedProtocols` drives Firmata PWM(D9)/Servo(D10)/I2C when `ARDUINO_TEST_EXTENDED=1` + `ARDUINO_TEST_PORT` |
 
 ## Hardware integration tests
 
@@ -42,7 +42,7 @@ Env: `ARDUINO_TEST_PORT`, `ARDUINO_BOARD_PROFILE` (0=Uno, 1=Mega), `ARDUINO_SKIP
 
 ## Phase 0 note (TD-001)
 
-TD-001 stays **open** until PWM/Servo/I2C are exercised on physical Uno+Mega (`ARDUINO_TEST_EXTENDED=1`). Harness exists; CI skips without board. Do not mark closed from docs-only work.
+TD-001 stays **open until lab run**: harness in `Test_ArduinoFirmataExtendedProtocols` opens the port and drives PWM(D9)/Servo(D10)/I2C when `ARDUINO_TEST_EXTENDED=1` and `ARDUINO_TEST_PORT` are set. Mark closed only after Uno+Mega lab passes.
 
 ---
 
@@ -54,7 +54,7 @@ Living document for the Firmata UX implementation plan. Update on every phase ga
 
 | ID | Opened | Summary | Reason deferred | Target | Blocker |
 |----|--------|---------|-----------------|--------|---------|
-| TD-001 | P5 | Manual PWM / Servo / I2C on Uno/Mega (not in integration suite) | needs-hardware | before-release | Physical board; see `Test_ArduinoFirmataExtendedProtocols` (skips without hardware) |
+| TD-001 | P5 | Manual PWM / Servo / I2C on Uno/Mega | needs-hardware | before-release | `Test_ArduinoFirmataExtendedProtocols` drives Firmata PWM(D9)/Servo(D10)/I2C when `ARDUINO_TEST_EXTENDED=1` + `ARDUINO_TEST_PORT` |
 
 ## Hardware integration tests
 

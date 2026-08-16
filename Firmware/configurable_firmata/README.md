@@ -2,6 +2,6 @@
 
 Optional path for Stepper / Encoder / Scheduler via ConfigurableFirmata rather than custom hub.
 
-Status: **documented intent only** — use Standard Firmata + DeviceIO for Digital/PWM/Servo/I2C; for AccelStepper prefer ConfigurableFirmata build once CI publishes HEX under catalog id `configurable_firmata` (`available: false` stub).
+**Deferred by design** (roadmap phase 6: only if AccelStepper/encoder is required). Sensor and motor hubs cover the primary timing/motor gaps.
 
-See Firmware Catalog and phase 6 roadmap.
+Use Standard Firmata + DeviceIO for Digital/PWM/Servo/I2C; keep catalog stub `configurable_firmata` with `available: false` until a concrete stepper sample lands.
