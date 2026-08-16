@@ -19,6 +19,7 @@
 | ClassName | C++ | Связь | Документация |
 |-----------|-----|-------|--------------|
 | `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
+| `ArduinoDeviceIO` | `UArduinoDeviceIO` | Catalog module + Firmata | [Components/ArduinoDeviceIO.md](Components/ArduinoDeviceIO.md) |
 | `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | один узел (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)
@@ -76,6 +77,7 @@ Internal (not in Storage palette): `UArduinoCustomLink`, `UArduinoSerialSession`
 | ClassName | C++ | Link | Documentation |
 |-----------|-----|------|---------------|
 | `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
+| `ArduinoDeviceIO` | `UArduinoDeviceIO` | Catalog module + Firmata | [Components/ArduinoDeviceIO.md](Components/ArduinoDeviceIO.md) |
 | `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | single node (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)

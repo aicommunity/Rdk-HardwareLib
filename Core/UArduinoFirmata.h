@@ -61,6 +61,10 @@ public:
     UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> I2cWrite;
     UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> I2cRead;
 
+    UProperty<bool, UArduinoFirmata, ptPubState> I2cReadPending;
+    UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> ApplyHardwareSetup;
+    UProperty<string, UArduinoFirmata, ptPubState> LastSetupApplyResult;
+
     UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> RestartFirmata;
     UProperty<bool, UArduinoFirmata, ptPubParameter | ptInput> ApplyPinConfig;
     UProperty<bool, UArduinoFirmata, ptPubState> IsFirmataReady;
@@ -89,9 +93,11 @@ protected:
     void AppendAnalogSample(int channel, int value);
     void AppendDigitalSample(int firmata_pin, int value);
     void ApplyLoadPreset();
+    void ApplyHardwareSetupFromCatalog();
 
     UArduinoFirmataClient FirmataClient;
     bool HandshakeSent = false;
+    QByteArray LastSeenI2cPayload;
 };
 
 } // namespace RDK

@@ -3,6 +3,10 @@
 #include "UArduinoPropertyString.h"
 
 #include "UFirmwareManifest.h"
+#include "Catalog/UHardwareCatalog.h"
+#include "Catalog/UHardwareSetup.h"
+#include "Devices/UArduinoDevicePinResolver.h"
+#include "Devices/UArduinoFirmataBatchBuilder.h"
 #include "Transport/UArduinoPinMap.h"
 #include "Transport/UArduinoSerialSession.h"
 #include "UArduinoSampleBuffer.h"
@@ -101,6 +105,9 @@ UArduinoFirmata::UArduinoFirmata()
     , I2cReadData("I2cReadData", this)
     , I2cWrite("I2cWrite", this)
     , I2cRead("I2cRead", this)
+    , I2cReadPending("I2cReadPending", this)
+    , ApplyHardwareSetup("ApplyHardwareSetup", this)
+    , LastSetupApplyResult("LastSetupApplyResult", this)
     , RestartFirmata("RestartFirmata", this)
     , ApplyPinConfig("ApplyPinConfig", this)
     , IsFirmataReady("IsFirmataReady", this)
@@ -162,6 +169,9 @@ bool UArduinoFirmata::ADefault()
     I2cReadData = "";
     I2cWrite = false;
     I2cRead = false;
+    I2cReadPending = false;
+    ApplyHardwareSetup = false;
+    LastSetupApplyResult = "";
     RestartFirmata = false;
     ApplyPinConfig = false;
     IsFirmataReady = false;
@@ -215,7 +225,139 @@ void UArduinoFirmata::ApplyLoadPreset()
         SelectedPinMode = 2;
         ReportAnalogEnable = true;
         AutoRefreshPins = true;
+    } else if (preset == QStringLiteral("sensor_shield_inputs_A0_A5")) {
+        UArduinoFirmataBatchBuilder::clearPinConfig(*PinConfigBatch);
+        for (int i = 0; i < 6; ++i) {
+            const QString label = QStringLiteral("A%1").arg(i);
+            const int pin = UArduinoPinMap::firmataPinForLabel(label, BoardProfile);
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pin,
+                                                       UArduinoFirmataBatchBuilder::kModeAnalog);
+        }
+        ReportAnalogEnable = true;
+        AutoRefreshPins = true;
+        ApplyPinConfig = true;
+    } else if (preset == QStringLiteral("motor_shield_r3_coast")
+               || preset == QStringLiteral("motor_shield_seeed_enable")) {
+        UHwSetupDocument doc;
+        doc.board = BoardProfile == 1 ? QStringLiteral("mega2560") : QStringLiteral("uno");
+        doc.firmwareId = QStringLiteral("standard_firmata");
+        doc.stack.append(preset.startsWith(QStringLiteral("motor_shield_seeed"))
+                             ? QStringLiteral("motor_shield_seeed_v1")
+                             : QStringLiteral("motor_shield_r3"));
+        UHardwareCatalog& catalog = UHardwareCatalog::instance();
+        if (!catalog.isLoaded())
+            catalog.load(nullptr);
+        UArduinoFirmataBatchBuilder::clearPinConfig(*PinConfigBatch);
+        for (const QString& ch : {QStringLiteral("A"), QStringLiteral("B")}) {
+            const auto pins = UArduinoDevicePinResolver::resolve(
+                catalog, &doc, QStringLiteral("dc_motor_channel"), QString(), ch, BoardProfile);
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.dirPin,
+                                                       UArduinoFirmataBatchBuilder::kModeOutput);
+            if (pins.dir2Pin >= 0)
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.dir2Pin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.pwmPin,
+                                                       UArduinoFirmataBatchBuilder::kModePwm);
+            if (pins.brakePin >= 0) {
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.brakePin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+                UArduinoFirmataBatchBuilder::appendDigital(*DigitalOutputCommands, pins.brakePin, 0);
+            }
+            if (pins.enablePin >= 0) {
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.enablePin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+                UArduinoFirmataBatchBuilder::appendDigital(*DigitalOutputCommands, pins.enablePin, 1);
+            }
+        }
+        ApplyPinConfig = true;
     }
+}
+
+void UArduinoFirmata::ApplyHardwareSetupFromCatalog()
+{
+    UHardwareCatalog& catalog = UHardwareCatalog::instance();
+    if (!catalog.isLoaded()) {
+        QString err;
+        if (!catalog.load(&err)) {
+            LastSetupApplyResult = UArduinoPropertyString::toStdProperty(err);
+            return;
+        }
+    }
+    UHardwareSetup setup;
+    QString load_error;
+    const QString path = UArduinoPropertyString::fromStdProperty(*HardwareSetupPath);
+    const QString inline_json = UArduinoPropertyString::fromStdProperty(*HardwareSetupJson);
+    bool loaded = false;
+    if (!path.isEmpty())
+        loaded = setup.loadFromFile(path, &load_error);
+    else if (!inline_json.isEmpty())
+        loaded = setup.loadFromJson(inline_json.toUtf8(), &load_error);
+    if (!loaded) {
+        LastSetupApplyResult = UArduinoPropertyString::toStdProperty(
+            load_error.isEmpty() ? QStringLiteral("No HardwareSetup") : load_error);
+        return;
+    }
+    QVector<UHwIssue> issues;
+    setup.validate(catalog, &issues);
+    UArduinoFirmataBatchBuilder::clearPinConfig(*PinConfigBatch);
+    QStringList unsupported;
+    int configured = 0;
+    for (const UHwSetupDevice& device : setup.document().devices) {
+        const UHwModuleInfo* mod = catalog.module(device.module);
+        if (!mod) {
+            unsupported.append(device.module);
+            continue;
+        }
+        if (device.module == QLatin1String("dht11") || device.module == QLatin1String("hc_sr04")) {
+            unsupported.append(device.module);
+            continue;
+        }
+        const auto pins = UArduinoDevicePinResolver::resolve(
+            catalog, &setup.document(), device.module, device.port, device.channel, BoardProfile);
+        if (!pins.error.isEmpty()) {
+            unsupported.append(device.id + QStringLiteral(":") + pins.error);
+            continue;
+        }
+        if (mod->signalType.contains(QStringLiteral("analog"), Qt::CaseInsensitive)) {
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.signalPin,
+                                                       UArduinoFirmataBatchBuilder::kModeAnalog);
+            ReportAnalogEnable = true;
+        } else if (mod->signalType.contains(QStringLiteral("servo"), Qt::CaseInsensitive)) {
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.signalPin,
+                                                       UArduinoFirmataBatchBuilder::kModeServo);
+        } else if (mod->signalType.contains(QStringLiteral("motor"), Qt::CaseInsensitive)) {
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.dirPin,
+                                                       UArduinoFirmataBatchBuilder::kModeOutput);
+            if (pins.dir2Pin >= 0)
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.dir2Pin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.pwmPin,
+                                                       UArduinoFirmataBatchBuilder::kModePwm);
+            if (pins.brakePin >= 0)
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.brakePin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+            if (pins.enablePin >= 0)
+                UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.enablePin,
+                                                           UArduinoFirmataBatchBuilder::kModeOutput);
+        } else if (device.role == QLatin1String("actuator")
+                   || mod->roles.contains(QStringLiteral("actuator"))) {
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.signalPin,
+                                                       UArduinoFirmataBatchBuilder::kModeOutput);
+        } else {
+            UArduinoFirmataBatchBuilder::appendPinMode(*PinConfigBatch, pins.signalPin,
+                                                       UArduinoFirmataBatchBuilder::kModeInput);
+        }
+        ++configured;
+    }
+    ApplyPinConfig = true;
+    QString result = QStringLiteral("configured=%1").arg(configured);
+    if (!unsupported.isEmpty())
+        result += QStringLiteral("; unsupported=") + unsupported.join(QLatin1Char(','));
+    for (const UHwIssue& issue : issues) {
+        if (issue.severity == UHwIssueSeverity::Error)
+            result += QStringLiteral("; ") + issue.code;
+    }
+    LastSetupApplyResult = UArduinoPropertyString::toStdProperty(result);
 }
 
 void UArduinoFirmata::ProcessFirmataEdges()
@@ -231,6 +373,11 @@ void UArduinoFirmata::ProcessFirmataEdges()
     if (LoadPreset) {
         ApplyLoadPreset();
         ResetEdge(LoadPreset);
+    }
+
+    if (ApplyHardwareSetup) {
+        ApplyHardwareSetupFromCatalog();
+        ResetEdge(ApplyHardwareSetup);
     }
 
     if (ApplyPinConfig) {
@@ -287,6 +434,15 @@ void UArduinoFirmata::ProcessFirmata()
     const QVector<int> ports_before = FirmataClient.PortDigitalMask;
 
     FirmataClient.processIncoming(data);
+
+    if (I2cReadPending) {
+        const QByteArray payload = FirmataClient.lastI2cReadData();
+        if (payload != LastSeenI2cPayload) {
+            LastSeenI2cPayload = payload;
+            I2cReadData = UArduinoPropertyString::toStdProperty(hexEncode(payload));
+            I2cReadPending = false;
+        }
+    }
 
     for (auto it = FirmataClient.AnalogValues.constBegin(); it != FirmataClient.AnalogValues.constEnd();
          ++it) {
@@ -422,8 +578,9 @@ void UArduinoFirmata::RunFirmataActions()
     if (I2cRead) {
         FirmataClient.i2cConfig(session(), 0);
         FirmataClient.i2cReadRequest(session(), I2cAddress, 8);
-        I2cReadData =
-            UArduinoPropertyString::toStdProperty(hexEncode(FirmataClient.lastI2cReadData()));
+        LastSeenI2cPayload = FirmataClient.lastI2cReadData();
+        I2cReadPending = true;
+        I2cReadData = "";
     }
 
     for (int r = 0; r < PinConfigBatch->GetRows(); ++r) {

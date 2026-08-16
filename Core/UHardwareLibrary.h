@@ -8,6 +8,7 @@
 #include "UArduinoFirmata.h"
 #include "UArduinoAdc.h"
 #include "UArduinoDcDemo.h"
+#include "Devices/UArduinoDeviceIO.h"
 
 namespace RDK {
 

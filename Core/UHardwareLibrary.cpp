@@ -38,6 +38,11 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
     cont->SetName("ArduinoDcDemo");
     cont->Default();
     UploadClass("ArduinoDcDemo", cont);
+
+    cont = new UArduinoDeviceIO;
+    cont->SetName("ArduinoDeviceIO");
+    cont->Default();
+    UploadClass("ArduinoDeviceIO", cont);
 }
 
 } // namespace RDK

@@ -6,6 +6,7 @@
 #include "HardwareArduinoAdcControllerWidget.h"
 #include "HardwareArduinoBoardControllerWidget.h"
 #include "HardwareArduinoDcDemoControllerWidget.h"
+#include "HardwareArduinoDeviceIOControllerWidget.h"
 #include "HardwareArduinoFirmataControllerWidget.h"
 #include "HardwareArduinoSensorSketchControllerWidget.h"
 
@@ -65,5 +66,12 @@ void RegisterHardwareLibComponentGuiForms()
         MakeDescriptor(QStringLiteral("hw.arduino.adc"), QStringLiteral("Arduino ADC"),
                        [](RDK::UApplication* app) {
                            return new HardwareArduinoAdcControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoDeviceIO"),
+        MakeDescriptor(QStringLiteral("hw.arduino.device_io"), QStringLiteral("Arduino Device IO"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoDeviceIOControllerWidget(nullptr, app);
                        }));
 }

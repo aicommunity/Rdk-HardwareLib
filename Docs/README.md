@@ -14,6 +14,7 @@
 | `ArduinoSensorSketch` | Протокол sensor_lab, команды, матрица показаний |
 | `ArduinoFirmata` | Firmata: pin mode / digital / analog |
 | `ArduinoAdc` | Чтение ADC через связанный `ArduinoFirmata` |
+| `ArduinoDeviceIO` | Датчик/актуатор через Firmata + Catalog |
 | `ArduinoDcDemo` | DC demo (один узел, `UArduinoCustomLink` + sensor_lab_v1) |
 
 Полный каталог: [Component-Catalog.md](Component-Catalog.md).

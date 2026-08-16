@@ -40,11 +40,17 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     auto* calcBtn = new QPushButton(tr("Calculate"), firmataPage);
     auto* queryBtn = new QPushButton(tr("Query pin"), firmataPage);
     auto* pwmBtn = new QPushButton(tr("Write PWM"), firmataPage);
+    auto* applySetupBtn = new QPushButton(tr("Apply Hardware Setup"), firmataPage);
     connect(restartBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onRestartFirmata);
     connect(applyBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onApply);
     connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onCalculate);
     connect(queryBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onQueryPinState);
     connect(pwmBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onWritePwm);
+    connect(applySetupBtn, &QPushButton::clicked, this, [this]() {
+        BoardPanel->applyToModel();
+        HardwareGuiHelpers::pulseEdge(Context, "ApplyHardwareSetup");
+        refreshFromModel(true);
+    });
 
   auto* bottom = new QHBoxLayout();
     bottom->addWidget(applyBtn);
@@ -52,6 +58,7 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     bottom->addWidget(restartBtn);
     bottom->addWidget(queryBtn);
     bottom->addWidget(pwmBtn);
+    bottom->addWidget(applySetupBtn);
 
     auto* firmataLayout = new QVBoxLayout(firmataPage);
     firmataLayout->addWidget(PinConsole, 1);
@@ -87,6 +94,11 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
+    connect(AssemblyTab, &HardwareArduinoAssemblyTabHost::applyHardwareSetupRequested, this, [this]() {
+        BoardPanel->applyToModel();
+        HardwareGuiHelpers::pulseEdge(Context, "ApplyHardwareSetup");
+        refreshFromModel(true);
+    });
     Tabs = new QTabWidget(this);
     Tabs->addTab(firmataPage, tr("Pins"));
     Tabs->addTab(MonitorPage, tr("Monitor"));
@@ -245,4 +257,6 @@ void HardwareArduinoFirmataControllerWidget::onI2cRead()
         HardwareGuiHelpers::setProp(Context, "I2cAddress", QString::number(addr->value()));
     HardwareGuiHelpers::pulseEdge(Context, "I2cRead");
     onCalculate();
+    if (HardwareGuiHelpers::getPropBool(Context, "I2cReadPending", false))
+        HardwareGuiHelpers::setStatusLogText(StatusLog, tr("I2C read pending — wait for reply"));
 }
