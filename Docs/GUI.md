@@ -41,6 +41,14 @@
 
 Встроена во вкладку **Board** у SensorSketch, Firmata, DcDemo.
 
+## Assembly
+
+Вкладка **Assembly** (`HardwareArduinoAssemblyTabHost`): редактор Hardware Setup + `UArduinoAssemblyViewWidget` (схема сборки, Export SVG). Подробнее: [Assembly-View.md](Assembly-View.md).
+
+- Board: вкладки **Assembly** | **Pinout** + панель Board
+- SensorSketch / Firmata / DcDemo: вкладка **Assembly** рядом с Board
+- Adc: Assembly **read-only** (setup с компонента; без записи props)
+
 ## Diagram
 
 [`UArduinoBoardDiagramWidget`](../GUI/Qt/widgets/UArduinoBoardDiagramWidget.cpp):

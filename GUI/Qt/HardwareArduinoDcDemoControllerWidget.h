@@ -11,6 +11,7 @@
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
 
 class HardwareArduinoBoardPanelWidget;
+class HardwareArduinoAssemblyTabHost;
 
 class HardwareArduinoDcDemoControllerWidget : public UVisualControllerWidget,
                                               public IComponentControllerWidget {
@@ -32,6 +33,7 @@ private:
     UComponentGuiContext Context;
     QTabWidget* Tabs = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     QLineEdit* CommandEdit = nullptr;
     QLabel* SpeedLabel = nullptr;
 };

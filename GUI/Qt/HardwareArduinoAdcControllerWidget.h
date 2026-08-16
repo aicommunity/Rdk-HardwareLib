@@ -5,10 +5,13 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QTabWidget>
 
 #include "../../../../Rdk/GUI/Qt/IComponentControllerWidget.h"
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
+
+class HardwareArduinoAssemblyTabHost;
 
 class HardwareArduinoAdcControllerWidget : public UVisualControllerWidget, public IComponentControllerWidget {
     Q_OBJECT
@@ -24,6 +27,8 @@ private slots:
 
 private:
     UComponentGuiContext Context;
+    QTabWidget* Tabs = nullptr;
+    HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     QLineEdit* LinkedEdit = nullptr;
     QComboBox* PinCombo = nullptr;
     QCheckBox* UseLinkedSamples = nullptr;

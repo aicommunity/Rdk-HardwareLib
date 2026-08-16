@@ -8,6 +8,7 @@
 #include <QSplitter>
 #include <QVBoxLayout>
 
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 
@@ -85,10 +86,12 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     i2cForm->addRow(QString(), i2cReadBtn);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     Tabs = new QTabWidget(this);
     Tabs->addTab(firmataPage, tr("Pins"));
     Tabs->addTab(MonitorPage, tr("Monitor"));
     Tabs->addTab(I2cPage, tr("I2C"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
@@ -106,6 +109,7 @@ void HardwareArduinoFirmataControllerWidget::setComponentContext(const UComponen
 {
     Context = context;
     BoardPanel->setContext(context);
+    AssemblyTab->setContext(context);
     PinConsole->setContext(context);
     refreshFromModel(true);
 }
@@ -122,6 +126,7 @@ void HardwareArduinoFirmataControllerWidget::refreshFromModel(bool force)
         return;
 
     BoardPanel->refreshFromModel();
+    AssemblyTab->refreshFromModel();
     PinConsole->refreshFromModel();
 
     const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);

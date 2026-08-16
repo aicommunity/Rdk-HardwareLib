@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareGuiHelpers.h"
 
 #include <Transport/UArduinoPinMap.h>
@@ -12,30 +13,38 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
                                                                        RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
-    LinkedEdit = new QLineEdit(this);
-    PinCombo = new QComboBox(this);
-    UseLinkedSamples = new QCheckBox(tr("Use linked AnalogSamples"), this);
+    auto* adcPage = new QWidget(this);
+    LinkedEdit = new QLineEdit(adcPage);
+    PinCombo = new QComboBox(adcPage);
+    UseLinkedSamples = new QCheckBox(tr("Use linked AnalogSamples"), adcPage);
     UseLinkedSamples->setChecked(true);
-    ValueLabel = new QLabel(tr("Adc value: \u2014"), this);
+    ValueLabel = new QLabel(tr("Adc value: \u2014"), adcPage);
 
-    auto* readBtn = new QPushButton(tr("Read ADC"), this);
+    auto* readBtn = new QPushButton(tr("Read ADC"), adcPage);
     connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoAdcControllerWidget::onReadAdc);
 
-    auto* form = new QFormLayout();
+    auto* form = new QFormLayout(adcPage);
     form->addRow(tr("Linked Firmata:"), LinkedEdit);
     form->addRow(tr("Analog pin:"), PinCombo);
     form->addRow(QString(), UseLinkedSamples);
     form->addRow(QString(), readBtn);
     form->addRow(QString(), ValueLabel);
 
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
+    AssemblyTab->setReadOnly(true);
+    Tabs = new QTabWidget(this);
+    Tabs->addTab(adcPage, tr("ADC"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
+
     auto* root = new QVBoxLayout(this);
-    root->addLayout(form);
+    root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareArduinoAdcControllerWidget::setComponentContext(const UComponentGuiContext& context)
 {
     Context = context;
+    AssemblyTab->setContext(context);
     refreshFromModel(true);
 }
 
@@ -50,9 +59,11 @@ void HardwareArduinoAdcControllerWidget::refreshFromModel(bool force)
     if (Context.componentLongName.isEmpty())
         return;
 
+    AssemblyTab->refreshFromModel();
+
     const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
     PinCombo->clear();
-  const int max_pin = RDK::UArduinoPinMap::maxFirmataPin(profile);
+    const int max_pin = RDK::UArduinoPinMap::maxFirmataPin(profile);
     const int analog_base = RDK::UArduinoPinMap::analogBase(profile);
 
     for (int pin = analog_base; pin <= max_pin; ++pin)

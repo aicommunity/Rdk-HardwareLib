@@ -7,6 +7,7 @@
 #include <QSplitter>
 #include <QVBoxLayout>
 
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 #include "UFirmwareManifest.h"
@@ -91,8 +92,10 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     sensorPage->setLayout(form);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     Tabs = new QTabWidget(this);
     Tabs->addTab(sensorPage, tr("Sensor"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
@@ -110,6 +113,7 @@ void HardwareArduinoSensorSketchControllerWidget::setComponentContext(const UCom
 {
     Context = context;
     BoardPanel->setContext(context);
+    AssemblyTab->setContext(context);
     refreshFromModel(true);
 }
 
@@ -125,6 +129,7 @@ void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
         return;
 
     BoardPanel->refreshFromModel();
+    AssemblyTab->refreshFromModel();
     CommandEdit->setText(HardwareGuiHelpers::getProp(Context, "Command"));
 
     const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);

@@ -12,6 +12,7 @@
 #include "widgets/UArduinoBoardDiagramWidget.h"
 
 class HardwareArduinoBoardPanelWidget;
+class HardwareArduinoAssemblyTabHost;
 
 class HardwareArduinoFirmataControllerWidget : public UVisualControllerWidget, public IComponentControllerWidget {
     Q_OBJECT
@@ -38,6 +39,7 @@ private:
     UArduinoBoardDiagramWidget* Diagram = nullptr;
     QTabWidget* Tabs = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     HardwareArduinoPinConsoleWidget* PinConsole = nullptr;
     QWidget* MonitorPage = nullptr;
     QPlainTextEdit* AnalogPreview = nullptr;

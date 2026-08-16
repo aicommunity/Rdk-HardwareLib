@@ -12,6 +12,8 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Assembly
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices
 )
 
 file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
@@ -19,6 +21,8 @@ file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Assembly/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices/*.cpp
 )
 
 # Explicit list: file(GLOB) is evaluated at configure time; these were added after
@@ -29,6 +33,7 @@ set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalogPaths.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalog.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareSetup.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Assembly/UArduinoAssemblySceneBuilder.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES} ${HW_CORE_REQUIRED_SOURCES})

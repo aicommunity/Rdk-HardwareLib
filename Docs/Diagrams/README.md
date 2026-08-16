@@ -12,11 +12,15 @@
 
 ## Pinout (SVG + JSON)
 
-Интерактивная diagram в GUI:
+Интерактивная diagram в GUI (вкладка **Pinout**):
 
 - `GUI/Qt/Resources/boards/arduino_uno_pinout.svg`
 - `GUI/Qt/Resources/boards/arduino_mega2560_pinout.svg`
 - `GUI/Qt/Resources/boards/uno_pins.json`, `mega2560_pins.json`
+
+## Assembly (схема сборки)
+
+Отдельный слой поверх Catalog/Setup — вкладка **Assembly**, не hit-targets Firmata. См. [Assembly-View.md](../Assembly-View.md). Ассеты shields/modules: `Catalog/assets/`.
 
 См. [GUI.md](../GUI.md).
 

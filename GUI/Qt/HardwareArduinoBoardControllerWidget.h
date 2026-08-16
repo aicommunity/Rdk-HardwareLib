@@ -6,7 +6,10 @@
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
 #include "widgets/UArduinoBoardDiagramWidget.h"
 
+#include <QTabWidget>
+
 class HardwareArduinoBoardPanelWidget;
+class HardwareArduinoAssemblyTabHost;
 
 class HardwareArduinoBoardControllerWidget : public UVisualControllerWidget, public IComponentControllerWidget {
     Q_OBJECT
@@ -21,8 +24,10 @@ private:
     void updateDiagram();
 
     UComponentGuiContext Context;
+    QTabWidget* LeftTabs = nullptr;
     UArduinoBoardDiagramWidget* Diagram = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
 };
 
 #endif

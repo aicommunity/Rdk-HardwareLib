@@ -5,6 +5,7 @@
 #include <QListWidget>
 #include <QVBoxLayout>
 
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 
@@ -40,8 +41,10 @@ HardwareArduinoDcDemoControllerWidget::HardwareArduinoDcDemoControllerWidget(QWi
     dcPage->setLayout(form);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     Tabs = new QTabWidget(this);
     Tabs->addTab(dcPage, tr("DC"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* root = new QVBoxLayout(this);
@@ -53,6 +56,7 @@ void HardwareArduinoDcDemoControllerWidget::setComponentContext(const UComponent
 {
     Context = context;
     BoardPanel->setContext(context);
+    AssemblyTab->setContext(context);
     refreshFromModel(true);
 }
 
@@ -67,6 +71,7 @@ void HardwareArduinoDcDemoControllerWidget::refreshFromModel(bool force)
     if (Context.componentLongName.isEmpty())
         return;
     BoardPanel->refreshFromModel();
+    AssemblyTab->refreshFromModel();
     const float speed = HardwareGuiHelpers::getProp(Context, "Speed").toFloat();
     const float accel = HardwareGuiHelpers::getProp(Context, "Acceleration").toFloat();
     SpeedLabel->setText(tr("Speed: %1  Acceleration: %2").arg(speed).arg(accel));

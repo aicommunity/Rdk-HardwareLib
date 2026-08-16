@@ -37,6 +37,12 @@
 
 Тестовые конфиги: [Bin/Configs/SpikeSamples/Hardware/README.md](../../../Bin/Configs/SpikeSamples/Hardware/README.md).
 
+### Hardware Setup / Assembly / Catalog
+
+- [Hardware-Setup.md](Hardware-Setup.md) — JSON setup + валидация
+- [Firmware-Catalog.md](Firmware-Catalog.md) — каталог прошивок/щитов
+- [Assembly-View.md](Assembly-View.md) — вкладка Assembly в NeuroModeler
+
 ### Скорость и прошивки
 
 - Runtime baud: **57600** (sensor_lab и bundled Firmata).
