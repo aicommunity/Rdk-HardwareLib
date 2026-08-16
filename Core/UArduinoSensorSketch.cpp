@@ -2,16 +2,12 @@
 
 #include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
+#include "Protocol/USensorLabFrameDecoder.h"
 
 #include <QDebug>
 #include <cstring>
 
 namespace RDK {
-
-namespace {
-constexpr int kA0 = 14;
-constexpr int kA5 = 19;
-}
 
 UArduinoSensorSketch::UArduinoSensorSketch()
     : LowerSensorLimit("LowerSensorLimit", this)
@@ -113,11 +109,7 @@ void UArduinoSensorSketch::ProcessSketchEdges()
 
 QString UArduinoSensorSketch::pinToString(int pin)
 {
-    if (pin >= kA0 && pin <= kA5)
-        return QStringLiteral("A%1").arg(pin - kA0);
-    if (pin >= 2 && pin <= 13)
-        return QStringLiteral("D%1").arg(pin);
-    return QString::number(pin);
+    return USensorLabFrameDecoder::pinToString(pin, BoardProfile);
 }
 
 void UArduinoSensorSketch::FillSensorBuffer(double timestamp,
@@ -142,43 +134,21 @@ void UArduinoSensorSketch::FillSensorBuffer(double timestamp,
 
 void UArduinoSensorSketch::OnBinaryFrame(uint8_t type, const QByteArray& payload)
 {
-    if (type == 0x01 && payload.size() >= 2) {
-        const uint8_t error_flags = static_cast<uint8_t>(payload[0]);
-        const uint8_t param_count = static_cast<uint8_t>(payload[1]);
-        Q_UNUSED(error_flags);
-
-        if (payload.size() < 2 + param_count * static_cast<int>(sizeof(float)))
+    if (type == 0x01) {
+        const auto decoded = USensorLabFrameDecoder::decodeSensors(payload);
+        if (!decoded.ok)
             return;
-
-        float values[4] = {0, 0, 0, 0};
-        for (int i = 0; i < param_count && i < 4; ++i)
-            memcpy(&values[i], payload.constData() + 2 + i * sizeof(float), sizeof(float));
-
-        FillSensorBuffer(UArduinoBinaryStreamParser::legacyTimestamp(),
-                         param_count,
-                         values[0],
-                         values[1],
-                         values[2],
-                         values[3]);
-    } else if (type == 0x04 && payload.size() >= 3) {
-        const uint8_t analog_pin_count = static_cast<uint8_t>(payload[0]);
-        const int need = 1 + analog_pin_count + 2;
-        if (payload.size() < need)
+        FillSensorBuffer(UArduinoBinaryStreamParser::legacyTimestamp(), decoded.paramCount,
+                         decoded.values[0], decoded.values[1], decoded.values[2],
+                         decoded.values[3]);
+    } else if (type == 0x04) {
+        const auto decoded = USensorLabFrameDecoder::decodePinStatus(payload, BoardProfile);
+        if (!decoded.ok)
             return;
-
-        QStringList analog_pins;
-        int idx = 1;
-        for (int i = 0; i < analog_pin_count; ++i)
-            analog_pins.append(pinToString(static_cast<uint8_t>(payload[idx++])));
-
-        const int dht_pin = static_cast<uint8_t>(payload[idx++]);
-        const int servo_pin = static_cast<uint8_t>(payload[idx++]);
-
         PinStatusJson = UArduinoPropertyString::toStdProperty(
             QStringLiteral("{\"analog\":[%1],\"dht\":\"%2\",\"servo\":\"%3\"}")
-                .arg(analog_pins.join(QStringLiteral(",")),
-                     pinToString(dht_pin),
-                     pinToString(servo_pin)));
+                .arg(decoded.analogPins.join(QStringLiteral(",")), decoded.dhtPin,
+                     decoded.servoPin));
     }
 }
 

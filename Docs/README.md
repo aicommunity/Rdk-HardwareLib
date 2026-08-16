@@ -15,6 +15,7 @@
 | `ArduinoFirmata` | Firmata: pin mode / digital / analog |
 | `ArduinoAdc` | Чтение ADC через связанный `ArduinoFirmata` |
 | `ArduinoDeviceIO` | Датчик/актуатор через Firmata + Catalog |
+| `ArduinoCustomFirmware` | Generic custom/hub host + protocol plugin |
 | `ArduinoDcDemo` | DC demo (один узел, `UArduinoCustomLink` + sensor_lab_v1) |
 
 Полный каталог: [Component-Catalog.md](Component-Catalog.md).
@@ -43,6 +44,8 @@
 - [Hardware-Setup.md](Hardware-Setup.md) — JSON setup + валидация
 - [Firmware-Catalog.md](Firmware-Catalog.md) — каталог прошивок/щитов
 - [Assembly-View.md](Assembly-View.md) — вкладка Assembly в NeuroModeler
+- [Shields-Firmata-IO.md](Shields-Firmata-IO.md) — DeviceIO mapping
+- [Protocol-Plugins.md](Protocol-Plugins.md) — custom firmware plugins
 
 ### Скорость и прошивки
 

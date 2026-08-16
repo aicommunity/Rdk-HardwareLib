@@ -6,6 +6,7 @@
 #include "HardwareArduinoAdcControllerWidget.h"
 #include "HardwareArduinoBoardControllerWidget.h"
 #include "HardwareArduinoDcDemoControllerWidget.h"
+#include "HardwareArduinoCustomFirmwareControllerWidget.h"
 #include "HardwareArduinoDeviceIOControllerWidget.h"
 #include "HardwareArduinoFirmataControllerWidget.h"
 #include "HardwareArduinoSensorSketchControllerWidget.h"
@@ -73,5 +74,13 @@ void RegisterHardwareLibComponentGuiForms()
         MakeDescriptor(QStringLiteral("hw.arduino.device_io"), QStringLiteral("Arduino Device IO"),
                        [](RDK::UApplication* app) {
                            return new HardwareArduinoDeviceIOControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoCustomFirmware"),
+        MakeDescriptor(QStringLiteral("hw.arduino.custom_firmware"),
+                       QStringLiteral("Arduino Custom Firmware"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoCustomFirmwareControllerWidget(nullptr, app);
                        }));
 }

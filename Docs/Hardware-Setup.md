@@ -8,6 +8,8 @@ JSON-описание сборки платы: `board`, `firmwareId`, `stack` (�
 
 Свойства `ArduinoBoard`: `HardwareSetupPath`, `HardwareSetupJson`, `HardwareSetupValid`, `HardwareSetupIssues`.
 
+Связанные документы: [Assembly-View.md](Assembly-View.md), [Firmware-Catalog.md](Firmware-Catalog.md), [Shields-Firmata-IO.md](Shields-Firmata-IO.md), [Protocol-Plugins.md](Protocol-Plugins.md).
+
 Коды issues: `PinConflict`, `FirmwareShieldIncompatible`, `ModuleCapabilityMissing`, `UnknownId`, `ReservedPort`, `TimingPreferHub`, `FirmwareUnavailable`, `BoardMismatch`, `SchemaVersion`.
 
 Синхронизация: `Scripts/sync_hardware_catalog.py`.

@@ -1,5 +1,7 @@
 #include "UHardwareLibrary.h"
 
+#include "Protocol/UArduinoProtocolPluginRegistry.h"
+
 namespace RDK {
 
 UHardwareLibrary HardwareLibrary;
@@ -12,6 +14,7 @@ UHardwareLibrary::UHardwareLibrary(void)
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
     Q_UNUSED(storage);
+    registerBuiltinArduinoProtocolPlugins();
     UContainer *cont;
 
     cont = new UArduinoBoard;
@@ -43,6 +46,11 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
     cont->SetName("ArduinoDeviceIO");
     cont->Default();
     UploadClass("ArduinoDeviceIO", cont);
+
+    cont = new UArduinoCustomFirmware;
+    cont->SetName("ArduinoCustomFirmware");
+    cont->Default();
+    UploadClass("ArduinoCustomFirmware", cont);
 }
 
 } // namespace RDK

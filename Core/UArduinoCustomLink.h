@@ -46,7 +46,7 @@ protected:
     void EnqueueCommand(const string& command);
     void FlushCommandQueue();
     void ProcessIncoming();
-    void NegotiateProtocol();
+    virtual void NegotiateProtocol();
 
     UArduinoBinaryStreamParser Parser;
     QQueue<QByteArray> CommandQueue;

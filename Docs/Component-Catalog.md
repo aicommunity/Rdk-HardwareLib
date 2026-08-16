@@ -20,7 +20,8 @@
 |-----------|-----|-------|--------------|
 | `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
 | `ArduinoDeviceIO` | `UArduinoDeviceIO` | Catalog module + Firmata | [Components/ArduinoDeviceIO.md](Components/ArduinoDeviceIO.md) |
-| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | один узел (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
+| `ArduinoCustomFirmware` | `UArduinoCustomFirmware` | protocol plugin host | [Protocol-Plugins.md](Protocol-Plugins.md) |
+| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | один узел (serial + sensor_lab) | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)
 
