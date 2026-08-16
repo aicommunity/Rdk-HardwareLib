@@ -79,7 +79,7 @@ Internal (not in Storage palette): `UArduinoCustomLink`, `UArduinoSerialSession`
 |-----------|-----|------|---------------|
 | `ArduinoAdc` | `UArduinoAdc` | `LinkedFirmataName` → `ArduinoFirmata` | [Components/ArduinoAdc.md](Components/ArduinoAdc.md) |
 | `ArduinoDeviceIO` | `UArduinoDeviceIO` | Catalog module + Firmata | [Components/ArduinoDeviceIO.md](Components/ArduinoDeviceIO.md) |
-| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | single node (serial + sensor_lab); deprecated: `LinkedSketchName` | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
+| `ArduinoDcDemo` | `UArduinoDcDemo` : `UArduinoCustomLink` | single node (serial + sensor_lab) | [Components/ArduinoDcDemo.md](Components/ArduinoDcDemo.md) |
 
 ## GUI (NeuroModeler)
 

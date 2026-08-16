@@ -21,7 +21,11 @@
 
 ## Deprecated
 
-`LinkedSketchName` — если не пуст, делегирует команды в `ArduinoSensorSketch` (переходный релиз). **Новые схемы:** один `ArduinoDcDemo` без sketch.
+`ArduinoDcDemo` — один узел с `PortName` и `sensor_lab_v1` (без делегирования на sketch).
+
+## EN
+
+`ArduinoDcDemo` is a single node with its own `PortName` and `sensor_lab_v1`.
 
 ## Типичная схема
 
