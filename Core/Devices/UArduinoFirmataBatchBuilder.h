@@ -1,7 +1,7 @@
 #ifndef UARDUINOFIRMATABATCHBUILDER_H
 #define UARDUINOFIRMATABATCHBUILDER_H
 
-#include "../../../Rdk/Deploy/Include/rdk.h"
+#include "rdk.h"
 
 namespace RDK {
 

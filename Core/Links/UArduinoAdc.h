@@ -1,7 +1,7 @@
 #ifndef UARDUINOADC_H
 #define UARDUINOADC_H
 
-#include "../../../Rdk/Deploy/Include/rdk.h"
+#include "rdk.h"
 
 namespace RDK {
 

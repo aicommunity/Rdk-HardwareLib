@@ -3,7 +3,7 @@
 #include "../../../../../Rdk/Core/Math/MDMatrix.h"
 #include "../../../../../Rdk/Deploy/Include/rdk_init.h"
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
-#include "../../../Core/UArduinoPropertyString.h"
+#include "../../../Core/Board/UArduinoPropertyString.h"
 
 #include <QApplication>
 #include <string>

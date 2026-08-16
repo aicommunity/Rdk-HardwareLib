@@ -46,6 +46,9 @@
 - [Assembly-View.md](Assembly-View.md) — вкладка Assembly в NeuroModeler
 - [Shields-Firmata-IO.md](Shields-Firmata-IO.md) — DeviceIO mapping
 - [Protocol-Plugins.md](Protocol-Plugins.md) — custom firmware plugins
+- [ADR-Core-Layout.md](ADR-Core-Layout.md) — раскладка `Core/`
+
+Валидация каталога: `Scripts/validate_hardware_catalog.py`.
 
 ### Скорость и прошивки
 

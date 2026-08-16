@@ -1,7 +1,7 @@
 #ifndef UARDUINOBOARD_H
 #define UARDUINOBOARD_H
 
-#include "../../../Rdk/Deploy/Include/rdk.h"
+#include "rdk.h"
 
 #include <memory>
 

@@ -9,6 +9,8 @@ target_include_directories(${TARGET_NAME}
   PUBLIC
     ${CMAKE_SOURCE_DIR}/Rdk/Deploy/Include
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog
@@ -18,6 +20,8 @@ target_include_directories(${TARGET_NAME}
 
 file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/*.cpp
@@ -27,8 +31,18 @@ file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
 
 # Explicit list: file(GLOB) is evaluated at configure time; these were added after
 # many build trees were generated and must always link into Rdk-HardwareLib.qt.
+# Legacy/ is intentionally excluded from the build.
 set(HW_CORE_REQUIRED_SOURCES
-  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/UArduinoPropertyString.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoPropertyString.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoSampleBuffer.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoBoard.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoFirmata.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UFirmwareManifest.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoCustomLink.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoSensorSketch.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoDcDemo.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoAdc.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoCustomFirmware.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/UArduinoUploadJob.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalogPaths.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalog.cpp
@@ -37,7 +51,6 @@ set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices/UArduinoDevicePinResolver.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices/UArduinoFirmataBatchBuilder.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices/UArduinoDeviceIO.cpp
-  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/UArduinoCustomFirmware.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UArduinoProtocolPluginRegistry.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/USensorLabFrameDecoder.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/USensorLabProtocolPlugin.cpp

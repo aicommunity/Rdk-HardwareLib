@@ -1,7 +1,7 @@
 #ifndef UARDUINODEVICEIO_H
 #define UARDUINODEVICEIO_H
 
-#include "../../../Rdk/Deploy/Include/rdk.h"
+#include "rdk.h"
 
 namespace RDK {
 

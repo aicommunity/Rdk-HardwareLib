@@ -6,6 +6,7 @@
 #include <QWidget>
 
 class QComboBox;
+class QLineEdit;
 class QListWidget;
 class QPlainTextEdit;
 class QPushButton;
@@ -36,17 +37,34 @@ private slots:
     void onBoardChanged();
     void onFirmwareChanged();
     void onExportSvg();
+    void onDeviceSelectionChanged();
+    void onAddDevice();
+    void onRemoveDevice();
+    void onApplyDeviceEdits();
 
 private:
+    void syncDeviceEditorFromSelection();
+    void setDeviceEditorEnabled(bool enabled);
+    QStringList suggestedPorts() const;
+
     RDK::UHardwareCatalog* Catalog = nullptr;
     RDK::UHwSetupDocument Doc;
     QComboBox* BoardCombo = nullptr;
     QComboBox* FirmwareCombo = nullptr;
     QListWidget* DevicesList = nullptr;
+    QLineEdit* DeviceIdEdit = nullptr;
+    QComboBox* ModuleCombo = nullptr;
+    QComboBox* PortCombo = nullptr;
+    QLineEdit* ChannelEdit = nullptr;
+    QComboBox* RoleCombo = nullptr;
     QPlainTextEdit* IssuesLog = nullptr;
     UArduinoAssemblyViewWidget* AssemblyView = nullptr;
     QPushButton* ExportBtn = nullptr;
+    QPushButton* AddDeviceBtn = nullptr;
+    QPushButton* RemoveDeviceBtn = nullptr;
+    QPushButton* ApplyDeviceBtn = nullptr;
     bool ReadOnly = false;
+    bool SuppressDeviceSelect = false;
 };
 
 #endif

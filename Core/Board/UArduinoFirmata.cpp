@@ -420,6 +420,18 @@ void UArduinoFirmata::AppendDigitalSample(int firmata_pin, int value)
     UArduinoSampleBuffer::trimRows(*DigitalSamples, SampleBufferRows);
 }
 
+void UArduinoFirmata::PollI2cReadPending()
+{
+    if (!I2cReadPending)
+        return;
+    const QByteArray payload = FirmataClient.lastI2cReadData();
+    if (payload == LastSeenI2cPayload)
+        return;
+    LastSeenI2cPayload = payload;
+    I2cReadData = UArduinoPropertyString::toStdProperty(hexEncode(payload));
+    I2cReadPending = false;
+}
+
 void UArduinoFirmata::ProcessFirmata()
 {
     if (!Session)
@@ -435,14 +447,7 @@ void UArduinoFirmata::ProcessFirmata()
 
     FirmataClient.processIncoming(data);
 
-    if (I2cReadPending) {
-        const QByteArray payload = FirmataClient.lastI2cReadData();
-        if (payload != LastSeenI2cPayload) {
-            LastSeenI2cPayload = payload;
-            I2cReadData = UArduinoPropertyString::toStdProperty(hexEncode(payload));
-            I2cReadPending = false;
-        }
-    }
+    PollI2cReadPending();
 
     for (auto it = FirmataClient.AnalogValues.constBegin(); it != FirmataClient.AnalogValues.constEnd();
          ++it) {

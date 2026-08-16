@@ -48,6 +48,7 @@
 - Board: вкладки **Assembly** | **Pinout** + панель Board
 - SensorSketch / Firmata / DcDemo: вкладка **Assembly** рядом с Board
 - Adc: Assembly **read-only** (setup с компонента; без записи props)
+- Editor: смена board/firmware, **Add/Remove device**, правка Port/Module/Channel/Role → Validate → rebuild view
 
 ## Diagram
 

@@ -94,6 +94,7 @@ protected:
     void AppendDigitalSample(int firmata_pin, int value);
     void ApplyLoadPreset();
     void ApplyHardwareSetupFromCatalog();
+    void PollI2cReadPending();
 
     UArduinoFirmataClient FirmataClient;
     bool HandshakeSent = false;

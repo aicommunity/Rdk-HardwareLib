@@ -20,7 +20,7 @@
 
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
 
-#include "../../../Core/UFirmwareManifest.h"
+#include "../../../Core/Board/UFirmwareManifest.h"
 
 HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent)
 
