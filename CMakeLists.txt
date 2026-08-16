@@ -11,12 +11,14 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog
 )
 
 file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/*.cpp
 )
 
 # Explicit list: file(GLOB) is evaluated at configure time; these were added after
@@ -24,6 +26,9 @@ file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
 set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/UArduinoPropertyString.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Transport/UArduinoUploadJob.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalogPaths.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareCatalog.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/UHardwareSetup.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES} ${HW_CORE_REQUIRED_SOURCES})

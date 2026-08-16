@@ -14,6 +14,8 @@
 
 #include "HardwareGuiHelpers.h"
 
+#include "../../../Core/Catalog/UHardwareCatalog.h"
+
 #include "../../../Core/Transport/UArduinoBoardProfile.h"
 
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
@@ -81,10 +83,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     HeartbeatTimeoutSpin->setValue(10000);
 
     BundledFirmwareCombo = new QComboBox(this);
-
-    BundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
-
-    BundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
+    populateBundledFirmwareCombo();
 
     FirmwarePathEdit = new QLineEdit(this);
 
@@ -403,6 +402,26 @@ QString HardwareArduinoBoardPanelWidget::formatBoardDetectLine(const QString& po
     if (detected == 1)
         return tr("Detected: Arduino Mega 2560");
     return tr("Detected: unknown (set board manually; CH340 clones often need manual profile)");
+}
+
+void HardwareArduinoBoardPanelWidget::populateBundledFirmwareCombo()
+{
+    BundledFirmwareCombo->clear();
+    QString err;
+    if (RDK::UHardwareCatalog::instance().load(&err)) {
+        const QStringList ids = RDK::UHardwareCatalog::instance().firmwareIds(true);
+        for (const QString& id : ids) {
+            const RDK::UHwFirmwareInfo* fw = RDK::UHardwareCatalog::instance().firmware(id);
+            const QString title = fw ? fw->title : id;
+            BundledFirmwareCombo->addItem(title, id);
+        }
+    }
+    if (BundledFirmwareCombo->count() == 0) {
+        BundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
+        BundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
+        if (!err.isEmpty() && StatusLog)
+            StatusLog->appendPlainText(tr("Catalog load failed, using built-in firmware list: %1").arg(err));
+    }
 }
 
 void HardwareArduinoBoardPanelWidget::updateBoardDetectHint()

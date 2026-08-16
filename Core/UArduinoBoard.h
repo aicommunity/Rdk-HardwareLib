@@ -60,6 +60,11 @@ public:
     UProperty<int, UArduinoBoard, ptPubState> UploadProgress;
     UProperty<string, UArduinoBoard, ptPubState> UploadLastResult;
 
+    UProperty<string, UArduinoBoard, ptPubParameter> HardwareSetupPath;
+    UProperty<string, UArduinoBoard, ptPubParameter> HardwareSetupJson;
+    UProperty<bool, UArduinoBoard, ptPubState> HardwareSetupValid;
+    UProperty<string, UArduinoBoard, ptPubState> HardwareSetupIssues;
+
     UProperty<bool, UArduinoBoard, ptPubState> ShowDebug;
 
     UArduinoBoard();
@@ -95,6 +100,7 @@ protected:
 
     void SyncDerivedStates();
     void ProcessBoardEdges();
+    void RefreshHardwareSetup();
     static void ResetEdge(bool& flag);
     template<typename OwnerT, unsigned int PropType>
     static void ResetEdge(UProperty<bool, OwnerT, PropType>& edge)

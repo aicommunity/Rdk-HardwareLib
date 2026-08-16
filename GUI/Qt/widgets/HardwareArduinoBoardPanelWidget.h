@@ -42,6 +42,7 @@ private:
     void updateUploadPreview();
     void updateUploadControlsEnabled();
     void updateBoardDetectHint();
+    void populateBundledFirmwareCombo();
     QString formatBoardDetectLine(const QString& port_path, int detected) const;
     void startUploadUiPoll();
     void stopUploadUiPoll();

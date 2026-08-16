@@ -4,12 +4,17 @@
 #include "Transport/UArduinoFlasher.h"
 #include "Transport/UArduinoSerialSession.h"
 #include "Transport/UArduinoUploadJob.h"
+#include "Catalog/UHardwareCatalog.h"
+#include "Catalog/UHardwareSetup.h"
 #include "UArduinoPropertyString.h"
 #include "UFirmwareManifest.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMutexLocker>
 #include <QThread>
 
@@ -57,6 +62,10 @@ UArduinoBoard::UArduinoBoard()
     , UploadFirmwareFlag("UploadFirmwareFlag", this)
     , UploadProgress("UploadProgress", this)
     , UploadLastResult("UploadLastResult", this)
+    , HardwareSetupPath("HardwareSetupPath", this)
+    , HardwareSetupJson("HardwareSetupJson", this)
+    , HardwareSetupValid("HardwareSetupValid", this)
+    , HardwareSetupIssues("HardwareSetupIssues", this)
     , ShowDebug("ShowDebug", this)
 {
 }
@@ -113,6 +122,10 @@ bool UArduinoBoard::ADefault()
     UploadFirmwareFlag = false;
     UploadProgress = 0;
     UploadLastResult = "";
+    HardwareSetupPath = "";
+    HardwareSetupJson = "";
+    HardwareSetupValid = true;
+    HardwareSetupIssues = "";
     ShowDebug = false;
     SyncDerivedStates();
     return true;
@@ -459,11 +472,64 @@ void UArduinoBoard::OnBoardCalculate()
 {
 }
 
+void UArduinoBoard::RefreshHardwareSetup()
+{
+    const QString path = UArduinoPropertyString::fromStdProperty(*HardwareSetupPath);
+    const QString inline_json = UArduinoPropertyString::fromStdProperty(*HardwareSetupJson);
+    if (path.isEmpty() && inline_json.isEmpty()) {
+        HardwareSetupValid = true;
+        HardwareSetupIssues = "";
+        return;
+    }
+
+    QString catalog_error;
+    if (!UHardwareCatalog::instance().isLoaded()
+        && !UHardwareCatalog::instance().load(&catalog_error)) {
+        HardwareSetupValid = false;
+        HardwareSetupIssues = UArduinoPropertyString::toStdProperty(catalog_error);
+        return;
+    }
+
+    UHardwareSetup setup;
+    QString load_error;
+    const bool loaded = !inline_json.isEmpty()
+                            ? setup.loadFromJson(inline_json.toUtf8(), &load_error)
+                            : setup.loadFromFile(path, &load_error);
+    if (!loaded) {
+        HardwareSetupValid = false;
+        HardwareSetupIssues = UArduinoPropertyString::toStdProperty(load_error);
+        return;
+    }
+
+    QVector<UHwIssue> issues;
+    const bool valid = setup.validate(UHardwareCatalog::instance(), &issues);
+    HardwareSetupValid = valid;
+    QJsonArray arr;
+    for (const UHwIssue& issue : issues) {
+        QJsonObject o;
+        o.insert(QStringLiteral("severity"),
+                 issue.severity == UHwIssueSeverity::Error ? QStringLiteral("error")
+                                                            : QStringLiteral("warning"));
+        o.insert(QStringLiteral("code"), issue.code);
+        o.insert(QStringLiteral("message"), issue.message);
+        arr.append(o);
+    }
+    HardwareSetupIssues =
+        UArduinoPropertyString::toStdProperty(QString::fromUtf8(QJsonDocument(arr).toJson(QJsonDocument::Compact)));
+
+    if (!setup.document().firmwareId.isEmpty()
+        && setup.document().firmwareId
+            != UArduinoPropertyString::fromStdProperty(*BundledFirmwareId)) {
+        // Drift is informational only in phase 1 (no auto-change of BundledFirmwareId).
+    }
+}
+
 bool UArduinoBoard::ACalculate()
 {
     PollUploadJob();
     SyncDerivedStates();
     ProcessBoardEdges();
+    RefreshHardwareSetup();
 
     if (PortChanged) {
         CloseConnection();
