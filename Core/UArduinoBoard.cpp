@@ -376,7 +376,7 @@ void UArduinoBoard::startUploadAsync()
 
     UArduinoUploadJobState* job_ptr = UploadJob.get();
     UploadThread = QThread::create([job_ptr, profile, port, hex]() {
-        UArduinoUploadJob::runSync(job_ptr, nullptr, profile, port, hex);
+        UArduinoUploadJob::runSync(job_ptr, profile, port, hex);
     });
     QObject::connect(UploadThread, &QThread::finished, UploadThread, [this]() {
         finishUploadThread();

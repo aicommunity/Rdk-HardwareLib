@@ -9,14 +9,26 @@
 
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
+#include "UFirmwareManifest.h"
 
 namespace {
 
 QMap<QString, QString> defaultSensorPinRoles()
 {
-    return {{QStringLiteral("D2"), QStringLiteral("DHT")},
-            {QStringLiteral("A2"), QStringLiteral("Hall")},
-            {QStringLiteral("D9"), QStringLiteral("Servo")}};
+    const auto roles = RDK::UFirmwareManifest::bundledDefaultPinRoles(QStringLiteral("sensor_lab_v1"));
+    if (!roles.isEmpty())
+        return roles;
+    return {{QStringLiteral("D2"), QStringLiteral("dht")},
+            {QStringLiteral("A2"), QStringLiteral("hall")},
+            {QStringLiteral("D9"), QStringLiteral("servo")}};
+}
+
+QStringList defaultSensorPinLabels()
+{
+    const auto pins = RDK::UFirmwareManifest::bundledDefaultPinLabels(QStringLiteral("sensor_lab_v1"));
+    if (!pins.isEmpty())
+        return pins;
+    return {QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")};
 }
 
 } // namespace
@@ -28,7 +40,7 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
 {
     Diagram = new UArduinoBoardDiagramWidget(this);
     Diagram->setPinRoles(defaultSensorPinRoles());
-    Diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
+    Diagram->setHighlightedPins(defaultSensorPinLabels());
 
     auto* sensorPage = new QWidget(this);
     CommandEdit = new QLineEdit(sensorPage);
@@ -119,7 +131,7 @@ void HardwareArduinoSensorSketchControllerWidget::refreshFromModel(bool force)
     Diagram->setBoardProfile(profile);
     Diagram->setConnectionState(HardwareGuiHelpers::getPropInt(Context, "ConnectionState", 0));
     Diagram->setPinRoles(defaultSensorPinRoles());
-    Diagram->setHighlightedPins({QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")});
+    Diagram->setHighlightedPins(defaultSensorPinLabels());
     refreshMatrixPreview();
 }
 

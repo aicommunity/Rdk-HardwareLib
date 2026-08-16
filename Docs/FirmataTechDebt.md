@@ -38,6 +38,11 @@ Env: `ARDUINO_TEST_PORT`, `ARDUINO_BOARD_PROFILE` (0=Uno, 1=Mega), `ARDUINO_SKIP
 | Date | Decision | Alternatives | Revisit |
 |------|----------|--------------|---------|
 | 2026-05 | Mega diagram rects from `generate_mega_pins_json.py` grid | Manual SVG-aligned rects | Revisit if click-test fails on hardware |
+| 2026-08 | **Keep Mega grid hit-rects** until hardware click-test fails; pinout SVG remains illustrative | Manual SVG-aligned rects (higher effort) | On first Mega pin-miss bug report from GUI |
+
+## Phase 0 note (TD-001)
+
+TD-001 stays **open** until PWM/Servo/I2C are exercised on physical Uno+Mega (`ARDUINO_TEST_EXTENDED=1`). Harness exists; CI skips without board. Do not mark closed from docs-only work.
 
 ---
 

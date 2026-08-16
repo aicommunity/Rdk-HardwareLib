@@ -106,6 +106,29 @@ QString hexRelativeFromManifest(const QString& bundled_id, const QString& board_
     return QString();
 }
 
+QJsonObject bundledEntryObject(const QString& bundled_id)
+{
+    if (bundled_id.isEmpty())
+        return {};
+
+    const QString manifest_path = manifestPath();
+    if (manifest_path.isEmpty())
+        return {};
+
+    QFile file(manifest_path);
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    const QJsonArray bundled = doc.object().value(QStringLiteral("bundled")).toArray();
+    for (const QJsonValue& entryVal : bundled) {
+        const QJsonObject entry = entryVal.toObject();
+        if (entry.value(QStringLiteral("id")).toString() == bundled_id)
+            return entry;
+    }
+    return {};
+}
+
 } // namespace
 
 QString UFirmwareManifest::bundledFirmwareRelativeRoot()
@@ -197,6 +220,31 @@ QString UFirmwareManifest::resolveBundledHex(const QString& bundled_id, const QS
         return QDir(QFileInfo(manifest_path).absolutePath()).filePath(hex_rel);
     }
     return QString();
+}
+
+QStringList UFirmwareManifest::bundledDefaultPinLabels(const QString& bundled_id)
+{
+    const QJsonObject pins = bundledEntryObject(bundled_id).value(QStringLiteral("defaultPins")).toObject();
+    QStringList labels;
+    for (auto it = pins.begin(); it != pins.end(); ++it) {
+        const QString label = it.value().toString().trimmed();
+        if (!label.isEmpty() && !labels.contains(label))
+            labels.append(label);
+    }
+    return labels;
+}
+
+QMap<QString, QString> UFirmwareManifest::bundledDefaultPinRoles(const QString& bundled_id)
+{
+    const QJsonObject pins = bundledEntryObject(bundled_id).value(QStringLiteral("defaultPins")).toObject();
+    QMap<QString, QString> roles;
+    for (auto it = pins.begin(); it != pins.end(); ++it) {
+        const QString label = it.value().toString().trimmed();
+        if (label.isEmpty())
+            continue;
+        roles.insert(label, it.key());
+    }
+    return roles;
 }
 
 } // namespace RDK

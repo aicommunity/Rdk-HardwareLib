@@ -25,8 +25,8 @@ struct UArduinoUploadJobState {
 
 class UArduinoUploadJob {
 public:
+    /** Owns a local UArduinoFlasher for the worker thread. Cancel via state->cancelRequested. */
     static void runSync(UArduinoUploadJobState* state,
-                        UArduinoFlasher* flasher,
                         const UArduinoBoardProfile& profile,
                         const QString& port,
                         const QString& hexPath);

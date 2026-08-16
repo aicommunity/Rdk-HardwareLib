@@ -21,7 +21,6 @@ void setStatus(UArduinoUploadJobState* state, int progress, const QString& messa
 } // namespace
 
 void UArduinoUploadJob::runSync(UArduinoUploadJobState* state,
-                                UArduinoFlasher* /*flasher*/,
                                 const UArduinoBoardProfile& profile,
                                 const QString& port,
                                 const QString& hexPath)
@@ -34,6 +33,7 @@ void UArduinoUploadJob::runSync(UArduinoUploadJobState* state,
 
     setStatus(state, 8, QStringLiteral("Resetting to bootloader\u2026"));
 
+    // Local flasher: QObject affinity stays on this worker thread; cancel via cancelRequested.
     UArduinoFlasher flasher;
     const QMetaObject::Connection progressConn = QObject::connect(
         &flasher,

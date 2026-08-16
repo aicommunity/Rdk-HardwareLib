@@ -432,9 +432,18 @@ void HardwareArduinoBoardPanelWidget::onPortOrProfileChanged()
     if (AutoDetectBoardCheck->isChecked() && (detected == 0 || detected == 1)) {
         QSignalBlocker b(BoardProfileCombo);
         BoardProfileCombo->setCurrentIndex(detected);
+        BoardDetectHint.clear();
+        BoardProfileCombo->setToolTip(QString());
+    } else if (!port_path.isEmpty() && detected < 0) {
+        // AU-10: CH340 / unknown VID-PID — force attention to manual BoardProfile.
+        BoardDetectHint = formatBoardDetectLine(port_path, detected);
+        BoardProfileCombo->setToolTip(
+            tr("USB board type unknown (common with CH340 clones). Select Uno or Mega manually before Upload."));
+    } else {
+        updateBoardDetectHint();
+        BoardProfileCombo->setToolTip(QString());
     }
 
-    updateBoardDetectHint();
     updateUploadPreview();
 }
 
