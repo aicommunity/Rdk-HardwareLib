@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 
@@ -32,8 +33,15 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
     form->addRow(tr("Frame log:"), FrameLogView);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
+    connect(AssemblyTab, &HardwareArduinoAssemblyTabHost::applyHardwareSetupRequested, this, [this]() {
+        BoardPanel->applyToModel();
+        refreshFromModel(true);
+    });
+
     Tabs = new QTabWidget(this);
     Tabs->addTab(page, tr("Custom"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* root = new QVBoxLayout(this);
@@ -46,6 +54,7 @@ void HardwareArduinoCustomFirmwareControllerWidget::setComponentContext(
 {
     Context = context;
     BoardPanel->setContext(context);
+    AssemblyTab->setContext(context);
     refreshFromModel(true);
 }
 
@@ -60,6 +69,7 @@ void HardwareArduinoCustomFirmwareControllerWidget::refreshFromModel(bool force)
     if (Context.componentLongName.isEmpty())
         return;
     BoardPanel->refreshFromModel();
+    AssemblyTab->refreshFromModel();
     PluginEdit->setText(HardwareGuiHelpers::getProp(Context, "HostPluginId"));
     CommandEdit->setText(HardwareGuiHelpers::getProp(Context, "Command"));
     const bool bound = HardwareGuiHelpers::getPropBool(Context, "PluginBound", false);

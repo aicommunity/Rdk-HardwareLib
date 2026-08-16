@@ -17,7 +17,8 @@ public:
     {
         return {QStringLiteral("START READING"), QStringLiteral("STOP READING"),
                 QStringLiteral("GET STATUS"),    QStringLiteral("PROTO 2"),
-                QStringLiteral("PING")};
+                QStringLiteral("PING"),          QStringLiteral("GET PINS"),
+                QStringLiteral("CLEAR DEVICES")};
     }
     void onBinaryFrame(UArduinoPluginHost* host, uint8_t type, const QByteArray& payload) override;
     void negotiate(UArduinoPluginHost* host, int protocolVersion) override;

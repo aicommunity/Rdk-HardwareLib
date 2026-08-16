@@ -32,6 +32,7 @@ Env: `ARDUINO_TEST_PORT`, `ARDUINO_BOARD_PROFILE` (0=Uno, 1=Mega), `ARDUINO_SKIP
 |----|--------|---------|---------------|
 | TD-002 | P3 | Pin console digital/PWM via toolbar spins (MVP) | P5 GUI polish |
 | TD-003 | P4 | ClDesc + spike 08 | `generate_arduino_cldesc_properties.py`, `08-ArduinoFirmata-AnalogLink` |
+| GAP-HUB | P6 | DHT/HC-SR04 / motor timing gaps vs Standard Firmata | Closed by `nmsdk_sensor_hub_v1` + `nmsdk_motor_hub_v1` (HEX, plugins, Hub-Protocols.md, samples 14–15). Firmata DeviceIO remains for pot/servo/digital. |
 
 ## Deferred decisions (ADR-lite)
 
@@ -78,6 +79,7 @@ Env: `ARDUINO_TEST_PORT`, `ARDUINO_BOARD_PROFILE` (0=Uno, 1=Mega), `ARDUINO_SKIP
 |----|--------|---------|---------------|
 | TD-002 | P3 | Pin console digital/PWM via toolbar spins (MVP) | P5 GUI polish |
 | TD-003 | P4 | ClDesc + spike 08 | `generate_arduino_cldesc_properties.py`, `08-ArduinoFirmata-AnalogLink` |
+| GAP-HUB | P6 | DHT/HC-SR04 / motor timing gaps vs Standard Firmata | Closed by `nmsdk_sensor_hub_v1` + `nmsdk_motor_hub_v1` (HEX, plugins, Hub-Protocols.md, samples 14–15). Firmata DeviceIO remains for pot/servo/digital. |
 
 ## Deferred decisions (ADR-lite)
 

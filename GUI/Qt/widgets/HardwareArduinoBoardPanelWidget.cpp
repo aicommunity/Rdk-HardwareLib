@@ -16,6 +16,8 @@
 
 #include "../../../Core/Catalog/UHardwareCatalog.h"
 
+#include "../../../Core/Catalog/UHardwareSetup.h"
+
 #include "../../../Core/Transport/UArduinoBoardProfile.h"
 
 #include "../../../Core/Transport/UArduinoSerialPortUtil.h"
@@ -90,6 +92,16 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     auto* browseBtn = new QPushButton(tr("Browse\u2026"), this);
 
     connect(browseBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseHex);
+
+    HardwareSetupPathEdit = new QLineEdit(this);
+    auto* browseSetupBtn = new QPushButton(tr("Browse setup\u2026"), this);
+    connect(browseSetupBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseSetup);
+    auto* applyFwFromSetupBtn = new QPushButton(tr("Apply firmware from setup"), this);
+    connect(applyFwFromSetupBtn, &QPushButton::clicked, this,
+            &HardwareArduinoBoardPanelWidget::onApplyFirmwareFromSetup);
+    SetupStatusLabel = new QLabel(this);
+    SetupStatusLabel->setWordWrap(true);
+    SetupStatusLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     UploadProgress = new QProgressBar(this);
 
@@ -172,6 +184,13 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     hexRow->addWidget(browseBtn);
 
     form->addRow(tr("HEX path:"), hexRow);
+
+    auto* setupRow = new QHBoxLayout();
+    setupRow->addWidget(HardwareSetupPathEdit, 1);
+    setupRow->addWidget(browseSetupBtn);
+    form->addRow(tr("Hardware setup:"), setupRow);
+    form->addRow(QString(), applyFwFromSetupBtn);
+    form->addRow(tr("Setup status:"), SetupStatusLabel);
 
     auto* uploadRow = new QWidget(this);
 
@@ -532,6 +551,9 @@ void HardwareArduinoBoardPanelWidget::refreshFromModel()
 
     FirmwarePathEdit->setText(HardwareGuiHelpers::getProp(Context, "FirmwarePath"));
 
+    HardwareSetupPathEdit->setText(HardwareGuiHelpers::getProp(Context, "HardwareSetupPath"));
+    updateSetupStatusLabel();
+
     const bool uploading = HardwareGuiHelpers::getPropBool(Context, "IsUploading", false);
 
     const int progress = HardwareGuiHelpers::getPropInt(Context, "UploadProgress", 0);
@@ -625,6 +647,8 @@ void HardwareArduinoBoardPanelWidget::applyToModel()
                                 BundledFirmwareCombo->currentData().toString());
 
     HardwareGuiHelpers::setProp(Context, "FirmwarePath", FirmwarePathEdit->text());
+
+    HardwareGuiHelpers::setProp(Context, "HardwareSetupPath", HardwareSetupPathEdit->text());
 
 }
 
@@ -766,4 +790,95 @@ void HardwareArduinoBoardPanelWidget::onBrowseHex()
 
     }
 
+}
+
+void HardwareArduinoBoardPanelWidget::updateSetupStatusLabel()
+{
+    if (!SetupStatusLabel)
+        return;
+    const bool valid = HardwareGuiHelpers::getPropBool(Context, "HardwareSetupValid", true);
+    const QString issues = HardwareGuiHelpers::getProp(Context, "HardwareSetupIssues");
+    if (valid) {
+        SetupStatusLabel->setText(tr("Setup: OK"));
+        SetupStatusLabel->setStyleSheet(QStringLiteral("color: #1b7f3a;"));
+        SetupStatusLabel->setToolTip(issues.isEmpty() ? tr("No validation issues") : issues);
+    } else {
+        SetupStatusLabel->setText(tr("Setup: INVALID"));
+        SetupStatusLabel->setStyleSheet(QStringLiteral("color: #b00020; font-weight: bold;"));
+        SetupStatusLabel->setToolTip(issues.isEmpty() ? tr("Validation failed") : issues);
+    }
+}
+
+void HardwareArduinoBoardPanelWidget::onBrowseSetup()
+{
+    const QString path = QFileDialog::getOpenFileName(this, tr("Select Hardware Setup JSON"), QString(),
+                                                      tr("JSON (*.json);;All (*)"));
+    if (path.isEmpty())
+        return;
+    HardwareSetupPathEdit->setText(path);
+    applyToModel();
+    RDK::UHardwareSetup setup;
+    QString err;
+    if (setup.loadFromFile(path, &err)) {
+        QVector<RDK::UHwIssue> issues;
+        RDK::UHardwareCatalog& cat = RDK::UHardwareCatalog::instance();
+        if (!cat.isLoaded())
+            cat.load(nullptr);
+        const bool ok = cat.isLoaded() && setup.validate(cat, &issues);
+        QString issuesText;
+        for (const RDK::UHwIssue& issue : issues) {
+            if (!issuesText.isEmpty())
+                issuesText.append('\n');
+            issuesText.append(issue.code + QStringLiteral(": ") + issue.message);
+        }
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupValid",
+                                    ok ? QStringLiteral("1") : QStringLiteral("0"));
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupIssues", issuesText);
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupJson",
+                                    QString::fromUtf8(setup.toJson(true)));
+        if (!setup.document().firmwareId.isEmpty()) {
+            const int idx = BundledFirmwareCombo->findData(setup.document().firmwareId);
+            if (idx >= 0)
+                BundledFirmwareCombo->setCurrentIndex(idx);
+            HardwareGuiHelpers::setProp(Context, "BundledFirmwareId", setup.document().firmwareId);
+        }
+        if (setup.document().board == QStringLiteral("mega2560")) {
+            BoardProfileCombo->setCurrentIndex(BoardProfileCombo->findData(1));
+            HardwareGuiHelpers::setProp(Context, "BoardProfile", QStringLiteral("1"));
+        } else if (setup.document().board == QStringLiteral("uno")) {
+            BoardProfileCombo->setCurrentIndex(BoardProfileCombo->findData(0));
+            HardwareGuiHelpers::setProp(Context, "BoardProfile", QStringLiteral("0"));
+        }
+    } else if (!err.isEmpty()) {
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupValid", QStringLiteral("0"));
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupIssues", err);
+    }
+    updateSetupStatusLabel();
+    updateUploadPreview();
+}
+
+void HardwareArduinoBoardPanelWidget::onApplyFirmwareFromSetup()
+{
+    applyToModel();
+    const QString path = HardwareSetupPathEdit->text().trimmed();
+    const QString inlineJson = HardwareGuiHelpers::getProp(Context, "HardwareSetupJson");
+    RDK::UHardwareSetup setup;
+    QString err;
+    bool loaded = false;
+    if (!path.isEmpty())
+        loaded = setup.loadFromFile(path, &err);
+    if (!loaded && !inlineJson.isEmpty())
+        loaded = setup.loadFromJson(inlineJson.toUtf8(), &err);
+    if (!loaded)
+        return;
+    const QString fw = setup.document().firmwareId;
+    if (fw.isEmpty())
+        return;
+    const int idx = BundledFirmwareCombo->findData(fw);
+    if (idx >= 0)
+        BundledFirmwareCombo->setCurrentIndex(idx);
+    HardwareGuiHelpers::setProp(Context, "BundledFirmwareId", fw);
+    FirmwarePathEdit->clear();
+    HardwareGuiHelpers::setProp(Context, "FirmwarePath", QString());
+    updateUploadPreview();
 }

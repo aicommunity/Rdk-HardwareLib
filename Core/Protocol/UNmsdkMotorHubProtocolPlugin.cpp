@@ -9,8 +9,10 @@ namespace RDK {
 void UNmsdkMotorHubProtocolPlugin::negotiate(UArduinoPluginHost* host, int protocolVersion)
 {
     IArduinoProtocolPlugin::negotiate(host, protocolVersion);
-    if (host)
+    if (host) {
         host->enqueueCommand(QStringLiteral("PROTO 2"));
+        host->enqueueCommand(QStringLiteral("WATCHDOG 2000"));
+    }
 }
 
 void UNmsdkMotorHubProtocolPlugin::onHealthCheck(UArduinoPluginHost* host)
@@ -41,6 +43,12 @@ void UNmsdkMotorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint8
         QVector<double> row;
         row << 4.0 << channel << pwm << dir << sense;
         host->publishSensorMatrixRow(row);
+        host->setProtocolReady(true);
+    } else if (type == 0x21 && payload.size() >= 4) {
+        host->publishNamedFloat(QStringLiteral("pin_dir"), static_cast<float>((uint8_t)payload[0]));
+        host->publishNamedFloat(QStringLiteral("pin_pwm"), static_cast<float>((uint8_t)payload[1]));
+        host->publishNamedFloat(QStringLiteral("pin_brake"), static_cast<float>((uint8_t)payload[2]));
+        host->publishNamedFloat(QStringLiteral("pin_sense"), static_cast<float>((uint8_t)payload[3]));
         host->setProtocolReady(true);
     } else if (type == 0x7F) {
         host->setProtocolReady(true);

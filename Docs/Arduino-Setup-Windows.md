@@ -6,8 +6,10 @@
 
 From the repo root or `Bin/Platform/Win`:
 
-```bat
-Bin\Platform\Win\SetupArduinoTools.bat
+```powershell
+.\Scripts\setup_arduino_tools.ps1
+# optional wrapper:
+# Bin\Platform\Win\SetupArduinoTools.bat
 ```
 
 This downloads `arduino-cli` into `Bin/Platform/Win/ArduinoCLI/`, installs the AVR core into `Bin/Platform/Win/ArduinoData/`, copies `avrdude` to `Bin/Platform/Win/ArduinoTools/`, and builds HEX into `Bin/ArduinoFirmware/`.
@@ -24,7 +26,7 @@ Run **NeuroModeler** from `Bin/Platform/Win` so upload finds bundled `avrdude` a
 
 | Symptom | Action |
 |---------|--------|
-| `avrdude not found` | Run `SetupArduinoTools.bat`, restart NeuroModeler from `Bin/Platform/Win` |
+| `avrdude not found` | Run `Scripts/setup_arduino_tools.ps1` (or `SetupArduinoTools.bat`), restart NeuroModeler from `Bin/Platform/Win` |
 | `avrdude.conf not found` | Check `ArduinoTools/etc/avrdude.conf` exists |
 | `HEX file not found` | Re-run setup or `build_arduino_firmware.ps1` |
 | COM port busy / permission | Close Arduino IDE Serial Monitor |
@@ -43,8 +45,10 @@ Use the system `avrdude` package and `./Scripts/build_arduino_firmware.sh`. No `
 
 From the repo root or `Bin/Platform/Win`:
 
-```bat
-Bin\Platform\Win\SetupArduinoTools.bat
+```powershell
+.\Scripts\setup_arduino_tools.ps1
+# optional wrapper:
+# Bin\Platform\Win\SetupArduinoTools.bat
 ```
 
 This downloads `arduino-cli` into `Bin/Platform/Win/ArduinoCLI/`, installs the AVR core into `Bin/Platform/Win/ArduinoData/`, copies `avrdude` to `Bin/Platform/Win/ArduinoTools/`, and builds HEX into `Bin/ArduinoFirmware/`.
@@ -61,7 +65,7 @@ Run **NeuroModeler** from `Bin/Platform/Win` so upload finds bundled `avrdude` a
 
 | Symptom | Action |
 |---------|--------|
-| `avrdude not found` | Run `SetupArduinoTools.bat`, restart NeuroModeler from `Bin/Platform/Win` |
+| `avrdude not found` | Run `Scripts/setup_arduino_tools.ps1` (or `SetupArduinoTools.bat`), restart NeuroModeler from `Bin/Platform/Win` |
 | `avrdude.conf not found` | Check `ArduinoTools/etc/avrdude.conf` exists |
 | `HEX file not found` | Re-run setup or `build_arduino_firmware.ps1` |
 | COM port busy / permission | Close Arduino IDE Serial Monitor |

@@ -8,6 +8,8 @@
 |------|-------------|
 | `sensor_lab/sensor_lab.ino` | Custom protocol sketch (57600 baud) |
 | `sensor_lab/uno.hex`, `mega2560.hex` | Prebuilt sensor_lab (копируются в `Bin/ArduinoFirmware` скриптом сборки) |
+| `nmsdk_sensor_hub/` | Tier C DHT/HC-SR04 hub (HEX + framed v2) |
+| `nmsdk_motor_hub/` | Tier C motor DIR/PWM hub (watchdog + HEX) |
 | `firmata/standard_firmata_*.hex` | StandardFirmata for Uno / Mega |
 | `manifest.json` | Шаблон manifest (копируется в `Bin/ArduinoFirmware`) |
 
@@ -27,7 +29,7 @@ If `downloads.arduino.cc` returns 403, build on a machine with working Arduino C
 ### Подготовка
 
 - [ ] Плата подключена по USB, в системе виден порт (`/dev/ttyACM0`, `COM3`, …).
-- [ ] **Windows:** запущен `Bin/Platform/Win/SetupArduinoTools.bat` или `avrdude` в PATH.
+- [ ] **Windows:** предпочтительно `Scripts/setup_arduino_tools.ps1` (wrapper `Bin/Platform/Win/SetupArduinoTools.bat`) или `avrdude` в PATH.
 - [ ] **Linux:** установлен пакет `avrdude`; пользователь в группе `dialout` (`sudo usermod -aG dialout $USER`).
 - [ ] В модели выбран верный **Board profile**: `0` = Uno, `1` = Mega 2560 (GUI: авто-детект при выборе COM для официальных Arduino; CH340-клоны — вручную).
 - [ ] Bundled HEX существуют (см. таблицу выше) или указан свой путь в **Firmware path**.
@@ -129,7 +131,7 @@ Default port speed: **57600**. Close Serial Monitor in Arduino IDE before flashi
 ### Preparation
 
 - [ ] Board connected via USB, port visible in the system (`/dev/ttyACM0`, `COM3`, …).
-- [ ] **Windows:** `Bin/Platform/Win/SetupArduinoTools.bat` run or `avrdude` in PATH.
+- [ ] **Windows:** prefer `Scripts/setup_arduino_tools.ps1` (wrapper `Bin/Platform/Win/SetupArduinoTools.bat`) or `avrdude` on PATH.
 - [ ] **Linux:** `avrdude` package installed; user in `dialout` group (`sudo usermod -aG dialout $USER`).
 - [ ] Correct **Board profile** selected in the model: `0` = Uno, `1` = Mega 2560 (GUI: auto-detect when selecting COM for official Arduino; CH340 clones — manual).
 - [ ] Bundled HEX exist (see table above) or a custom path is set in **Firmware path**.

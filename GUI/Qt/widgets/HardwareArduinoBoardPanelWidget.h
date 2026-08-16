@@ -35,6 +35,8 @@ private slots:
     void onUpload();
     void onCancelUpload();
     void onBrowseHex();
+    void onBrowseSetup();
+    void onApplyFirmwareFromSetup();
     void onPortOrProfileChanged();
     void onUploadPollTick();
 
@@ -42,6 +44,7 @@ private:
     void updateUploadPreview();
     void updateUploadControlsEnabled();
     void updateBoardDetectHint();
+    void updateSetupStatusLabel();
     void populateBundledFirmwareCombo();
     QString formatBoardDetectLine(const QString& port_path, int detected) const;
     void startUploadUiPoll();
@@ -52,6 +55,7 @@ private:
     QComboBox* BoardProfileCombo = nullptr;
     QCheckBox* AutoDetectBoardCheck = nullptr;
     QLabel* UploadPreviewLabel = nullptr;
+    QLabel* SetupStatusLabel = nullptr;
     QCheckBox* ConnectOnBuildCheck = nullptr;
     QCheckBox* AutoReconnectCheck = nullptr;
     QCheckBox* HeartbeatEnabledCheck = nullptr;
@@ -61,6 +65,7 @@ private:
     QSpinBox* BaudSpin = nullptr;
     QComboBox* BundledFirmwareCombo = nullptr;
     QLineEdit* FirmwarePathEdit = nullptr;
+    QLineEdit* HardwareSetupPathEdit = nullptr;
     QProgressBar* UploadProgress = nullptr;
     QPlainTextEdit* StatusLog = nullptr;
     QPushButton* UploadBtn = nullptr;

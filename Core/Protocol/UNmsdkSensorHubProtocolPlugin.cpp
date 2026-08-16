@@ -60,6 +60,12 @@ void UNmsdkSensorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint
         host->publishPinStatusJson(
             QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact)));
         host->setProtocolReady(true);
+    } else if (type == 0x22 && payload.size() >= 4) {
+        host->publishNamedFloat(QStringLiteral("pin_dht"), static_cast<float>((uint8_t)payload[0]));
+        host->publishNamedFloat(QStringLiteral("pin_trig"), static_cast<float>((uint8_t)payload[1]));
+        host->publishNamedFloat(QStringLiteral("pin_echo"), static_cast<float>((uint8_t)payload[2]));
+        host->publishNamedFloat(QStringLiteral("pin_hall"), static_cast<float>((uint8_t)payload[3]));
+        host->setProtocolReady(true);
     } else if (type == 0x7F) {
         host->setProtocolReady(true);
         host->publishNamedFloat(QStringLiteral("pong"), 1.f);

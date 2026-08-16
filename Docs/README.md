@@ -46,6 +46,7 @@
 - [Assembly-View.md](Assembly-View.md) — вкладка Assembly в NeuroModeler
 - [Shields-Firmata-IO.md](Shields-Firmata-IO.md) — DeviceIO mapping
 - [Protocol-Plugins.md](Protocol-Plugins.md) — custom firmware plugins
+- [Hub-Protocols.md](Hub-Protocols.md) — sensor/motor hub frames + commands
 - [ADR-Core-Layout.md](ADR-Core-Layout.md) — раскладка `Core/`
 
 Валидация каталога: `Scripts/validate_hardware_catalog.py`.
@@ -72,7 +73,7 @@
 - [API-Overview.md](API-Overview.md) — свойства компонентов
 - [Usage-Examples.md](Usage-Examples.md) — XML и сценарии
 - [Transport.md](Transport.md) — serial, avrdude, профили плат
-- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — SetupArduinoTools.bat, bundled ArduinoTools
+- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — setup_arduino_tools.ps1, bundled ArduinoTools
 - [Protocol.md](Protocol.md) — бинарный протокол sensor_lab
 - [GUI.md](GUI.md) — NeuroModeler forms и diagram
 - [firmata_spike.md](firmata_spike.md) — scope Firmata MVP
@@ -147,7 +148,7 @@ Script: `Scripts/migrate_arduino_classnames.py`. Historical docs: [Legacy/README
 - [API-Overview.md](API-Overview.md) — component properties
 - [Usage-Examples.md](Usage-Examples.md) — XML and scenarios
 - [Transport.md](Transport.md) — serial, avrdude, board profiles
-- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — SetupArduinoTools.bat, bundled ArduinoTools
+- [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md) — setup_arduino_tools.ps1, bundled ArduinoTools
 - [Protocol.md](Protocol.md) — sensor_lab binary protocol
 - [GUI.md](GUI.md) — NeuroModeler forms and diagram
 - [firmata_spike.md](firmata_spike.md) — Firmata MVP scope

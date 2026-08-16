@@ -16,7 +16,8 @@ public:
     QStringList knownCommands() const override
     {
         return {QStringLiteral("PROTO 2"), QStringLiteral("PING"), QStringLiteral("MOTOR STOP"),
-                QStringLiteral("GET STATUS")};
+                QStringLiteral("GET STATUS"), QStringLiteral("GET PINS"),
+                QStringLiteral("WATCHDOG 2000")};
     }
     void onBinaryFrame(UArduinoPluginHost* host, uint8_t type, const QByteArray& payload) override;
     void negotiate(UArduinoPluginHost* host, int protocolVersion) override;

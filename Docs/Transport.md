@@ -54,7 +54,7 @@
 
 ### Windows setup
 
-Запустите [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) — копирует `avrdude` в `Bin/Platform/Win/ArduinoTools/`. Подробнее: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
+Запустите [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) (wrapper [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat)) — копирует `avrdude` в `Bin/Platform/Win/ArduinoTools/`. Подробнее: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
 
 ### Linux
 
@@ -144,7 +144,7 @@ Before upload: `CloseConnection`, pause ~400 ms, bootloader reset (1200 baud + D
 
 ### Windows setup
 
-Run [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) — copies `avrdude` to `Bin/Platform/Win/ArduinoTools/`. Details: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
+Run [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) (wrapper [`Bin/Platform/Win/SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat)) — copies `avrdude` to `Bin/Platform/Win/ArduinoTools/`. Details: [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
 
 ### Linux
 

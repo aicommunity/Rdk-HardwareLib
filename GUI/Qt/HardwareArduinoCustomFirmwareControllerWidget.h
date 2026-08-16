@@ -10,6 +10,7 @@
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 #include "../../../../Rdk/GUI/Qt/UVisualControllerWidget.h"
 
+class HardwareArduinoAssemblyTabHost;
 class HardwareArduinoBoardPanelWidget;
 
 class HardwareArduinoCustomFirmwareControllerWidget : public UVisualControllerWidget,
@@ -31,6 +32,7 @@ private:
     UComponentGuiContext Context;
     QTabWidget* Tabs = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
+    HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     QLineEdit* PluginEdit = nullptr;
     QLineEdit* CommandEdit = nullptr;
     QLabel* PluginStatus = nullptr;

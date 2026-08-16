@@ -19,7 +19,7 @@
 
 ### Windows (PowerShell)
 
-После [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX уже собраны. Отдельная пересборка:
+После [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) / [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX уже собраны. Отдельная пересборка:
 
 ```powershell
 .\Scripts\build_arduino_firmware.ps1
@@ -85,7 +85,7 @@ Build bundled HEX into `Bin/ArduinoFirmware/` (runtime). Sketch sources: `Librar
 
 ### Windows (PowerShell)
 
-After [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX files are already built. To rebuild separately:
+After [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) / [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX files are already built. To rebuild separately:
 
 ```powershell
 .\Scripts\build_arduino_firmware.ps1
