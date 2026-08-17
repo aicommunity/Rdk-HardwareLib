@@ -9,9 +9,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QEvent>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QResizeEvent>
+#include <QShowEvent>
+#include <QSizePolicy>
 #include <QVBoxLayout>
 
 #if HARDWARELIB_HAS_QTSVG
@@ -84,6 +87,8 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
 {
     DiagramHost = new QWidget(this);
     DiagramHost->setMinimumHeight(120);
+    DiagramHost->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    DiagramHost->installEventFilter(this);
 
 #if HARDWARELIB_HAS_QTSVG
     SvgWidget = new QSvgWidget(DiagramHost);
@@ -93,6 +98,7 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
 #endif
 
     Overlay = new UArduinoPinOverlay(DiagramHost);
+    Overlay->setViewBoxSize(diagramViewBoxSize());
     connect(Overlay, &UArduinoPinOverlay::pinClicked, this, &UArduinoBoardDiagramWidget::pinClicked);
 
     StatusLog = HardwareGuiHelpers::createStatusLogWidget(this, 40, 64);
@@ -174,7 +180,11 @@ void UArduinoBoardDiagramWidget::layoutDiagram()
         return;
 
     const QRect host = DiagramHost->rect();
-    const QSizeF scaled = diagramViewBoxSize().scaled(host.size(), Qt::KeepAspectRatio);
+    if (host.width() <= 0 || host.height() <= 0)
+        return;
+
+    const QSizeF viewBox = diagramViewBoxSize();
+    const QSizeF scaled = viewBox.scaled(host.size(), Qt::KeepAspectRatio);
     QRect geom(QPoint(0, 0), scaled.toSize());
     geom.moveCenter(host.center());
 
@@ -185,14 +195,31 @@ void UArduinoBoardDiagramWidget::layoutDiagram()
     if (SvgPlaceholder)
         SvgPlaceholder->setGeometry(geom);
 #endif
-    if (Overlay)
-        Overlay->setGeometry(geom);
+    if (Overlay) {
+        Overlay->setViewBoxSize(viewBox);
+        Overlay->setGeometry(host);
+        Overlay->raise();
+    }
 }
 
 void UArduinoBoardDiagramWidget::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
     layoutDiagram();
+}
+
+void UArduinoBoardDiagramWidget::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    layoutDiagram();
+}
+
+bool UArduinoBoardDiagramWidget::eventFilter(QObject* watched, QEvent* event)
+{
+    if (watched == DiagramHost
+        && (event->type() == QEvent::Resize || event->type() == QEvent::Show))
+        layoutDiagram();
+    return QWidget::eventFilter(watched, event);
 }
 
 int UArduinoBoardDiagramWidget::firmataPinFromLabel(const QString& pinId, int board_profile)

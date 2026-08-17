@@ -46,19 +46,41 @@ void UArduinoPinOverlay::setInteractive(bool interactive)
     setCursor(interactive ? Qt::PointingHandCursor : Qt::ArrowCursor);
 }
 
+void UArduinoPinOverlay::setViewBoxSize(const QSizeF& size)
+{
+    if (ViewBox == size)
+        return;
+    ViewBox = size;
+    update();
+}
+
+QRectF UArduinoPinOverlay::contentRect() const
+{
+    const QRectF host(rect());
+    if (ViewBox.width() <= 0.0 || ViewBox.height() <= 0.0)
+        return host;
+    const QSizeF scaled = ViewBox.scaled(host.size(), Qt::KeepAspectRatio);
+    QRectF r(QPointF(0, 0), scaled);
+    r.moveCenter(host.center());
+    return r;
+}
+
+QRectF UArduinoPinOverlay::mappedPinRect(const PinRegion& pin) const
+{
+    const QRectF c = contentRect();
+    return QRectF(c.x() + pin.NormalizedRect.x() * c.width(),
+                  c.y() + pin.NormalizedRect.y() * c.height(),
+                  pin.NormalizedRect.width() * c.width(),
+                  pin.NormalizedRect.height() * c.height());
+}
+
 QString UArduinoPinOverlay::pinAt(const QPoint& pos) const
 {
-    const qreal w = width();
-    const qreal h = height();
-    if (w <= 0 || h <= 0)
+    if (width() <= 0 || height() <= 0)
         return {};
 
     for (const PinRegion& pin : Pins) {
-        const QRectF r(pin.NormalizedRect.x() * w,
-                       pin.NormalizedRect.y() * h,
-                       pin.NormalizedRect.width() * w,
-                       pin.NormalizedRect.height() * h);
-        if (r.contains(pos))
+        if (mappedPinRect(pin).contains(pos))
             return pin.Id;
     }
     return {};
@@ -100,13 +122,8 @@ void UArduinoPinOverlay::paintEvent(QPaintEvent* event)
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
-    const qreal w = width();
-    const qreal h = height();
     for (const PinRegion& pin : Pins) {
-        const QRectF r(pin.NormalizedRect.x() * w,
-                       pin.NormalizedRect.y() * h,
-                       pin.NormalizedRect.width() * w,
-                       pin.NormalizedRect.height() * h);
+        const QRectF r = mappedPinRect(pin);
 
         QColor fill = fillColorForPin(pin);
         if (pin.Id == SelectedId)

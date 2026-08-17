@@ -10,6 +10,8 @@
 class QLabel;
 class QPlainTextEdit;
 class QResizeEvent;
+class QShowEvent;
+class QEvent;
 
 #if __has_include(<QSvgWidget>)
 #include <QSvgWidget>
@@ -39,6 +41,8 @@ signals:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     void updateSvg();

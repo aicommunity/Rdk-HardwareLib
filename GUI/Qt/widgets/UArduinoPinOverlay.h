@@ -2,6 +2,8 @@
 #define UARDUINOPINOVERLAY_H
 
 #include <QMap>
+#include <QRectF>
+#include <QSizeF>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
@@ -33,6 +35,8 @@ public:
     void setHighlightedIds(const QStringList& ids);
     void setSelectedId(const QString& id);
     void setInteractive(bool interactive);
+    /** Letterbox pin 0..1 coords into this viewBox aspect (matches SVG). Empty = fill widget. */
+    void setViewBoxSize(const QSizeF& size);
 
 signals:
     void pinClicked(const QString& pinId);
@@ -44,8 +48,11 @@ protected:
 private:
     QColor fillColorForPin(const PinRegion& pin) const;
     QString pinAt(const QPoint& pos) const;
+    QRectF contentRect() const;
+    QRectF mappedPinRect(const PinRegion& pin) const;
 
     QVector<PinRegion> Pins;
+    QSizeF ViewBox;
     QMap<QString, QString> Roles;
     QMap<QString, PinVisualState> VisualStates;
     QStringList HighlightedIds;
