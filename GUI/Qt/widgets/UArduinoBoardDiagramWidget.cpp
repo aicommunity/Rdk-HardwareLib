@@ -42,8 +42,12 @@ QString resolveBundledPath(const QString& qrc_path, const QString& resources_rel
 
 QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resource_path,
                                                             const QString& resources_relative_path,
-                                                            int board_profile)
+                                                            int board_profile,
+                                                            QSizeF* view_box)
 {
+    if (view_box)
+        *view_box = board_profile == 1 ? QSizeF(640.0, 260.0) : QSizeF(400.0, 200.0);
+
     const QString path = resolveBundledPath(resource_path, resources_relative_path);
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
@@ -51,6 +55,10 @@ QVector<UArduinoPinOverlay::PinRegion> loadPinsFromResource(const QString& resou
 
     const QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     const QJsonObject root = doc.object();
+    const QJsonArray vb = root.value(QStringLiteral("viewBox")).toArray();
+    if (view_box && vb.size() >= 4 && vb.at(2).toDouble() > 0.0 && vb.at(3).toDouble() > 0.0)
+        *view_box = QSizeF(vb.at(2).toDouble(), vb.at(3).toDouble());
+
     const QJsonArray pins = root.value(QStringLiteral("pins")).toArray();
 
     QVector<UArduinoPinOverlay::PinRegion> result;
@@ -129,7 +137,9 @@ void UArduinoBoardDiagramWidget::reloadPinLayout()
 {
     const QString pinsRel = BoardProfileValue == 1 ? QStringLiteral("boards/mega2560_pins.json")
                                                 : QStringLiteral("boards/uno_pins.json");
-    Overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel, BoardProfileValue));
+    Overlay->setPins(loadPinsFromResource(pinsResourceForProfile(), pinsRel, BoardProfileValue,
+                                          &BoardViewBox));
+    Overlay->setViewBoxSize(BoardViewBox);
     Overlay->setPinRoles(PinRoles);
     Overlay->setHighlightedIds(HighlightedPins);
     Overlay->setSelectedId(SelectedPinId);
@@ -171,7 +181,7 @@ void UArduinoBoardDiagramWidget::updateSvg()
 
 QSizeF UArduinoBoardDiagramWidget::diagramViewBoxSize() const
 {
-    return BoardProfileValue == 1 ? QSizeF(500.0, 200.0) : QSizeF(400.0, 200.0);
+    return BoardViewBox;
 }
 
 void UArduinoBoardDiagramWidget::layoutDiagram()

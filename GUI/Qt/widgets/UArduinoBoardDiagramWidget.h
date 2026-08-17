@@ -2,6 +2,7 @@
 #define UARDUINOBOARDDIAGRAMWIDGET_H
 
 #include <QMap>
+#include <QSizeF>
 #include <QStringList>
 #include <QWidget>
 
@@ -58,6 +59,7 @@ private:
     QMap<QString, QString> PinRoles;
     QString SelectedPinId;
     bool Interactive = false;
+    QSizeF BoardViewBox = QSizeF(400.0, 200.0);
 
     QWidget* DiagramHost = nullptr;
 #if HARDWARELIB_HAS_QTSVG

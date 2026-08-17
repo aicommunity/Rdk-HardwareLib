@@ -58,8 +58,8 @@
 
 [`UArduinoBoardDiagramWidget`](../GUI/Qt/widgets/UArduinoBoardDiagramWidget.cpp):
 
-- SVG pinout Uno / Mega (`hardware_lib.qrc`)
-- Overlay пинов из `uno_pins.json`, `mega2560_pins.json`
+- SVG pinout Uno / Mega (`hardware_lib.qrc`): отверстия по краям платы (USB слева), центр чистый
+- Overlay из `uno_pins.json` / `mega2560_pins.json`: подпись только у hover / selected / role
 - Firmata: клик по пину → `SelectedPin`
 
 ## Sensor sketch widget
@@ -145,8 +145,8 @@ Embedded in **Board** tab of SensorSketch, Firmata, DcDemo.
 
 [`UArduinoBoardDiagramWidget`](../GUI/Qt/widgets/UArduinoBoardDiagramWidget.cpp):
 
-- SVG pinout Uno / Mega (`hardware_lib.qrc`)
-- Pin overlay from `uno_pins.json`, `mega2560_pins.json`
+- SVG pinout Uno / Mega (`hardware_lib.qrc`): headers along the board edges (USB on the left)
+- Overlay from `uno_pins.json` / `mega2560_pins.json`: label only on hover / selected / role
 - Firmata: pin click → `SelectedPin`
 
 ## Sensor sketch widget

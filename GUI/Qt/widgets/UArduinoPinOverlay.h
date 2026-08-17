@@ -44,6 +44,8 @@ signals:
 protected:
     void paintEvent(QPaintEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
 private:
     QColor fillColorForPin(const PinRegion& pin) const;
@@ -57,6 +59,7 @@ private:
     QMap<QString, PinVisualState> VisualStates;
     QStringList HighlightedIds;
     QString SelectedId;
+    QString HoverId;
     bool Interactive = false;
 };
 
