@@ -1,6 +1,8 @@
 #ifndef HARDWAREARDUINOASSEMBLYTABHOST_H
 #define HARDWAREARDUINOASSEMBLYTABHOST_H
 
+#include "Catalog/UHardwareCatalogTypes.h"
+
 #include "../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 
 #include <QWidget>

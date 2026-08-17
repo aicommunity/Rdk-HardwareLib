@@ -63,7 +63,7 @@ void HardwareArduinoBoardControllerWidget::updateDiagram()
     const QString fw_id = HardwareGuiHelpers::getProp(Context, "BundledFirmwareId");
     QStringList pins = RDK::UFirmwareManifest::bundledDefaultPinLabels(fw_id);
     if (pins.isEmpty())
-        pins = {QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")};
+        pins = QStringList{QStringLiteral("D2"), QStringLiteral("A2"), QStringLiteral("D9")};
     Diagram->setHighlightedPins(pins);
     Diagram->setPinRoles(RDK::UFirmwareManifest::bundledDefaultPinRoles(fw_id));
 }

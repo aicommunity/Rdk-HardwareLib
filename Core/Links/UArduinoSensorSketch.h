@@ -60,7 +60,7 @@ protected:
                           float hall_value,
                           float speed_value);
     void RunPresetCommand(const char* text);
-    static QString pinToString(int pin);
+    QString pinToString(int pin);
     IArduinoProtocolPlugin* resolvePlugin() const;
 
     QVector<USensorDataPoint> DataBuffer;

@@ -3,6 +3,8 @@
 
 #include "rdk.h"
 
+#include <QString>
+
 namespace RDK {
 
 class UArduinoFirmata;

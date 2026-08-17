@@ -178,7 +178,7 @@ void UArduinoSensorSketch::ProcessSketchEdges()
 
 QString UArduinoSensorSketch::pinToString(int pin)
 {
-    return USensorLabFrameDecoder::pinToString(pin, BoardProfile);
+    return USensorLabFrameDecoder::pinToString(pin, boardProfile());
 }
 
 void UArduinoSensorSketch::FillSensorBuffer(double timestamp,
