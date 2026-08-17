@@ -350,13 +350,16 @@ void UArduinoFirmataClient::handleSysex(const QByteArray& sysex)
             }
         }
         GotAnalogMapping = true;
-    } else if (cmd == kPinStateResponse && sysex.size() >= 5) {
+    } else if (cmd == kPinStateResponse && sysex.size() >= 3) {
         const int pin = static_cast<uint8_t>(sysex[1]);
         const int mode = static_cast<uint8_t>(sysex[2]);
         PinModeByPin[pin] = mode;
         PinDeviceModeByPin[pin] = mode;
-        const int value = (static_cast<uint8_t>(sysex[3]) & 0x7F)
-                          | ((static_cast<uint8_t>(sysex[4]) & 0x7F) << 7);
+        int value = 0;
+        if (sysex.size() >= 4)
+            value = static_cast<uint8_t>(sysex[3]) & 0x7F;
+        if (sysex.size() >= 5)
+            value |= (static_cast<uint8_t>(sysex[4]) & 0x7F) << 7;
         if (mode == 2 || mode == 3) {
             const int channel = analogChannelForPin(pin);
             if (channel >= 0)
