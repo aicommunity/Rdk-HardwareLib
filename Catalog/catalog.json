@@ -15,7 +15,8 @@
     "modules/hc_sr04.json",
     "modules/relay.json",
     "modules/button.json",
-    "modules/led.json"
+    "modules/led.json",
+    "modules/pwm_led.json"
   ],
   "firmwares": [
     "firmwares/standard_firmata.json",
