@@ -4,6 +4,7 @@
 
 #include <Transport/UArduinoPinMap.h>
 
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -20,11 +21,15 @@ HardwareArduinoPinConsoleWidget::HardwareArduinoPinConsoleWidget(QWidget* parent
     Table->setColumnCount(6);
     Table->setHorizontalHeaderLabels(
         {tr("Label"), tr("Firmata #"), tr("Mode"), tr("Digital"), tr("Analog"), tr("PWM")});
+    Table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    Table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     Table->horizontalHeader()->setStretchLastSection(true);
     Table->setSelectionBehavior(QAbstractItemView::SelectRows);
     Table->setSelectionMode(QAbstractItemView::SingleSelection);
 
     PresetCombo = new QComboBox(this);
+    HardwareGuiHelpers::configureExpandingCombo(PresetCombo, 12);
     PresetCombo->addItem(tr("(none)"), QString());
     PresetCombo->addItem(tr("Uno D13 blink"), QStringLiteral("uno_d13_blink"));
     PresetCombo->addItem(tr("Uno A0 monitor"), QStringLiteral("uno_a0_monitor"));
@@ -74,6 +79,8 @@ HardwareArduinoPinConsoleWidget::HardwareArduinoPinConsoleWidget(QWidget* parent
             &HardwareArduinoPinConsoleWidget::onRowSelectionChanged);
 
     auto* valueRow = new QHBoxLayout();
+    valueRow->setContentsMargins(0, 0, 0, 0);
+    valueRow->setSpacing(4);
     valueRow->addWidget(new QLabel(tr("Digital:"), this));
     valueRow->addWidget(DigitalSpin);
     valueRow->addWidget(new QLabel(tr("PWM:"), this));
@@ -82,18 +89,26 @@ HardwareArduinoPinConsoleWidget::HardwareArduinoPinConsoleWidget(QWidget* parent
     valueRow->addWidget(ServoAngleSpin);
     valueRow->addStretch();
 
-    auto* toolbar = new QHBoxLayout();
-    toolbar->addWidget(new QLabel(tr("Preset:"), this));
-    toolbar->addWidget(PresetCombo, 1);
-    toolbar->addWidget(applyBtn);
-    toolbar->addWidget(modeBtn);
-    toolbar->addWidget(writeBtn);
-    toolbar->addWidget(readBtn);
-    toolbar->addWidget(pwmBtn);
-    toolbar->addWidget(servoBtn);
-    toolbar->addWidget(monitorBtn);
+    auto* presetRow = new QHBoxLayout();
+    presetRow->setContentsMargins(0, 0, 0, 0);
+    presetRow->setSpacing(4);
+    presetRow->addWidget(new QLabel(tr("Preset:"), this));
+    presetRow->addWidget(PresetCombo, 1);
+
+    auto* toolbar = new QGridLayout();
+    toolbar->setContentsMargins(0, 0, 0, 0);
+    toolbar->setSpacing(4);
+    toolbar->addWidget(applyBtn, 0, 0);
+    toolbar->addWidget(modeBtn, 0, 1);
+    toolbar->addWidget(writeBtn, 0, 2);
+    toolbar->addWidget(readBtn, 0, 3);
+    toolbar->addWidget(pwmBtn, 1, 0);
+    toolbar->addWidget(servoBtn, 1, 1);
+    toolbar->addWidget(monitorBtn, 1, 2);
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
+    root->addLayout(presetRow);
     root->addLayout(toolbar);
     root->addLayout(valueRow);
     root->addWidget(Table, 1);
@@ -122,6 +137,7 @@ void HardwareArduinoPinConsoleWidget::rebuildTable(int profile)
         mode->addItem(tr("Output"), 1);
         mode->addItem(tr("Analog"), 2);
         mode->addItem(tr("PWM"), 3);
+        HardwareGuiHelpers::configureExpandingCombo(mode, 6);
         Table->setCellWidget(pin, 2, mode);
 
         Table->setItem(pin, 3, new QTableWidgetItem(QStringLiteral("\u2014")));

@@ -6,6 +6,8 @@
 
 #include <QHBoxLayout>
 
+#include <QGridLayout>
+
 #include <QScrollArea>
 
 #include <QSignalBlocker>
@@ -34,6 +36,8 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     HardwareGuiHelpers::applyUnicodeFriendlyFont(PortCombo);
 
+    HardwareGuiHelpers::configureExpandingCombo(PortCombo, 14);
+
     auto* refreshPortsBtn = new QPushButton(tr("Refresh"), this);
 
     connect(refreshPortsBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onRefreshPorts);
@@ -44,9 +48,29 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     BoardProfileCombo->addItem(tr("Arduino Mega 2560"), 1);
 
-    AutoDetectBoardCheck = new QCheckBox(tr("Auto-detect board when port changes"), this);
+    HardwareGuiHelpers::configureExpandingCombo(BoardProfileCombo, 18);
+
+    AutoDetectBoardCheck = new QCheckBox(this);
 
     AutoDetectBoardCheck->setChecked(true);
+
+    auto* autoDetectLabel = new QLabel(tr("Auto-detect board when port changes"), this);
+
+    autoDetectLabel->setWordWrap(true);
+
+    autoDetectLabel->setBuddy(AutoDetectBoardCheck);
+
+    auto* autoDetectRow = new QWidget(this);
+
+    auto* autoDetectLayout = new QHBoxLayout(autoDetectRow);
+
+    autoDetectLayout->setContentsMargins(0, 0, 0, 0);
+
+    autoDetectLayout->setSpacing(4);
+
+    autoDetectLayout->addWidget(AutoDetectBoardCheck, 0, Qt::AlignTop);
+
+    autoDetectLayout->addWidget(autoDetectLabel, 1);
 
     UploadPreviewLabel = new QLabel(this);
 
@@ -85,6 +109,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     HeartbeatTimeoutSpin->setValue(10000);
 
     BundledFirmwareCombo = new QComboBox(this);
+    HardwareGuiHelpers::configureExpandingCombo(BundledFirmwareCombo, 16);
     populateBundledFirmwareCombo();
 
     FirmwarePathEdit = new QLineEdit(this);
@@ -105,7 +130,7 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
 
     UploadProgress = new QProgressBar(this);
 
-    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this, 48, 96);
 
     ConnectBtn = new QPushButton(tr("Connect"), this);
 
@@ -146,46 +171,51 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onCalculate);
 
     auto* form = new QFormLayout();
+    HardwareGuiHelpers::applyCompactForm(form);
 
     auto* portRow = new QHBoxLayout();
-
+    portRow->setContentsMargins(0, 0, 0, 0);
+    portRow->setSpacing(4);
     portRow->addWidget(PortCombo, 1);
-
     portRow->addWidget(refreshPortsBtn);
-
     form->addRow(tr("Port:"), portRow);
 
     form->addRow(tr("Board:"), BoardProfileCombo);
 
-    form->addRow(QString(), AutoDetectBoardCheck);
+    form->addRow(QString(), autoDetectRow);
 
     form->addRow(tr("Upload preview:"), UploadPreviewLabel);
 
     form->addRow(tr("Baud rate:"), BaudSpin);
 
-    form->addRow(QString(), ConnectOnBuildCheck);
+    auto* checksGrid = new QGridLayout();
+    checksGrid->setContentsMargins(0, 0, 0, 0);
+    checksGrid->setSpacing(4);
+    checksGrid->addWidget(ConnectOnBuildCheck, 0, 0);
+    checksGrid->addWidget(AutoReconnectCheck, 0, 1);
+    checksGrid->addWidget(HeartbeatEnabledCheck, 1, 0);
+    checksGrid->addWidget(ShowDebugCheck, 1, 1);
+    form->addRow(QString(), checksGrid);
 
-    form->addRow(QString(), AutoReconnectCheck);
-
-    form->addRow(QString(), HeartbeatEnabledCheck);
-
-    form->addRow(QString(), ShowDebugCheck);
-
-    form->addRow(tr("Heartbeat interval:"), HeartbeatIntervalSpin);
-
-    form->addRow(tr("Heartbeat timeout:"), HeartbeatTimeoutSpin);
+    auto* heartbeatRow = new QHBoxLayout();
+    heartbeatRow->setContentsMargins(0, 0, 0, 0);
+    heartbeatRow->setSpacing(4);
+    heartbeatRow->addWidget(HeartbeatIntervalSpin);
+    heartbeatRow->addWidget(HeartbeatTimeoutSpin);
+    form->addRow(tr("Heartbeat:"), heartbeatRow);
 
     form->addRow(tr("Bundled firmware:"), BundledFirmwareCombo);
 
     auto* hexRow = new QHBoxLayout();
-
+    hexRow->setContentsMargins(0, 0, 0, 0);
+    hexRow->setSpacing(4);
     hexRow->addWidget(FirmwarePathEdit, 1);
-
     hexRow->addWidget(browseBtn);
-
     form->addRow(tr("HEX path:"), hexRow);
 
     auto* setupRow = new QHBoxLayout();
+    setupRow->setContentsMargins(0, 0, 0, 0);
+    setupRow->setSpacing(4);
     setupRow->addWidget(HardwareSetupPathEdit, 1);
     setupRow->addWidget(browseSetupBtn);
     form->addRow(tr("Hardware setup:"), setupRow);
@@ -193,41 +223,32 @@ HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent
     form->addRow(tr("Setup status:"), SetupStatusLabel);
 
     auto* uploadRow = new QWidget(this);
-
     auto* uploadRowLayout = new QHBoxLayout(uploadRow);
-
     uploadRowLayout->setContentsMargins(0, 0, 0, 0);
-
+    uploadRowLayout->setSpacing(4);
     uploadRowLayout->addWidget(UploadBtn);
-
     uploadRowLayout->addWidget(CancelUploadBtn);
-
     form->addRow(tr("Upload:"), uploadRow);
 
     form->addRow(QString(), UploadProgress);
 
     form->addRow(tr("Status / log:"), StatusLog);
 
-    auto* connRow = new QHBoxLayout();
-
-    connRow->addWidget(ConnectBtn);
-
-    connRow->addWidget(DisconnectBtn);
-
-    connRow->addWidget(ReconnectBtn);
-
-    connRow->addWidget(HealthBtn);
-
-    form->addRow(tr("Connection:"), connRow);
+    auto* connGrid = new QGridLayout();
+    connGrid->setContentsMargins(0, 0, 0, 0);
+    connGrid->setSpacing(4);
+    connGrid->addWidget(ConnectBtn, 0, 0);
+    connGrid->addWidget(DisconnectBtn, 0, 1);
+    connGrid->addWidget(ReconnectBtn, 1, 0);
+    connGrid->addWidget(HealthBtn, 1, 1);
+    form->addRow(tr("Connection:"), connGrid);
 
     auto* btnRow = new QHBoxLayout();
-
+    btnRow->setContentsMargins(0, 0, 0, 0);
+    btnRow->setSpacing(4);
     btnRow->addWidget(applyBtn);
-
     btnRow->addWidget(resetBtn);
-
     btnRow->addWidget(calcBtn);
-
     form->addRow(QString(), btnRow);
 
     auto* inner = new QWidget(this);

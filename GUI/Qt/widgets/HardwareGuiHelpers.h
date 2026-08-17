@@ -7,6 +7,8 @@
 #include "../../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
 
 class QComboBox;
+class QFormLayout;
+class QLayout;
 class QPlainTextEdit;
 class QSerialPortInfo;
 class QWidget;
@@ -21,7 +23,12 @@ QByteArray propertyStringToEngine(const QString& value);
 /** Application font suitable for Cyrillic and other Unicode in Hardware forms. */
 void applyUnicodeFriendlyFont(QWidget* widget);
 
-QPlainTextEdit* createStatusLogWidget(QWidget* parent);
+void applyCompactLayout(QLayout* layout, int margin = 4, int spacing = 4);
+void applyCompactForm(QFormLayout* form);
+void configureExpandingCombo(QComboBox* combo, int minChars);
+
+/** maxH <= 0 leaves the widget without a maximum height (Monitor stretch). */
+QPlainTextEdit* createStatusLogWidget(QWidget* parent, int minH = 48, int maxH = 120);
 void setStatusLogText(QPlainTextEdit* widget, const QString& text);
 
 QString serialPortDevicePath(const QSerialPortInfo& info);

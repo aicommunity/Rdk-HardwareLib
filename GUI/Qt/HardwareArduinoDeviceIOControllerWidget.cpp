@@ -1,6 +1,7 @@
 #include "HardwareArduinoDeviceIOControllerWidget.h"
 
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -34,6 +35,7 @@ HardwareArduinoDeviceIOControllerWidget::HardwareArduinoDeviceIOControllerWidget
     connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoDeviceIOControllerWidget::onReadInput);
 
     auto* form = new QFormLayout;
+    HardwareGuiHelpers::applyCompactForm(form);
     form->addRow(tr("Linked Firmata:"), LinkedEdit);
     form->addRow(tr("Module:"), ModuleCombo);
     form->addRow(tr("Port:"), PortEdit);
@@ -41,21 +43,31 @@ HardwareArduinoDeviceIOControllerWidget::HardwareArduinoDeviceIOControllerWidget
     form->addRow(tr("Role:"), RoleCombo);
     form->addRow(tr("ValueIn:"), ValueInSpin);
     form->addRow(QString(), ContinuousCheck);
-    form->addRow(QString(), applyBtn);
-    form->addRow(QString(), writeBtn);
-    form->addRow(QString(), readBtn);
+    auto* actionRow = new QHBoxLayout;
+    actionRow->setContentsMargins(0, 0, 0, 0);
+    actionRow->setSpacing(4);
+    actionRow->addWidget(applyBtn);
+    actionRow->addWidget(writeBtn);
+    actionRow->addWidget(readBtn);
+    form->addRow(QString(), actionRow);
     form->addRow(QString(), ValueLabel);
     form->addRow(QString(), StatusLabel);
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
     root->addLayout(form);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
+
+    HardwareGuiHelpers::configureExpandingCombo(ModuleCombo, 16);
+    HardwareGuiHelpers::configureExpandingCombo(RoleCombo, 8);
 
     RDK::UHardwareCatalog& cat = RDK::UHardwareCatalog::instance();
     if (!cat.isLoaded())
         cat.load(nullptr);
-    for (const QString& id : cat.moduleIds())
-        ModuleCombo->addItem(id, id);
+    for (const QString& id : cat.moduleIds()) {
+        const RDK::UHwModuleInfo* info = cat.module(id);
+        ModuleCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
+    }
 }
 
 void HardwareArduinoDeviceIOControllerWidget::setComponentContext(const UComponentGuiContext& context)

@@ -24,6 +24,8 @@
 
 - `getProp` / `setProp` — чтение/запись свойств в **UTF-8** при `RDK_UNICODE_RUN` (см. `UArduinoPropertyString`); в строках UI для MSVC — escape `\u2014` / `\u2026`, не литералы «—»/«…» в исходнике
 - `applyUnicodeFriendlyFont` — шрифт приложения для корректного отображения кириллицы в комбобоксах и логах
+- `applyCompactLayout` / `applyCompactForm` — поля 4 px, шаг 4/6 px
+- `configureExpandingCombo` — Expanding + `minimumContentsLength`, tooltip = текущий текст
 - `envCalculate` — один тик расчёта
 - **`pulseEdge(ctx, "Connect")`** — `setProp(edge, "1")` + `envCalculate` (edge сбрасыется в C++)
 
@@ -62,11 +64,11 @@
 
 ## Sensor sketch widget
 
-Вкладки **Sensor** | **Board**. Sensor: команды (`pulseEdge("SendCommand")`), presets, matrix.
+Вкладки **Pinout** | **Sensor** | **Assembly** | **Board**. Sensor: команды (`pulseEdge("SendCommand")`), presets, matrix. Диаграмма на вкладке Pinout (не постоянный сплиттер).
 
 ## Firmata widget
 
-Вкладки **Pins** | **Monitor** | **I2C** | **Board**. Пульт пинов: `SetPinMode`, `WriteDigital`, `ReadAnalog`, пресеты, `Monitor all` → `AutoRefreshPins`. Monitor: превью `AnalogSamples`, `StreamLog`. Диаграмма: `applyPinStatusJson` + клик по пину (Mega — полный `mega2560_pins.json`).
+Вкладки **Pinout** | **Pins** | **Monitor** | **I2C** | **Assembly** | **Board**. Пульт пинов: `SetPinMode`, `WriteDigital`, `ReadAnalog`, пресеты, `Monitor all` → `AutoRefreshPins`. Monitor: превью `AnalogSamples`, `StreamLog` без потолка высоты. Диаграмма на вкладке Pinout: `applyPinStatusJson` + клик по пину (Mega — полный `mega2560_pins.json`).
 
 **Watch:** привяжите downstream к свойству `AnalogSamples` (`ptOutput`) для графика/статистики через `UWatch` (без отдельного legacy Graph widget).
 
@@ -118,6 +120,8 @@ Static library **Rdk-HardwareLib.gui** (CMake target), linked from NeuroModeler 
 
 - `getProp` / `setProp` — read/write properties in **UTF-8** under `RDK_UNICODE_RUN` (see `UArduinoPropertyString`); in UI strings for MSVC — escape `\u2014` / `\u2026`, not literal «—»/«…» in source
 - `applyUnicodeFriendlyFont` — application font for correct Cyrillic in comboboxes and logs
+- `applyCompactLayout` / `applyCompactForm` — 4 px margins, 4/6 px spacing
+- `configureExpandingCombo` — Expanding + `minimumContentsLength`, tooltip = current text
 - `envCalculate` — one calculation tick
 - **`pulseEdge(ctx, "Connect")`** — `setProp(edge, "1")` + `envCalculate` (edge resets in C++)
 
@@ -147,11 +151,11 @@ Embedded in **Board** tab of SensorSketch, Firmata, DcDemo.
 
 ## Sensor sketch widget
 
-Tabs **Sensor** | **Board**. Sensor: commands (`pulseEdge("SendCommand")`), presets, matrix.
+Tabs **Pinout** | **Sensor** | **Assembly** | **Board**. Sensor: commands (`pulseEdge("SendCommand")`), presets, matrix. Diagram lives on the Pinout tab (no permanent splitter).
 
 ## Firmata widget
 
-Tabs **Pins** | **Monitor** | **I2C** | **Board**. Pin console: `SetPinMode`, `WriteDigital`, `ReadAnalog`, presets, `Monitor all` → `AutoRefreshPins`. Monitor: preview `AnalogSamples`, `StreamLog`. Diagram: `applyPinStatusJson` + pin click (Mega — full `mega2560_pins.json`).
+Tabs **Pinout** | **Pins** | **Monitor** | **I2C** | **Assembly** | **Board**. Pin console: `SetPinMode`, `WriteDigital`, `ReadAnalog`, presets, `Monitor all` → `AutoRefreshPins`. Monitor: preview `AnalogSamples`, `StreamLog` without a height cap. Diagram on the Pinout tab: `applyPinStatusJson` + pin click (Mega — full `mega2560_pins.json`).
 
 **Watch:** bind downstream to `AnalogSamples` property (`ptOutput`) for chart/statistics via `UWatch` (no separate legacy Graph widget).
 

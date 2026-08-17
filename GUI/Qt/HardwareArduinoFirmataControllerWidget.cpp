@@ -1,11 +1,11 @@
 #include "HardwareArduinoFirmataControllerWidget.h"
 
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QSplitter>
 #include <QVBoxLayout>
 
 #include "widgets/HardwareArduinoAssemblyTabHost.h"
@@ -32,8 +32,7 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
                 Diagram->setSelectedPinId(RDK::UArduinoPinMap::labelForFirmataPin(pin, profile));
             });
 
-    StatusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage);
-    StatusLog->setMaximumHeight(120);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(firmataPage, 48, 80);
 
     auto* restartBtn = new QPushButton(tr("Restart Firmata"), firmataPage);
     auto* applyBtn = new QPushButton(tr("Apply"), firmataPage);
@@ -52,24 +51,28 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
         refreshFromModel(true);
     });
 
-  auto* bottom = new QHBoxLayout();
-    bottom->addWidget(applyBtn);
-    bottom->addWidget(calcBtn);
-    bottom->addWidget(restartBtn);
-    bottom->addWidget(queryBtn);
-    bottom->addWidget(pwmBtn);
-    bottom->addWidget(applySetupBtn);
+    auto* bottom = new QGridLayout();
+    bottom->setContentsMargins(0, 0, 0, 0);
+    bottom->setSpacing(4);
+    bottom->addWidget(applyBtn, 0, 0);
+    bottom->addWidget(calcBtn, 0, 1);
+    bottom->addWidget(restartBtn, 0, 2);
+    bottom->addWidget(queryBtn, 1, 0);
+    bottom->addWidget(pwmBtn, 1, 1);
+    bottom->addWidget(applySetupBtn, 1, 2);
 
     auto* firmataLayout = new QVBoxLayout(firmataPage);
+    HardwareGuiHelpers::applyCompactLayout(firmataLayout);
     firmataLayout->addWidget(PinConsole, 1);
     firmataLayout->addLayout(bottom);
     firmataLayout->addWidget(new QLabel(tr("Status:"), firmataPage));
     firmataLayout->addWidget(StatusLog);
 
     MonitorPage = new QWidget(this);
-    AnalogPreview = HardwareGuiHelpers::createStatusLogWidget(MonitorPage);
-    StreamLogView = HardwareGuiHelpers::createStatusLogWidget(MonitorPage);
+    AnalogPreview = HardwareGuiHelpers::createStatusLogWidget(MonitorPage, 48, 0);
+    StreamLogView = HardwareGuiHelpers::createStatusLogWidget(MonitorPage, 48, 0);
     auto* monLayout = new QVBoxLayout(MonitorPage);
+    HardwareGuiHelpers::applyCompactLayout(monLayout);
     monLayout->addWidget(new QLabel(tr("AnalogSamples (last rows):"), MonitorPage));
     monLayout->addWidget(AnalogPreview, 1);
     monLayout->addWidget(new QLabel(tr("Stream log:"), MonitorPage));
@@ -83,14 +86,20 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
     i2cHex->setObjectName(QStringLiteral("i2cWriteHex"));
     i2cHex->setPlaceholderText(tr("01 02"));
     auto* i2cForm = new QFormLayout(I2cPage);
+    HardwareGuiHelpers::applyCompactForm(i2cForm);
     i2cForm->addRow(tr("Address (7-bit):"), i2cAddr);
     i2cForm->addRow(tr("Write data (hex):"), i2cHex);
     auto* i2cWriteBtn = new QPushButton(tr("I2C write"), I2cPage);
     auto* i2cReadBtn = new QPushButton(tr("I2C read"), I2cPage);
     connect(i2cWriteBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onI2cWrite);
     connect(i2cReadBtn, &QPushButton::clicked, this, &HardwareArduinoFirmataControllerWidget::onI2cRead);
-    i2cForm->addRow(QString(), i2cWriteBtn);
-    i2cForm->addRow(QString(), i2cReadBtn);
+    auto* i2cBtns = new QHBoxLayout();
+    i2cBtns->setContentsMargins(0, 0, 0, 0);
+    i2cBtns->setSpacing(4);
+    i2cBtns->addWidget(i2cWriteBtn);
+    i2cBtns->addWidget(i2cReadBtn);
+    i2cBtns->addStretch();
+    i2cForm->addRow(QString(), i2cBtns);
 
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
@@ -100,20 +109,19 @@ HardwareArduinoFirmataControllerWidget::HardwareArduinoFirmataControllerWidget(Q
         refreshFromModel(true);
     });
     Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->setUsesScrollButtons(true);
+    Tabs->setElideMode(Qt::ElideRight);
+    Tabs->addTab(Diagram, tr("Pinout"));
     Tabs->addTab(firmataPage, tr("Pins"));
     Tabs->addTab(MonitorPage, tr("Monitor"));
     Tabs->addTab(I2cPage, tr("I2C"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
-    auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(Diagram);
-    splitter->addWidget(Tabs);
-    splitter->setStretchFactor(0, 3);
-    splitter->setStretchFactor(1, 2);
-
     auto* root = new QVBoxLayout(this);
-    root->addWidget(splitter);
+    HardwareGuiHelpers::applyCompactLayout(root);
+    root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 

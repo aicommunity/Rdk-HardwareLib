@@ -2,6 +2,7 @@
 
 #include "Catalog/UHardwareCatalog.h"
 #include "Catalog/UHardwareSetup.h"
+#include "HardwareGuiHelpers.h"
 #include "UArduinoAssemblyViewWidget.h"
 
 #include <QComboBox>
@@ -13,6 +14,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QVBoxLayout>
 
 UArduinoHardwareSetupEditorWidget::UArduinoHardwareSetupEditorWidget(QWidget* parent)
@@ -31,7 +33,14 @@ UArduinoHardwareSetupEditorWidget::UArduinoHardwareSetupEditorWidget(QWidget* pa
     RoleCombo->addItem(QStringLiteral("actuator"), QStringLiteral("actuator"));
     IssuesLog = new QPlainTextEdit(this);
     IssuesLog->setReadOnly(true);
+    IssuesLog->setMaximumHeight(80);
     AssemblyView = new UArduinoAssemblyViewWidget(this);
+
+    HardwareGuiHelpers::configureExpandingCombo(BoardCombo, 14);
+    HardwareGuiHelpers::configureExpandingCombo(FirmwareCombo, 14);
+    HardwareGuiHelpers::configureExpandingCombo(ModuleCombo, 16);
+    HardwareGuiHelpers::configureExpandingCombo(PortCombo, 6);
+    HardwareGuiHelpers::configureExpandingCombo(RoleCombo, 8);
 
     auto* validateBtn = new QPushButton(tr("Validate"), this);
     auto* applyBtn = new QPushButton(tr("Apply to Board"), this);
@@ -55,6 +64,7 @@ UArduinoHardwareSetupEditorWidget::UArduinoHardwareSetupEditorWidget(QWidget* pa
             &UArduinoHardwareSetupEditorWidget::onDeviceSelectionChanged);
 
     auto* deviceForm = new QFormLayout;
+    HardwareGuiHelpers::applyCompactForm(deviceForm);
     deviceForm->addRow(tr("Id:"), DeviceIdEdit);
     deviceForm->addRow(tr("Module:"), ModuleCombo);
     deviceForm->addRow(tr("Port:"), PortCombo);
@@ -62,24 +72,42 @@ UArduinoHardwareSetupEditorWidget::UArduinoHardwareSetupEditorWidget(QWidget* pa
     deviceForm->addRow(tr("Role:"), RoleCombo);
 
     auto* deviceBtns = new QHBoxLayout;
+    deviceBtns->setContentsMargins(0, 0, 0, 0);
+    deviceBtns->setSpacing(4);
     deviceBtns->addWidget(AddDeviceBtn);
     deviceBtns->addWidget(RemoveDeviceBtn);
     deviceBtns->addWidget(ApplyDeviceBtn);
 
-    auto* left = new QVBoxLayout;
-    left->addWidget(BoardCombo);
-    left->addWidget(FirmwareCombo);
+    auto* catalogForm = new QFormLayout;
+    HardwareGuiHelpers::applyCompactForm(catalogForm);
+    catalogForm->addRow(tr("Board:"), BoardCombo);
+    catalogForm->addRow(tr("Firmware:"), FirmwareCombo);
+
+    auto* actionRow = new QHBoxLayout;
+    actionRow->setContentsMargins(0, 0, 0, 0);
+    actionRow->setSpacing(4);
+    actionRow->addWidget(validateBtn);
+    actionRow->addWidget(applyBtn);
+    actionRow->addWidget(ExportBtn);
+
+    auto* leftWidget = new QWidget(this);
+    auto* left = new QVBoxLayout(leftWidget);
+    HardwareGuiHelpers::applyCompactLayout(left);
+    left->addLayout(catalogForm);
     left->addWidget(DevicesList, 1);
     left->addLayout(deviceForm);
     left->addLayout(deviceBtns);
-    left->addWidget(IssuesLog, 1);
-    left->addWidget(validateBtn);
-    left->addWidget(applyBtn);
-    left->addWidget(ExportBtn);
+    left->addWidget(IssuesLog);
+    left->addLayout(actionRow);
+
+    auto* scroll = new QScrollArea(this);
+    scroll->setWidgetResizable(true);
+    scroll->setWidget(leftWidget);
 
     auto* root = new QHBoxLayout(this);
-    root->addLayout(left, 1);
-    root->addWidget(AssemblyView, 2);
+    HardwareGuiHelpers::applyCompactLayout(root);
+    root->addWidget(scroll, 1);
+    root->addWidget(AssemblyView, 1);
 }
 
 void UArduinoHardwareSetupEditorWidget::setCatalog(RDK::UHardwareCatalog* catalog)
@@ -90,12 +118,18 @@ void UArduinoHardwareSetupEditorWidget::setCatalog(RDK::UHardwareCatalog* catalo
     ModuleCombo->clear();
     if (!Catalog)
         return;
-    for (const QString& id : Catalog->boardIds())
-        BoardCombo->addItem(id, id);
-    for (const QString& id : Catalog->firmwareIds(true))
-        FirmwareCombo->addItem(id, id);
-    for (const QString& id : Catalog->moduleIds())
-        ModuleCombo->addItem(id, id);
+    for (const QString& id : Catalog->boardIds()) {
+        const RDK::UHwBoardInfo* info = Catalog->board(id);
+        BoardCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
+    }
+    for (const QString& id : Catalog->firmwareIds(true)) {
+        const RDK::UHwFirmwareInfo* info = Catalog->firmware(id);
+        FirmwareCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
+    }
+    for (const QString& id : Catalog->moduleIds()) {
+        const RDK::UHwModuleInfo* info = Catalog->module(id);
+        ModuleCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
+    }
     AssemblyView->setCatalog(Catalog);
 }
 

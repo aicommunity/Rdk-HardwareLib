@@ -10,7 +10,12 @@
 #include <QColor>
 #include <QComboBox>
 #include <QFont>
+#include <QFormLayout>
+#include <QLayout>
+#include <QObject>
 #include <QPlainTextEdit>
+#include <QSizePolicy>
+#include <QWidget>
 #include <QtSerialPort/QSerialPortInfo>
 
 namespace HardwareGuiHelpers {
@@ -37,7 +42,40 @@ void applyUnicodeFriendlyFont(QWidget* widget)
     widget->setFont(font);
 }
 
-QPlainTextEdit* createStatusLogWidget(QWidget* parent)
+void applyCompactLayout(QLayout* layout, int margin, int spacing)
+{
+    if (!layout)
+        return;
+    layout->setContentsMargins(margin, margin, margin, margin);
+    layout->setSpacing(spacing);
+}
+
+void applyCompactForm(QFormLayout* form)
+{
+    if (!form)
+        return;
+    applyCompactLayout(form, 4, 4);
+    form->setHorizontalSpacing(6);
+    form->setVerticalSpacing(4);
+}
+
+void configureExpandingCombo(QComboBox* combo, int minChars)
+{
+    if (!combo)
+        return;
+    combo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    combo->setMinimumContentsLength(minChars);
+    combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    combo->setToolTip(combo->currentText());
+    if (!combo->property("hwExpandingComboTip").toBool()) {
+        combo->setProperty("hwExpandingComboTip", true);
+        QObject::connect(combo, &QComboBox::currentTextChanged, combo, [combo](const QString& text) {
+            combo->setToolTip(text);
+        });
+    }
+}
+
+QPlainTextEdit* createStatusLogWidget(QWidget* parent, int minH, int maxH)
 {
     auto* edit = new QPlainTextEdit(parent);
     applyUnicodeFriendlyFont(edit);
@@ -45,8 +83,11 @@ QPlainTextEdit* createStatusLogWidget(QWidget* parent)
     edit->setLineWrapMode(QPlainTextEdit::WidgetWidth);
     edit->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
     edit->setTabChangesFocus(true);
-    edit->setMinimumHeight(72);
-    edit->setMaximumHeight(180);
+    edit->setMinimumHeight(minH);
+    if (maxH > 0)
+        edit->setMaximumHeight(maxH);
+    else
+        edit->setMaximumHeight(QWIDGETSIZE_MAX);
     edit->setPlaceholderText(QObject::tr("Status and log messages (Ctrl+C to copy selection)"));
     return edit;
 }
@@ -87,9 +128,11 @@ void populateSerialPortCombo(QComboBox* combo, const QString& select_device_path
 
     combo->clear();
     applyUnicodeFriendlyFont(combo);
+    configureExpandingCombo(combo, 14);
     for (const RDK::UArduinoSerialPortEntry& entry : RDK::UArduinoSerialPortUtil::listPortsSorted()) {
-        combo->addItem(entry.DisplayLabel, entry.DevicePath);
+        combo->addItem(entry.DevicePath, entry.DevicePath);
         const int idx = combo->count() - 1;
+        combo->setItemData(idx, entry.DisplayLabel, Qt::ToolTipRole);
         if (!entry.LikelyAttachedDevice)
             combo->setItemData(idx, QColor(128, 128, 128), Qt::ForegroundRole);
     }
@@ -128,6 +171,7 @@ void selectSerialPortInCombo(QComboBox* combo, const QString& device_path)
     combo->insertItem(0,
                       QObject::tr("%1 (not in list)").arg(normalized),
                       normalized);
+    combo->setItemData(0, QObject::tr("%1 (not in list)").arg(normalized), Qt::ToolTipRole);
     combo->setItemData(0, QColor(160, 120, 60), Qt::ForegroundRole);
     combo->setCurrentIndex(0);
 }

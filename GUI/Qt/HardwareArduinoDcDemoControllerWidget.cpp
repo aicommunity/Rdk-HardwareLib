@@ -31,7 +31,10 @@ HardwareArduinoDcDemoControllerWidget::HardwareArduinoDcDemoControllerWidget(QWi
     });
 
     auto* form = new QFormLayout();
+    HardwareGuiHelpers::applyCompactForm(form);
     auto* cmdRow = new QHBoxLayout();
+    cmdRow->setContentsMargins(0, 0, 0, 0);
+    cmdRow->setSpacing(4);
     cmdRow->addWidget(CommandEdit, 1);
     cmdRow->addWidget(sendBtn);
     form->addRow(tr("Command:"), cmdRow);
@@ -43,11 +46,14 @@ HardwareArduinoDcDemoControllerWidget::HardwareArduinoDcDemoControllerWidget(QWi
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->setUsesScrollButtons(true);
     Tabs->addTab(dcPage, tr("DC"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
     root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }

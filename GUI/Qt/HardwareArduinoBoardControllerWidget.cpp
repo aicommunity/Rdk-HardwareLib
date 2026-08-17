@@ -17,16 +17,20 @@ HardwareArduinoBoardControllerWidget::HardwareArduinoBoardControllerWidget(QWidg
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
 
     LeftTabs = new QTabWidget(this);
+    LeftTabs->setDocumentMode(true);
+    LeftTabs->setUsesScrollButtons(true);
+    LeftTabs->setElideMode(Qt::ElideRight);
     LeftTabs->addTab(AssemblyTab, tr("Assembly"));
     LeftTabs->addTab(Diagram, tr("Pinout"));
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
     splitter->addWidget(LeftTabs);
     splitter->addWidget(BoardPanel);
-    splitter->setStretchFactor(0, 3);
-    splitter->setStretchFactor(1, 2);
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 1);
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
     root->addWidget(splitter);
 
     setAccessibleName(QStringLiteral("HardwareArduinoBoardControllerWidget"));

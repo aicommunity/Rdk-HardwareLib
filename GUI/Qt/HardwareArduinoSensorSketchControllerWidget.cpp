@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QPushButton>
-#include <QSplitter>
 #include <QVBoxLayout>
 
 #include "widgets/HardwareArduinoAssemblyTabHost.h"
@@ -74,17 +73,24 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoSensorSketchControllerWidget::onCalculate);
 
     auto* form = new QFormLayout();
+    HardwareGuiHelpers::applyCompactForm(form);
     auto* cmdRow = new QHBoxLayout();
+    cmdRow->setContentsMargins(0, 0, 0, 0);
+    cmdRow->setSpacing(4);
     cmdRow->addWidget(CommandEdit, 1);
     cmdRow->addWidget(sendBtn);
     form->addRow(tr("Command:"), cmdRow);
     form->addRow(tr("Presets:"), PresetsList);
     auto* edgeRow = new QHBoxLayout();
+    edgeRow->setContentsMargins(0, 0, 0, 0);
+    edgeRow->setSpacing(4);
     edgeRow->addWidget(getDataBtn);
     edgeRow->addWidget(getPinsBtn);
     form->addRow(tr("Actions:"), edgeRow);
     form->addRow(tr("Readings:"), MatrixTable);
     auto* btnRow = new QHBoxLayout();
+    btnRow->setContentsMargins(0, 0, 0, 0);
+    btnRow->setSpacing(4);
     btnRow->addWidget(applyBtn);
     btnRow->addWidget(resetBtn);
     btnRow->addWidget(calcBtn);
@@ -94,18 +100,17 @@ HardwareArduinoSensorSketchControllerWidget::HardwareArduinoSensorSketchControll
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->setUsesScrollButtons(true);
+    Tabs->setElideMode(Qt::ElideRight);
+    Tabs->addTab(Diagram, tr("Pinout"));
     Tabs->addTab(sensorPage, tr("Sensor"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
-    auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(Diagram);
-    splitter->addWidget(Tabs);
-    splitter->setStretchFactor(0, 3);
-    splitter->setStretchFactor(1, 2);
-
     auto* root = new QVBoxLayout(this);
-    root->addWidget(splitter);
+    HardwareGuiHelpers::applyCompactLayout(root);
+    root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 

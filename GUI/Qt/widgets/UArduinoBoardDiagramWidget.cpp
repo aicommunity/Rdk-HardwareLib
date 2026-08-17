@@ -83,7 +83,7 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
     : QWidget(parent)
 {
     DiagramHost = new QWidget(this);
-    DiagramHost->setMinimumHeight(160);
+    DiagramHost->setMinimumHeight(120);
 
 #if HARDWARELIB_HAS_QTSVG
     SvgWidget = new QSvgWidget(DiagramHost);
@@ -95,12 +95,13 @@ UArduinoBoardDiagramWidget::UArduinoBoardDiagramWidget(QWidget* parent)
     Overlay = new UArduinoPinOverlay(DiagramHost);
     connect(Overlay, &UArduinoPinOverlay::pinClicked, this, &UArduinoBoardDiagramWidget::pinClicked);
 
-    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this);
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this, 40, 64);
 
     auto* layout = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(layout);
     layout->addWidget(DiagramHost, 1);
     layout->addWidget(StatusLog);
-    setMinimumHeight(220);
+    setMinimumHeight(180);
     reloadPinLayout();
     updateSvg();
     layoutDiagram();

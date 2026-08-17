@@ -1,6 +1,7 @@
 #include "HardwareArduinoCustomFirmwareControllerWidget.h"
 
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -25,10 +26,15 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
             &HardwareArduinoCustomFirmwareControllerWidget::onClearLog);
 
     auto* form = new QFormLayout(page);
+    HardwareGuiHelpers::applyCompactForm(form);
     form->addRow(tr("HostPluginId:"), PluginEdit);
     form->addRow(tr("Command:"), CommandEdit);
-    form->addRow(QString(), sendBtn);
-    form->addRow(QString(), clearBtn);
+    auto* actionRow = new QHBoxLayout();
+    actionRow->setContentsMargins(0, 0, 0, 0);
+    actionRow->setSpacing(4);
+    actionRow->addWidget(sendBtn);
+    actionRow->addWidget(clearBtn);
+    form->addRow(QString(), actionRow);
     form->addRow(QString(), PluginStatus);
     form->addRow(tr("Frame log:"), FrameLogView);
 
@@ -40,11 +46,14 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
     });
 
     Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->setUsesScrollButtons(true);
     Tabs->addTab(page, tr("Custom"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
     root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }

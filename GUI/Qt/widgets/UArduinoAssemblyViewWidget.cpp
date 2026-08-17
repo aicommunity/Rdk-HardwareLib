@@ -85,7 +85,7 @@ UArduinoAssemblyViewWidget::UArduinoAssemblyViewWidget(QWidget* parent)
     setScene(new QGraphicsScene(this));
     setRenderHint(QPainter::Antialiasing, true);
     setBackgroundBrush(QColor(245, 245, 248));
-    setMinimumHeight(220);
+    setMinimumHeight(140);
 }
 
 void UArduinoAssemblyViewWidget::setCatalog(const RDK::UHardwareCatalog* catalog)

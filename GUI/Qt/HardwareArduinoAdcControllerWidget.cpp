@@ -24,19 +24,24 @@ HardwareArduinoAdcControllerWidget::HardwareArduinoAdcControllerWidget(QWidget* 
     connect(readBtn, &QPushButton::clicked, this, &HardwareArduinoAdcControllerWidget::onReadAdc);
 
     auto* form = new QFormLayout(adcPage);
+    HardwareGuiHelpers::applyCompactForm(form);
     form->addRow(tr("Linked Firmata:"), LinkedEdit);
     form->addRow(tr("Analog pin:"), PinCombo);
     form->addRow(QString(), UseLinkedSamples);
     form->addRow(QString(), readBtn);
     form->addRow(QString(), ValueLabel);
+    HardwareGuiHelpers::configureExpandingCombo(PinCombo, 6);
 
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     AssemblyTab->setReadOnly(true);
     Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->setUsesScrollButtons(true);
     Tabs->addTab(adcPage, tr("ADC"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
 
     auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
     root->addWidget(Tabs);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
