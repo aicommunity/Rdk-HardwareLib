@@ -7,21 +7,23 @@
 **Аудит:** 2026-06-06 — [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json)  
 **Обновление Track 3:** 2026-07-27
 
+**Сверка 2026-09-22:** локальный Hardware HEAD f8da2156 отличается от umbrella pin ac53a601; ниже учтены семь регистраций локального checkout. [Границы аудита](../../../Docs/Audit/TimeLearner-2026-09-22/README.md).
+
 ---
 
 ## Статистика (сверка с кодом)
 
 | Метрика | Значение |
 |---------|----------|
-| Зарегистрированных классов (`UploadClass`) | **5** |
-| Файлов `Docs/Components/*.md` | **9** |
+| Зарегистрированных классов (`UploadClass`) | **7** |
+| Файлов `Docs/Components/*.md` | **11** |
 | Классов без doc-файла | **0** |
 | Orphan docs (legacy/групповые) | **4** |
 | Отсутствуют в Component-Catalog | **0** |
 | Регистрация | `Core/UHardwareLibrary.cpp` |
 
-**Прогресс по классам:** 5/5 (100%) ✅ — все `UploadClass` имеют per-class документацию.  
-**Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и во все 5 per-class компонентов.
+**Прогресс по классам:** 7/7 (100%) ✅ — все `UploadClass` имеют per-class документацию.\
+**Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и в пять per-class компонентов на дату Track 3; новые DeviceIO и CustomFirmware имеют отдельные RU/EN документы.
 
 ---
 
@@ -46,6 +48,9 @@
 - ✅ **ArduinoDcDemo** — [`Components/ArduinoDcDemo.md`](Components/ArduinoDcDemo.md)
 - ✅ **ArduinoFirmata** — [`Components/ArduinoFirmata.md`](Components/ArduinoFirmata.md)
 - ✅ **ArduinoSensorSketch** — [`Components/ArduinoSensorSketch.md`](Components/ArduinoSensorSketch.md)
+
+- ✅ **ArduinoDeviceIO** — [Components/ArduinoDeviceIO.md](Components/ArduinoDeviceIO.md)
+- ✅ **ArduinoCustomFirmware** — [Components/ArduinoCustomFirmware.md](Components/ArduinoCustomFirmware.md)
 
 ### Orphan docs (ожидаемые legacy)
 - `ADC` → миграция на `ArduinoAdc`
@@ -87,7 +92,7 @@
 | `ArduinoFirmata` | `Components/ArduinoFirmata.md` | ✅ | ✅ | ✅ |
 | `ArduinoSensorSketch` | `Components/ArduinoSensorSketch.md` | ✅ | ✅ | ✅ |
 
-**Прогресс: 5/5 (100%)** ✅
+**Прогресс: 7/7 (100%)** ✅
 
 ---
 
@@ -111,9 +116,9 @@
 
 ### Documentation status summary
 
-Rdk-HardwareLib has **5** registered `UploadClass` entries; **all 5** have per-class component documentation with RU/EN. Infrastructure docs (Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike) include `## EN`. **4** orphan docs are expected legacy redirects.
+Rdk-HardwareLib has **7** registered `UploadClass` entries; **all 7** have per-class component documentation with RU/EN. Infrastructure docs (Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike) include `## EN`. **4** orphan docs are expected legacy redirects.
 
-**Progress:** 5/5 classes (100%) ✅ · bilingual Track 3 infra/components: done
+**Progress:** 7/7 classes (100%) ✅ · bilingual Track 3 infra/components: done
 
 ### Remaining work
 
