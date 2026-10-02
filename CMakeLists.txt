@@ -100,6 +100,9 @@ target_include_directories(${GUI_TARGET_NAME} PUBLIC
 )
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Svg QUIET)
+if(QT_VERSION_MAJOR GREATER_EQUAL 6)
+  find_package(Qt6 COMPONENTS SvgWidgets QUIET)
+endif()
 target_link_libraries(${GUI_TARGET_NAME} PUBLIC
   ${TARGET_NAME}
   rdk.static.qt
@@ -109,6 +112,10 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Svg)
   target_link_libraries(${GUI_TARGET_NAME} PUBLIC Qt${QT_VERSION_MAJOR}::Svg)
 else()
   message(WARNING "Qt Svg not found; HardwareLib GUI diagram requires Qt Svg")
+endif()
+# Qt6 moved QGraphicsSvgItem into SvgWidgets
+if(TARGET Qt6::SvgWidgets)
+  target_link_libraries(${GUI_TARGET_NAME} PUBLIC Qt6::SvgWidgets)
 endif()
 
 target_compile_definitions(${GUI_TARGET_NAME} PUBLIC RDK_QT)
