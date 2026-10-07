@@ -5,9 +5,9 @@
 
 #include <QWidget>
 
-class QPlainTextEdit;
+class HardwareHubTelemetryPanelWidget;
 
-/** Stub Sensors tab: shows NamedValuesJson / matrix preview props (P1). */
+/** Sensors tab: NamedValuesJson / matrix via shared hub telemetry panel. */
 class HardwareWheeledSensorsPanelWidget : public QWidget {
     Q_OBJECT
 public:
@@ -16,8 +16,7 @@ public:
     void refreshFromModel();
 
 private:
-    UComponentGuiContext Context;
-    QPlainTextEdit* Preview = nullptr;
+    HardwareHubTelemetryPanelWidget* Telemetry = nullptr;
 };
 
 #endif

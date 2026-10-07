@@ -105,6 +105,8 @@ set(HW_GUI_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareWaveRoverControllerWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledDrivePanelWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledSensorsPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareHubTelemetryPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareArduinoCustomFirmwareControllerWidget.cpp
 )
 
 target_sources(${GUI_TARGET_NAME} PRIVATE ${HW_GUI_SOURCES} ${HW_GUI_REQUIRED_SOURCES})

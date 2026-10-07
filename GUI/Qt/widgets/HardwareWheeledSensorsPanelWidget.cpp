@@ -1,7 +1,7 @@
 #include "HardwareWheeledSensorsPanelWidget.h"
 
-#include <QLabel>
-#include <QPlainTextEdit>
+#include "HardwareHubTelemetryPanelWidget.h"
+
 #include <QVBoxLayout>
 
 HardwareWheeledSensorsPanelWidget::HardwareWheeledSensorsPanelWidget(QWidget* parent)
@@ -9,26 +9,18 @@ HardwareWheeledSensorsPanelWidget::HardwareWheeledSensorsPanelWidget(QWidget* pa
 {
     auto* root = new QVBoxLayout(this);
     HardwareGuiHelpers::applyCompactLayout(root);
-    root->addWidget(new QLabel(tr("Named values / sensor preview (hub plugin telemetry)"), this));
-    Preview = new QPlainTextEdit(this);
-    Preview->setReadOnly(true);
-    Preview->setPlaceholderText(tr("NamedValuesJson or LastFeedbackJson…"));
-    root->addWidget(Preview, 1);
+    Telemetry = new HardwareHubTelemetryPanelWidget(this);
+    Telemetry->setFallbackJsonProp("LastFeedbackJson");
+    root->addWidget(Telemetry, 1);
     HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
 }
 
 void HardwareWheeledSensorsPanelWidget::setContext(const UComponentGuiContext& context)
 {
-    Context = context;
-    refreshFromModel();
+    Telemetry->setContext(context);
 }
 
 void HardwareWheeledSensorsPanelWidget::refreshFromModel()
 {
-    if (Context.componentLongName.isEmpty())
-        return;
-    QString text = HardwareGuiHelpers::getProp(Context, "NamedValuesJson");
-    if (text.isEmpty())
-        text = HardwareGuiHelpers::getProp(Context, "LastFeedbackJson");
-    Preview->setPlainText(text);
+    Telemetry->refreshFromModel();
 }
