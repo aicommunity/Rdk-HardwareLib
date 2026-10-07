@@ -27,9 +27,9 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | id | title | runtime |
 |----|-------|---------|
 | `acs712` | ACS712 | `firmata` |
-| `adxl345` | ADXL345 | `planned` |
+| `adxl345` | ADXL345 | `hub` |
 | `aht20` | AHT20 | `hub` |
-| `apds_9960` | APDS-9960 | `planned` |
+| `apds_9960` | APDS-9960 | `hub` |
 | `bh1750` | BH1750 | `hub` |
 | `bme280` | BME280 | `hub` |
 | `bme680` | BME680 | `hub` |
@@ -49,7 +49,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `sgp30` | SGP30 | `hub` |
 | `sht31` | SHT31 | `hub` |
 | `soil_moisture` | Soil moisture | `firmata` |
-| `tcs34725` | TCS34725 | `planned` |
+| `tcs34725` | TCS34725 | `hub` |
 | `vl53l0x` | VL53L0X | `hub` |
 | `vl53l1x` | VL53L1X | `hub` |
 | `датчик_влажности_почвы` | Датчик влажности почвы | `firmata` |
@@ -59,7 +59,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 
 | id | title | runtime |
 |----|-------|---------|
-| `ads1115_adc` | ADS1115 ADC | `planned` |
+| `ads1115_adc` | ADS1115 ADC | `hub` |
 | `arduino_motor_shield_l298` | Arduino Motor Shield (L298) | `firmata` |
 | `ds3231_rtc` | DS3231 RTC | `firmata` |
 | `ethernet_shield_w5500` | Ethernet Shield W5500 | `firmata` |
