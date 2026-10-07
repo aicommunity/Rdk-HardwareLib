@@ -14,6 +14,7 @@ HardwareEsp32WheeledRobotControllerWidget::HardwareEsp32WheeledRobotControllerWi
     Drive = new HardwareWheeledDrivePanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    BoardPanel->setEsp32Mode(true);
     Tabs = new QTabWidget(this);
     Tabs->setDocumentMode(true);
     Tabs->addTab(Drive, tr("Drive"));

@@ -25,6 +25,16 @@
 
 **Права Linux:** при `Permission denied` в `lastError` — подсказка про группу `dialout`.
 
+### DTR / RTS (AVR vs ESP32)
+
+| Флаг сессии | AVR (`UArduinoBoard`) | ESP32 (`UEsp32Board::ConfigureSerialSession`) |
+|-------------|----------------------|-----------------------------------------------|
+| `ToggleDtrOnOpen` | `true` (reset pulse) | `false` |
+| `DtrOnOpen` | `true` | `false` |
+| `RtsOnOpen` | `false` | `false` |
+
+ESP32 USB-UART и WaveRover: без AVR bootloader reset при open. См. [Components/Esp32Board.md](Components/Esp32Board.md).
+
 ## UArduinoSerialPortUtil
 
 | API | Описание |

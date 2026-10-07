@@ -20,6 +20,8 @@ public:
     explicit HardwareArduinoBoardPanelWidget(QWidget* parent = nullptr);
 
     void setContext(const UComponentGuiContext& context);
+    /** When true: hide AVR BoardProfile, default baud hint 115200 (ESP32 boards). */
+    void setEsp32Mode(bool enabled);
     void refreshFromModel();
     void applyToModel();
 
@@ -50,6 +52,7 @@ private:
     void startUploadUiPoll();
     void stopUploadUiPoll();
 
+    bool Esp32Mode = false;
     UComponentGuiContext Context;
     QComboBox* PortCombo = nullptr;
     QComboBox* BoardProfileCombo = nullptr;

@@ -17,6 +17,12 @@
 | `ArduinoAdc` | `hw.arduino.adc` | `HardwareArduinoAdcControllerWidget` |
 | `ArduinoDeviceIO` | `hw.arduino.device_io` | `HardwareArduinoDeviceIOControllerWidget` |
 | `ArduinoCustomFirmware` | `hw.arduino.custom_firmware` | `HardwareArduinoCustomFirmwareControllerWidget` |
+| `Esp32Board` | `hw.esp32.board` | `HardwareEsp32BoardControllerWidget` |
+| `ArduinoWheeledRobot` | `hw.arduino.wheeled_robot` | `HardwareArduinoWheeledRobotControllerWidget` |
+| `Esp32WheeledRobot` | `hw.esp32.wheeled_robot` | `HardwareEsp32WheeledRobotControllerWidget` |
+| `WaveRover` | `hw.waverover` | `HardwareWaveRoverControllerWidget` |
+
+Wheeled/ESP controllers: вкладки Drive (+ Feedback у WaveRover) | Board. `HardwareArduinoBoardPanelWidget::setEsp32Mode(true)` — без AVR upload preview / DTR assumptions. Assembly editor: ModuleCombo группирует модули по `category` / `platform`.
 
 ## Доступ к модели
 

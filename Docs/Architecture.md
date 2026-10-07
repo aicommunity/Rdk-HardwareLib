@@ -10,13 +10,22 @@
 
 ```mermaid
 classDiagram
-  UNet <|-- UArduinoBoard
+  UNet <|-- UMcuSerialBoard
+  UMcuSerialBoard <|-- UArduinoBoard
+  UMcuSerialBoard <|-- UEsp32Board
   UArduinoBoard <|-- UArduinoCustomLink
   UArduinoCustomLink <|-- UArduinoSensorSketch
   UArduinoCustomLink <|-- UArduinoDcDemo
+  UArduinoCustomLink <|-- UArduinoWheeledRobot
+  UArduinoWheeledRobot ..|> UArduinoPluginHost : MI
+  UEsp32Board <|-- UEsp32CustomLink
+  UEsp32CustomLink <|-- UEsp32WheeledRobot
+  UEsp32WheeledRobot *-- HostAdapter : PluginHost composition
+  UEsp32Board <|-- UEsp32JsonLink
+  UEsp32JsonLink <|-- UWaveRover
   UArduinoBoard <|-- UArduinoFirmata
   UNet <|-- UArduinoAdc
-  UArduinoBoard *-- UArduinoSerialSession
+  UMcuSerialBoard *-- UArduinoSerialSession
   UArduinoBoard *-- UArduinoFlasher
   UArduinoCustomLink *-- UArduinoBinaryStreamParser
   UArduinoFirmata *-- UArduinoFirmataClient
@@ -24,6 +33,8 @@ classDiagram
 ```
 
 `UArduinoCustomLink` абстрактен (`OnBinaryFrame` pure virtual) и **не** регистрируется в `UploadClass`.
+
+Wheeled ADR: [WheeledRobots.md](WheeledRobots.md). ESP32 wheeled — **без** MI с `UArduinoPluginHost`.
 
 ## Threading (обязательный контракт)
 
@@ -53,6 +64,8 @@ Legacy `UArduinoConnect` (`QThread`) **не используется** — ег�
 [`UHardwareLibrary::CreateClassSamples`](../Core/UHardwareLibrary.cpp):
 
 - `ArduinoBoard`, `ArduinoSensorSketch`, `ArduinoFirmata`, `ArduinoAdc`, `ArduinoDcDemo`
+- `ArduinoDeviceIO`, `ArduinoCustomFirmware`
+- `Esp32Board`, `ArduinoWheeledRobot`, `Esp32WheeledRobot`, `WaveRover`
 
 ## Runtime: цикл `ACalculate`
 

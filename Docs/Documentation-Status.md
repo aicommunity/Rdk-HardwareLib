@@ -15,15 +15,15 @@
 
 | Метрика | Значение |
 |---------|----------|
-| Зарегистрированных классов (`UploadClass`) | **11** |
-| Файлов `Docs/Components/*.md` | **15** |
+| Зарегистрированных классов (`UploadClass`) | **11+** (Arduino* + Esp32*/WaveRover/Wheeled) |
+| Файлов `Docs/Components/*.md` | **15+** |
 | Классов без doc-файла | **0** |
 | Orphan docs (legacy/групповые) | **4** |
 | Отсутствуют в Component-Catalog | **0** |
 | Регистрация | `Core/UHardwareLibrary.cpp` |
 
-**Прогресс по классам:** 11/11 (100%) ✅ — все `UploadClass` имеют per-class документацию.\
-**Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и в пять per-class компонентов на дату Track 3; новые DeviceIO и CustomFirmware имеют отдельные RU/EN документы.
+**Прогресс по классам:** все `UploadClass` имеют per-class документацию.\
+**Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и в пять per-class компонентов на дату Track 3; DeviceIO/CustomFirmware/Esp32/Wheeled/WaveRover — отдельные RU/EN.
 
 ---
 
@@ -46,6 +46,7 @@
 - ✅ **ArduinoAdc** — [`Components/ArduinoAdc.md`](Components/ArduinoAdc.md)
 - ✅ **ArduinoBoard** — [`Components/ArduinoBoard.md`](Components/ArduinoBoard.md)
 - ✅ **Esp32Board** — [`Components/Esp32Board.md`](Components/Esp32Board.md)
+- ✅ **ArduinoWheeledRobot** / **Esp32WheeledRobot** / **WaveRover** — Components + [WheeledRobots.md](WheeledRobots.md) + [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md)
 - ✅ **ArduinoDcDemo** — [`Components/ArduinoDcDemo.md`](Components/ArduinoDcDemo.md)
 - ✅ **ArduinoFirmata** — [`Components/ArduinoFirmata.md`](Components/ArduinoFirmata.md)
 - ✅ **ArduinoSensorSketch** — [`Components/ArduinoSensorSketch.md`](Components/ArduinoSensorSketch.md)

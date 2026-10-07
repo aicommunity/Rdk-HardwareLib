@@ -6,11 +6,15 @@
 #include "Wheeled/UWheeledDriveLogic.h"
 
 #include <QMap>
+#include <memory>
 
 namespace RDK {
 
-/** ESP32 open-loop wheeled robot using nmsdk_motor_hub framed protocol (not WaveRover). */
-class RDK_LIB_TYPE UEsp32WheeledRobot : public UEsp32CustomLink, public UArduinoPluginHost {
+/**
+ * ESP32 open-loop wheeled robot (nmsdk_motor_hub framed protocol).
+ * Single inheritance from UEsp32CustomLink; plugin host via composition (plan §0.4).
+ */
+class RDK_LIB_TYPE UEsp32WheeledRobot : public UEsp32CustomLink {
 public:
     UProperty<int, UEsp32WheeledRobot, ptPubParameter> LeftPwm;
     UProperty<int, UEsp32WheeledRobot, ptPubParameter> RightPwm;
@@ -33,16 +37,6 @@ public:
     ~UEsp32WheeledRobot() override;
     UEsp32WheeledRobot* New() override;
 
-    void enqueueCommand(const QString& line) override;
-    int boardProfile() const override;
-    int protocolVersion() const override;
-    void setProtocolReady(bool ready) override;
-    void setLastError(const QString& error) override;
-    void publishSensorMatrixRow(const QVector<double>& row) override;
-    void publishPinStatusJson(const QString& json) override;
-    void publishNamedFloat(const QString& key, float value) override;
-    void appendFrameLog(const QString& line) override;
-
 protected:
     bool ADefault() override;
     bool ACalculate() override;
@@ -52,7 +46,17 @@ protected:
     void ProcessWheeledEdges();
 
 private:
+    class HostAdapter;
+    friend class HostAdapter;
     IArduinoProtocolPlugin* resolvePlugin() const;
+    UArduinoPluginHost* pluginHost();
+    void onNamedFloat(const QString& key, float value);
+    void hostEnqueue(const QString& line);
+    void hostSetProtocolReady(bool ready);
+    void hostSetLastError(const QString& error);
+    int hostProtocolVersion() const;
+
+    std::unique_ptr<HostAdapter> Host;
     QMap<QString, float> NamedValues;
 };
 

@@ -19,6 +19,7 @@ HardwareWaveRoverControllerWidget::HardwareWaveRoverControllerWidget(QWidget* pa
     HardwareGuiHelpers::applyCompactLayout(fbLay);
     fbLay->addWidget(FeedbackLabel);
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    BoardPanel->setEsp32Mode(true);
     Tabs = new QTabWidget(this);
     Tabs->setDocumentMode(true);
     Tabs->addTab(Drive, tr("Drive"));

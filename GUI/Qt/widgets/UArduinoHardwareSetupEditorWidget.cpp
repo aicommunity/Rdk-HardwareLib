@@ -15,6 +15,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QStandardItemModel>
 #include <QVBoxLayout>
 
 UArduinoHardwareSetupEditorWidget::UArduinoHardwareSetupEditorWidget(QWidget* parent)
@@ -126,9 +127,30 @@ void UArduinoHardwareSetupEditorWidget::setCatalog(RDK::UHardwareCatalog* catalo
         const RDK::UHwFirmwareInfo* info = Catalog->firmware(id);
         FirmwareCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
     }
+    QMap<QString, QStringList> byCategory;
     for (const QString& id : Catalog->moduleIds()) {
         const RDK::UHwModuleInfo* info = Catalog->module(id);
-        ModuleCombo->addItem(info && !info->title.isEmpty() ? info->title : id, id);
+        const QString cat =
+            (info && !info->category.isEmpty()) ? info->category : QStringLiteral("Other");
+        byCategory[cat].append(id);
+    }
+    for (auto it = byCategory.constBegin(); it != byCategory.constEnd(); ++it) {
+        ModuleCombo->addItem(QStringLiteral("— %1 —").arg(it.key()));
+        const int sep = ModuleCombo->count() - 1;
+        ModuleCombo->setItemData(sep, QVariant(), Qt::UserRole - 1);
+        if (auto* m = qobject_cast<QStandardItemModel*>(ModuleCombo->model())) {
+            if (QStandardItem* item = m->item(sep))
+                item->setEnabled(false);
+        }
+        for (const QString& id : it.value()) {
+            const RDK::UHwModuleInfo* info = Catalog->module(id);
+            QString label = info && !info->title.isEmpty() ? info->title : id;
+            if (info && !info->runtime.isEmpty())
+                label += QStringLiteral(" [%1]").arg(info->runtime);
+            if (info && !info->platform.isEmpty() && info->platform != QLatin1String("both"))
+                label += QStringLiteral(" (%1)").arg(info->platform);
+            ModuleCombo->addItem(label, id);
+        }
     }
     AssemblyView->setCatalog(Catalog);
 }

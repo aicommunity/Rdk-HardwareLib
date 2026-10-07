@@ -63,6 +63,7 @@ struct UHwModuleInfo {
     QString id;
     QString title;
     QString category;
+    QString platform; // arduino | esp32 | both
     QString runtime; // firmata | hub | motor_hub | planned
     QString signalType;
     QStringList wires;

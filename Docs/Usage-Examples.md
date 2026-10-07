@@ -249,9 +249,37 @@ Replacements: `Arduino` → `ArduinoSensorSketch`, `PortToConnect` → `PortName
 
 ```bash
 ./Scripts/build_arduino_firmware.sh
+# or HardwareLib entry (also builds nmsdk_motor_hub):
+./Libraries/Rdk-HardwareLib/Scripts/build_arduino_firmware.sh
 ```
 
 See [firmware_build.md](firmware_build.md), [Firmware/README.md](../Firmware/README.md).
+
+## 9. Wheeled robots
+
+| Sample | ClassName | Notes |
+|--------|-----------|-------|
+| `09-ArduinoWheeledRobot` | `ArduinoWheeledRobot` | `MotorDriverId=motor_shield_r3`, baud 57600 |
+| `10-WaveRover` | `WaveRover` | baud 115200, T:11 JSON |
+| `11-Esp32WheeledRobot` | `Esp32WheeledRobot` | motor hub ESP32 |
+| `12-Esp32Board` | `Esp32Board` | Connect-only |
+
+```xml
+<Board Class="ArduinoWheeledRobot">
+  <Parameters>
+    <PortName Type="std::string">/dev/ttyACM0</PortName>
+    <BaudRate Type="int">57600</BaudRate>
+    <BundledFirmwareId Type="std::string">nmsdk_motor_hub_v1</BundledFirmwareId>
+    <MotorDriverId Type="std::string">motor_shield_r3</MotorDriverId>
+    <LeftPwm Type="int">120</LeftPwm>
+    <RightPwm Type="int">120</RightPwm>
+    <ApplyDrive Type="bool">0</ApplyDrive>
+    <Stop Type="bool">0</Stop>
+  </Parameters>
+</Board>
+```
+
+См. [WheeledRobots.md](WheeledRobots.md).
 
 ## See also
 

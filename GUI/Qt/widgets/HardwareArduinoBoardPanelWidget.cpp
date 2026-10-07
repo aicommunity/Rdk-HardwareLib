@@ -308,6 +308,24 @@ void HardwareArduinoBoardPanelWidget::setContext(const UComponentGuiContext& con
 
 }
 
+void HardwareArduinoBoardPanelWidget::setEsp32Mode(bool enabled)
+{
+    Esp32Mode = enabled;
+    if (BoardProfileCombo) {
+        BoardProfileCombo->setVisible(!enabled);
+        if (QWidget* parent = BoardProfileCombo->parentWidget()) {
+            if (auto* form = qobject_cast<QFormLayout*>(parent->layout())) {
+                if (QWidget* lab = form->labelForField(BoardProfileCombo))
+                    lab->setVisible(!enabled);
+            }
+        }
+    }
+    if (AutoDetectBoardCheck)
+        AutoDetectBoardCheck->setVisible(!enabled);
+    if (enabled && BaudSpin && BaudSpin->value() == 57600)
+        BaudSpin->setValue(115200);
+}
+
 void HardwareArduinoBoardPanelWidget::updateUploadPreview()
 
 {

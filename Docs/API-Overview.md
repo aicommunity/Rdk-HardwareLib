@@ -287,6 +287,17 @@ Inherits **ArduinoCustomLink** (single node on canvas):
 
 Default `BundledFirmwareId` = `sensor_lab_v1`.
 
+## Wheeled / ESP32
+
+| ClassName | Key props | Protocol |
+|-----------|-----------|----------|
+| `Esp32Board` | `ChipTarget`, `FlashBaud`; baud 115200; DTR/RTS off | Connect-only P0 |
+| `ArduinoWheeledRobot` | `LeftPwm`…`Stop`, `MotorDriverId`, `ApplyMotorDriver` | motor hub `0x20` |
+| `Esp32WheeledRobot` | same drive props; HostAdapter composition | motor hub ESP32 |
+| `WaveRover` | drive → T:11; `WatchdogMs` → T:136 | Waveshare JSON |
+
+Details: [WheeledRobots.md](WheeledRobots.md), [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md), [Hub-Protocols.md](Hub-Protocols.md).
+
 ## Helper classes
 
 | Class | Purpose |
@@ -297,6 +308,9 @@ Default `BundledFirmwareId` = `sensor_lab_v1`.
 | `UArduinoBinaryStreamParser` | RX framing |
 | `UArduinoFirmataClient` | Firmata MVP |
 | `UFirmwareManifest` | Resolve bundled hex |
+| `UWheeledDriveLogic` | PWM/Dir, Stop, SET PIN, Waveshare T:11 |
+| `UWaveshareUgvJsonProtocol` | encode/decode WaveRover JSON |
+| `UNmsdkMotorHubProtocolPlugin` | framed motor status |
 
 Details: [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 
@@ -309,6 +323,10 @@ Details: [Transport.md](Transport.md), [Protocol.md](Protocol.md).
 | `ArduinoFirmata` | `hw.arduino.firmata` |
 | `ArduinoDcDemo` | `hw.arduino.dc_demo` |
 | `ArduinoAdc` | `hw.arduino.adc` |
+| `Esp32Board` | `hw.esp32.board` |
+| `ArduinoWheeledRobot` | `hw.arduino.wheeled_robot` |
+| `Esp32WheeledRobot` | `hw.esp32.wheeled_robot` |
+| `WaveRover` | `hw.waverover` |
 
 ## See also
 

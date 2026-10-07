@@ -299,10 +299,21 @@ def import_motor_drivers(xlsx: Path) -> list:
         mid = TITLE_TO_ID.get(key) or slugify(title)
 
         control = "dir_pwm"
-        if "stepper" in motors.lower() or "step" in chip.lower() or "a4988" in mid or "tmc" in mid:
+        motors_l = motors.lower()
+        chip_l = chip.lower()
+        # R3 / L298 / TB6612 are DIR+PWM even when marketing text mentions stepper mode.
+        if mid in ("motor_shield_r3", "motor_shield_amperka", "wire_l298n", "tb6612fng",
+                   "tb6612fng_motor_driver", "l298n_motor_driver"):
+            control = "dir_pwm"
+        elif "a4988" in mid or "tmc" in mid or "drv8825" in mid or chip_l.startswith("a4988") or "tmc" in chip_l:
+            control = "step_dir"
+        elif "stepper" in motors_l and "dc" not in motors_l:
             control = "step_dir"
         if "i2c" in title.lower() or "i2c" in notes.lower():
             control = "i2c"
+        # Preserve known controlModel from existing file when present.
+        if existing.get("controlModel") in ("dir_pwm", "step_dir", "i2c"):
+            control = existing["controlModel"]
 
         path = CATALOG / "shields" / f"{mid}.json"
         existing = load_json(path)

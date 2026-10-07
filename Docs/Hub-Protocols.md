@@ -38,4 +38,6 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 | `nmsdk_sensor_hub_v1` | `nmsdk_sensor_hub_v1` | SpikeSamples/Hardware/14-SensorHub |
 | `nmsdk_motor_hub_v1` | `nmsdk_motor_hub_v1` | SpikeSamples/Hardware/15-MotorHub |
 
-See also [Protocol-Plugins.md](Protocol-Plugins.md), [Firmware/README.md](../Firmware/README.md).
+See also [Protocol-Plugins.md](Protocol-Plugins.md), [WheeledRobots.md](WheeledRobots.md), [Firmware/README.md](../Firmware/README.md).
+
+Waveshare UGV JSON (WaveRover) is **not** this hub — see [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md).

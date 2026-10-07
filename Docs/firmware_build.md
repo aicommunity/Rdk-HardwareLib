@@ -15,6 +15,8 @@
 
 ```bash
 ./Scripts/build_arduino_firmware.sh
+# HardwareLib wrapper (+ nmsdk_motor_hub Uno/Mega):
+./Libraries/Rdk-HardwareLib/Scripts/build_arduino_firmware.sh
 ```
 
 ### Windows (PowerShell)

@@ -171,6 +171,7 @@ bool UHardwareCatalog::loadFromRoot(const QString& root, QString* error)
             }
             info.title = obj.value(QStringLiteral("title")).toString(info.id);
             info.category = obj.value(QStringLiteral("category")).toString();
+            info.platform = obj.value(QStringLiteral("platform")).toString(QStringLiteral("both"));
             info.runtime = obj.value(QStringLiteral("runtime")).toString(QStringLiteral("planned"));
             info.signalType = obj.value(QStringLiteral("signalType")).toString();
             info.wires = toStringList(obj.value(QStringLiteral("wires")).toArray());
