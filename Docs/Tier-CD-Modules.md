@@ -9,8 +9,16 @@
 | I2C IMU | same | `mpu_6050` | **done** (`0x31`); `icm_20948` planned |
 | I2C power | same | `ina219` | **done** (`0x32`) |
 | I2C PWM | same | `pca9685_16_ch_pwm` | **done** (`SET PWM` + `0x33`) |
+| Sensor 1-wire/DHT | `nmsdk_sensor_hub_v1` | `dht22`, `ds18b20` | **done** |
 | ADC expander | planned | `ads1115_adc` | planned |
+| UART product (Nextion/BT/GSM) | — | `nextion_hmi`, `hc_05`/`hc_06`, `hm_10`, `sim800l`, `a9g` | **planned** (Wave 0: false `hub` cleared; Wave 5 host) |
 | Wireless / displays | product-specific | OLED, LoRa, NRF, … | planned |
+
+## Catalog hygiene (Wave 0)
+
+Invariant (unit `Test_HardwareModulesCatalog`): `runtime=hub|motor_hub` ⇒ non-empty `preferredFirmware` pointing at firmware JSON with non-empty `hostPlugin`.
+
+Modules formerly tagged `hub` without binding were returned to `planned` until `nmsdk_uart_device_hub_v1` lands.
 
 ## I2C hub (`nmsdk_i2c_hub_v1`)
 
