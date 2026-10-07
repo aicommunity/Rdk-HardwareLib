@@ -6,17 +6,20 @@
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 #include "widgets/HardwareWheeledDrivePanelWidget.h"
+#include "widgets/HardwareWheeledSensorsPanelWidget.h"
 
 HardwareArduinoWheeledRobotControllerWidget::HardwareArduinoWheeledRobotControllerWidget(
     QWidget* parent, RDK::UApplication* app)
     : UVisualControllerWidget(parent, app)
 {
     Drive = new HardwareWheeledDrivePanelWidget(this);
+    Sensors = new HardwareWheeledSensorsPanelWidget(this);
     AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
     BoardPanel = new HardwareArduinoBoardPanelWidget(this);
     Tabs = new QTabWidget(this);
     Tabs->setDocumentMode(true);
     Tabs->addTab(Drive, tr("Drive"));
+    Tabs->addTab(Sensors, tr("Sensors"));
     Tabs->addTab(AssemblyTab, tr("Assembly"));
     Tabs->addTab(BoardPanel, tr("Board"));
     auto* root = new QVBoxLayout(this);
@@ -29,6 +32,7 @@ void HardwareArduinoWheeledRobotControllerWidget::setComponentContext(const UCom
 {
     Context = context;
     Drive->setContext(context);
+    Sensors->setContext(context);
     AssemblyTab->setContext(context);
     BoardPanel->setContext(context);
     refreshFromModel(true);
@@ -45,6 +49,7 @@ void HardwareArduinoWheeledRobotControllerWidget::refreshFromModel(bool force)
     if (Context.componentLongName.isEmpty())
         return;
     Drive->refreshFromModel();
+    Sensors->refreshFromModel();
     AssemblyTab->refreshFromModel();
     BoardPanel->refreshFromModel();
 }

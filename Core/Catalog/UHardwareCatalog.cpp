@@ -182,6 +182,7 @@ bool UHardwareCatalog::loadFromRoot(const QString& root, QString* error)
             info.requiredCapabilities = toStringList(obj.value(QStringLiteral("requiredCapabilities")).toArray());
             info.preferredFirmware = toStringList(obj.value(QStringLiteral("preferredFirmware")).toArray());
             info.asset = obj.value(QStringLiteral("asset")).toString();
+            info.defaultPort = obj.value(QStringLiteral("defaultPort")).toString();
             Modules.insert(info.id, info);
             return true;
         }))

@@ -10,7 +10,7 @@ namespace RDK {
 
 struct USensorLabDecodedSensors {
     uint8_t paramCount = 0;
-    float values[4] = {0, 0, 0, 0};
+    float values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     bool ok = false;
 };
 

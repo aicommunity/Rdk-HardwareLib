@@ -16,12 +16,14 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 
 ## Line commands (host → board)
 
-### Sensor (`nmsdk_sensor_hub_v1`)
+### Sensor (`nmsdk_sensor_hub_v1` / `nmsdk_sensor_hub_esp32_v1`)
 
 - `PROTO 2`, `PING`, `START READING` / `STOP READING`, `SET DELAY <ms>`
-- `SET DEVICE dht|trig|echo|hall <Dn|An>` — runtime pin bind (not flash-only)
+- `SET DEVICE dht|trig|echo|hall|ds <Dn|An>` — runtime pin bind (not flash-only)
 - `CLEAR DEVICES`, `GET PINS`
-- DHT22: compile with `-DDHTTYPE=DHT22` (default DHT11). DS18B20 reserved (`NMSDK_SENSOR_HUB_DS18B20`) for Tier B follow-up.
+- DHT22: compile with `-DDHTTYPE=DHT22` (default DHT11)
+- DS18B20: `-DNMSDK_SENSOR_HUB_DS18B20=1` (+ OneWire, DallasTemperature); 5th float `ds18b20` in frame `0x01`
+- ESP32 twin sketch: `Firmware/nmsdk_sensor_hub_esp32/` @ baud **115200**, same host plugin id
 
 ### Motor (`nmsdk_motor_hub_v1`)
 
@@ -36,7 +38,14 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 | Catalog firmware | Plugin id | Sample |
 |------------------|-----------|--------|
 | `nmsdk_sensor_hub_v1` | `nmsdk_sensor_hub_v1` | SpikeSamples/Hardware/14-SensorHub |
-| `nmsdk_motor_hub_v1` | `nmsdk_motor_hub_v1` | SpikeSamples/Hardware/15-MotorHub |
+| `nmsdk_motor_hub_v1` | `nmsdk_motor_hub_v1` | SpikeSamples/Hardware/09–11 wheeled |
+| `nmsdk_i2c_hub_v1` | `nmsdk_i2c_hub_v1` | SpikeSamples/Hardware/15-I2cHub-BME280 |
+
+### I2C (`nmsdk_i2c_hub_v1`)
+
+- `PROTO 2`, `PING`, `START READING` / `STOP READING`, `SET DELAY <ms>`
+- Frame `0x01`: t_c, humidity_pct, pressure_hpa (BME280 @ 0x76/0x77)
+- See [Tier-CD-Modules.md](Tier-CD-Modules.md)
 
 See also [Protocol-Plugins.md](Protocol-Plugins.md), [WheeledRobots.md](WheeledRobots.md), [Firmware/README.md](../Firmware/README.md).
 

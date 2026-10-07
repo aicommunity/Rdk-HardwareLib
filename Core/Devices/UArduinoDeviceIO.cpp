@@ -112,7 +112,9 @@ bool UArduinoDeviceIO::ACalculate()
         return true;
     }
 
-    if (module_id == QLatin1String("dht11") || module_id == QLatin1String("hc_sr04")) {
+    if (module_id == QLatin1String("dht11") || module_id == QLatin1String("dht22")
+        || module_id == QLatin1String("ds18b20") || module_id == QLatin1String("hc_sr04")
+        || (mod->runtime == QLatin1String("hub") || mod->runtime == QLatin1String("motor_hub"))) {
         LastError = UArduinoPropertyString::toStdProperty(
             QStringLiteral("Module %1 unsupported on Standard Firmata; use hub firmware")
                 .arg(module_id));

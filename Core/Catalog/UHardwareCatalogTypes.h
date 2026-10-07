@@ -74,6 +74,7 @@ struct UHwModuleInfo {
     QStringList requiredCapabilities;
     QStringList preferredFirmware;
     QString asset;
+    QString defaultPort; // optional Firmata/DeviceIO default label (A0, D2, …)
 };
 
 struct UHwFirmwareInfo {

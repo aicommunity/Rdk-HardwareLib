@@ -22,7 +22,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 
 ### TOC по Category
 
-#### Датчики (26)
+#### Датчики (28)
 
 | id | title | runtime |
 |----|-------|---------|
@@ -31,7 +31,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `aht20` | AHT20 | `planned` |
 | `apds_9960` | APDS-9960 | `planned` |
 | `bh1750` | BH1750 | `planned` |
-| `bme280` | BME280 | `planned` |
+| `bme280` | BME280 | `hub` |
 | `bme680` | BME680 | `planned` |
 | `bmp280` | BMP280 | `planned` |
 | `dht11` | DHT11 | `firmata` |
@@ -42,11 +42,13 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `hx711_plus_тензодатчик` | HX711 + тензодатчик | `firmata` |
 | `icm_20948` | ICM-20948 | `planned` |
 | `ina219` | INA219 | `planned` |
+| `ldr` | LDR (photoresistor) | `firmata` |
 | `mlx90614` | MLX90614 | `planned` |
 | `mpu_6050` | MPU-6050 | `planned` |
 | `mq_135` | MQ-135 | `firmata` |
 | `sgp30` | SGP30 | `planned` |
 | `sht31` | SHT31 | `planned` |
+| `soil_moisture` | Soil moisture | `firmata` |
 | `tcs34725` | TCS34725 | `planned` |
 | `vl53l0x` | VL53L0X | `planned` |
 | `vl53l1x` | VL53L1X | `planned` |
@@ -99,25 +101,14 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `nrf24l01plus` | nRF24L01+ | `planned` |
 | `sim800l_gsm` | SIM800L GSM | `hub` |
 
-#### Прочее (7)
-
-| id | title | runtime |
-|----|-------|---------|
-| `button` | Push Button | `firmata` |
-| `dc_motor_channel` | DC Motor Channel | `planned` |
-| `led` | LED | `firmata` |
-| `potentiometer` | Potentiometer | `firmata` |
-| `pwm_led` | PWM LED | `firmata` |
-| `relay` | Relay | `firmata` |
-| `servo` | Servo | `planned` |
-
-#### Управление / ввод (7)
+#### Управление / ввод (8)
 
 | id | title | runtime |
 |----|-------|---------|
 | `analog_joystick` | Analog Joystick | `firmata` |
 | `membrane_keypad_44` | Membrane Keypad 4×4 | `firmata` |
 | `pn532_nfc` | PN532 NFC | `planned` |
+| `relay` | Relay | `firmata` |
 | `rfid_rc522` | RFID RC522 | `planned` |
 | `rotary_encoder_ky_040` | Rotary Encoder KY-040 | `firmata` |
 | `tm1638_ledpluskeys` | TM1638 LED+Keys | `firmata` |
@@ -133,6 +124,17 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `l298n_motor_driver` | L298N Motor Driver | `firmata` |
 | `servo_sg90` | Servo SG90 | `firmata` |
 | `tb6612fng_motor_driver` | TB6612FNG Motor Driver | `firmata` |
+
+#### Прочее (6)
+
+| id | title | runtime |
+|----|-------|---------|
+| `button` | Push Button | `firmata` |
+| `dc_motor_channel` | DC Motor Channel | `planned` |
+| `led` | LED | `firmata` |
+| `potentiometer` | Potentiometer | `firmata` |
+| `pwm_led` | PWM LED | `firmata` |
+| `servo` | Servo | `planned` |
 
 #### Моторы / драйверы (1)
 

@@ -60,6 +60,7 @@ set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/USensorLabProtocolPlugin.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UNmsdkSensorHubProtocolPlugin.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UNmsdkMotorHubProtocolPlugin.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UNmsdkI2cHubProtocolPlugin.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UWaveshareUgvJsonProtocol.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Wheeled/UWheeledDriveLogic.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoWheeledRobot.cpp
@@ -103,6 +104,7 @@ set(HW_GUI_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareEsp32WheeledRobotControllerWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareWaveRoverControllerWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledDrivePanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledSensorsPanelWidget.cpp
 )
 
 target_sources(${GUI_TARGET_NAME} PRIVATE ${HW_GUI_SOURCES} ${HW_GUI_REQUIRED_SOURCES})

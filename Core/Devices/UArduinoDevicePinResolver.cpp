@@ -71,13 +71,16 @@ UResolvedDevicePins UArduinoDevicePinResolver::resolve(const UHardwareCatalog& c
         return out;
     }
 
-    if (port.isEmpty()) {
+    QString effectivePort = port;
+    if (effectivePort.isEmpty() && !mod->defaultPort.isEmpty())
+        effectivePort = mod->defaultPort;
+    if (effectivePort.isEmpty()) {
         out.error = QStringLiteral("Port required for module %1").arg(module_id);
         return out;
     }
-    out.signalPin = labelToPin(port, board_profile, &out.occupiedLabels);
+    out.signalPin = labelToPin(effectivePort, board_profile, &out.occupiedLabels);
     if (out.signalPin < 0)
-        out.error = QStringLiteral("Cannot map port label: %1").arg(port);
+        out.error = QStringLiteral("Cannot map port label: %1").arg(effectivePort);
     return out;
 }
 

@@ -1,6 +1,6 @@
 /*
- * nmsdk_sensor_hub_v1 — DHT11/22 + HC-SR04 + analog (+ optional DS18B20).
- * Host plugin: nmsdk_sensor_hub_v1
+ * nmsdk_sensor_hub_esp32_v1 — ESP32 twin of AVR sensor hub (same framed protocol).
+ * Host plugin: nmsdk_sensor_hub_v1 (shared). Flash via Arduino ESP32 / esptool.
  *
  * Commands:
  *   START/STOP READING | PING | GET STATUS | PROTO 2 | SET DELAY <ms>
@@ -17,7 +17,7 @@
 #include <DHT.h>
 
 #ifndef NMSDK_SENSOR_HUB_BAUD
-#define NMSDK_SENSOR_HUB_BAUD 57600
+#define NMSDK_SENSOR_HUB_BAUD 115200
 #endif
 
 #ifndef DHTPIN

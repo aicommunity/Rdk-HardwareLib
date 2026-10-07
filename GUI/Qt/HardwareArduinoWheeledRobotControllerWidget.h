@@ -10,6 +10,7 @@
 class HardwareArduinoBoardPanelWidget;
 class HardwareArduinoAssemblyTabHost;
 class HardwareWheeledDrivePanelWidget;
+class HardwareWheeledSensorsPanelWidget;
 
 class HardwareArduinoWheeledRobotControllerWidget : public UVisualControllerWidget,
                                                     public IComponentControllerWidget {
@@ -25,6 +26,7 @@ private:
     UComponentGuiContext Context;
     QTabWidget* Tabs = nullptr;
     HardwareWheeledDrivePanelWidget* Drive = nullptr;
+    HardwareWheeledSensorsPanelWidget* Sensors = nullptr;
     HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
 };

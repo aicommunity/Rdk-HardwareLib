@@ -22,7 +22,7 @@ USensorLabDecodedSensors USensorLabFrameDecoder::decodeSensors(const QByteArray&
     out.paramCount = static_cast<uint8_t>(payload[1]);
     if (payload.size() < 2 + out.paramCount * static_cast<int>(sizeof(float)))
         return out;
-    for (int i = 0; i < out.paramCount && i < 4; ++i)
+    for (int i = 0; i < out.paramCount && i < 8; ++i)
         memcpy(&out.values[i], payload.constData() + 2 + i * sizeof(float), sizeof(float));
     out.ok = true;
     return out;

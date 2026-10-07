@@ -35,7 +35,7 @@ void UNmsdkSensorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint
             return;
         QVector<double> row;
         row << decoded.paramCount;
-        for (int i = 0; i < decoded.paramCount && i < 4; ++i)
+        for (int i = 0; i < decoded.paramCount && i < 8; ++i)
             row << decoded.values[i];
         host->publishSensorMatrixRow(row);
         if (decoded.paramCount >= 1)
@@ -44,6 +44,10 @@ void UNmsdkSensorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint
             host->publishNamedFloat(QStringLiteral("h"), decoded.values[1]);
         if (decoded.paramCount >= 3)
             host->publishNamedFloat(QStringLiteral("distance_cm"), decoded.values[2]);
+        if (decoded.paramCount >= 4)
+            host->publishNamedFloat(QStringLiteral("hall"), decoded.values[3]);
+        if (decoded.paramCount >= 5)
+            host->publishNamedFloat(QStringLiteral("ds18b20"), decoded.values[4]);
         host->setProtocolReady(true);
     } else if (type == 0x04) {
         const auto decoded =
@@ -65,6 +69,8 @@ void UNmsdkSensorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint
         host->publishNamedFloat(QStringLiteral("pin_trig"), static_cast<float>((uint8_t)payload[1]));
         host->publishNamedFloat(QStringLiteral("pin_echo"), static_cast<float>((uint8_t)payload[2]));
         host->publishNamedFloat(QStringLiteral("pin_hall"), static_cast<float>((uint8_t)payload[3]));
+        if (payload.size() >= 5)
+            host->publishNamedFloat(QStringLiteral("pin_ds"), static_cast<float>((uint8_t)payload[4]));
         host->setProtocolReady(true);
     } else if (type == 0x7F) {
         host->setProtocolReady(true);
