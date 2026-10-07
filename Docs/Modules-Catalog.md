@@ -32,15 +32,15 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `apds_9960` | APDS-9960 | `planned` |
 | `bh1750` | BH1750 | `planned` |
 | `bme280` | BME280 | `hub` |
-| `bme680` | BME680 | `planned` |
-| `bmp280` | BMP280 | `planned` |
+| `bme680` | BME680 | `hub` |
+| `bmp280` | BMP280 | `hub` |
 | `dht11` | DHT11 | `firmata` |
 | `dht22` | DHT22 | `hub` |
 | `ds18b20` | DS18B20 | `hub` |
 | `hc_sr04` | HC-SR04 Ultrasonic | `firmata` |
 | `hc_sr501_pir` | HC-SR501 PIR | `firmata` |
 | `hx711_plus_тензодатчик` | HX711 + тензодатчик | `firmata` |
-| `icm_20948` | ICM-20948 | `planned` |
+| `icm_20948` | ICM-20948 | `hub` |
 | `ina219` | INA219 | `hub` |
 | `ldr` | LDR (photoresistor) | `firmata` |
 | `mlx90614` | MLX90614 | `planned` |
@@ -51,7 +51,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `soil_moisture` | Soil moisture | `firmata` |
 | `tcs34725` | TCS34725 | `planned` |
 | `vl53l0x` | VL53L0X | `hub` |
-| `vl53l1x` | VL53L1X | `planned` |
+| `vl53l1x` | VL53L1X | `hub` |
 | `датчик_влажности_почвы` | Датчик влажности почвы | `firmata` |
 | `фоторезистор_ldr_модуль` | Фоторезистор LDR модуль | `firmata` |
 

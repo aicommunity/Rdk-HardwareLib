@@ -54,6 +54,17 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 | `0x31` | ax,ay,az,gx,gy,gz | `mpu_6050` |
 | `0x32` | bus_v, current_ma, power_mw | `ina219` |
 | `0x33` | ch, duty | PCA9685 echo |
+| `0x34` | t, h, pressure_hpa | `bmp280`, `bme680` |
+| `0x35` | distance_mm | `vl53l1x` |
+| `0x36` | ax..gz[,mx,my] | `icm_20948` |
+| `0x37` | t, h | `aht20`, `sht31` |
+| `0x38` | lux | `bh1750` |
+| `0x39` | object_c, ambient_c | `mlx90614` |
+| `0x3A` | eco2, tvoc | `sgp30` |
+| `0x3B` | r,g,b,c | `tcs34725` |
+| `0x3C` | ax,ay,az | `adxl345` |
+| `0x3D` | gesture, prox, r,g,b | `apds_9960` |
+| `0x3E` | ch0..ch3 V | `ads1115_adc` |
 
 See [Tier-CD-Modules.md](Tier-CD-Modules.md), `Firmware/nmsdk_i2c_hub/README.md`.
 
