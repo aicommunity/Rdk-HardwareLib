@@ -1,8 +1,12 @@
 #include "UArduinoProtocolPluginRegistry.h"
 
+#include "UNmsdkDisplayHubProtocolPlugin.h"
 #include "UNmsdkI2cHubProtocolPlugin.h"
 #include "UNmsdkMotorHubProtocolPlugin.h"
+#include "UNmsdkPixelHubProtocolPlugin.h"
+#include "UNmsdkRadioHubProtocolPlugin.h"
 #include "UNmsdkSensorHubProtocolPlugin.h"
+#include "UNmsdkUartDeviceHubProtocolPlugin.h"
 #include "USensorLabProtocolPlugin.h"
 
 #include <QMap>
@@ -63,6 +67,10 @@ void registerBuiltinArduinoProtocolPlugins()
     registerArduinoProtocolPlugin(new UNmsdkSensorHubProtocolPlugin);
     registerArduinoProtocolPlugin(new UNmsdkMotorHubProtocolPlugin);
     registerArduinoProtocolPlugin(new UNmsdkI2cHubProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkDisplayHubProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkPixelHubProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkRadioHubProtocolPlugin);
+    registerArduinoProtocolPlugin(new UNmsdkUartDeviceHubProtocolPlugin);
 }
 
 } // namespace RDK

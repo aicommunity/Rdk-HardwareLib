@@ -71,3 +71,27 @@ See [Tier-CD-Modules.md](Tier-CD-Modules.md), `Firmware/nmsdk_i2c_hub/README.md`
 See also [Protocol-Plugins.md](Protocol-Plugins.md), [WheeledRobots.md](WheeledRobots.md), [Firmware/README.md](../Firmware/README.md).
 
 Waveshare UGV JSON (WaveRover) is **not** this hub — see [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md).
+
+### Display (`nmsdk_display_hub_v1`)
+
+- Commands: `CLEAR`, `PRINT <row> <col> <text>`, `OLED CLEAR`, `OLED PRINT <text>`, `PING`, `PROTO 2`
+- Frames: `0x7F` pong; `0x40` status (`rows`,`cols`,`driver_id`)
+- Sample: `16-DisplayHub`
+
+### Pixel (`nmsdk_pixel_hub_v1`)
+
+- Commands: `LED SET/FILL/SHOW`, `MATRIX CLEAR/TEXT`, `TFT FILL/TEXT`, `EPD CLEAR/TEXT`
+- Frames: `0x7F`; `0x41` (`led_count`,`last_ack`)
+- Sample: `17-PixelHub`
+
+### Radio (`nmsdk_radio_hub_v1`)
+
+- Commands: `RADIO SEND <hex>`, `PING`, `PROTO 2`
+- Frames: `0x50` RX, `0x51` UID, `0x52` Wi‑Fi (ESP32 twin), `0x7F`
+- Sample: `18-RadioHub`
+
+### UART device (`nmsdk_uart_device_hub_v1`)
+
+- Commands: `HMI TX`, `AT…`, `BRIDGE ON/OFF`, `PING`, `PROTO 2`
+- Frames: `0x60` UTF-8 line; `0x7F`
+- Sample: `19-UartDeviceHub`

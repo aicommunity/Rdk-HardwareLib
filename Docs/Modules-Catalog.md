@@ -77,29 +77,29 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | id | title | runtime |
 |----|-------|---------|
 | `e_paper_waveshare_154` | e-Paper Waveshare 1.54" | `planned` |
-| `lcd_1602_i2c` | LCD 1602 I2C | `planned` |
-| `lcd_2004_i2c` | LCD 2004 I2C | `planned` |
-| `max7219_88_led_matrix` | MAX7219 8×8 LED matrix | `planned` |
-| `nextion_hmi` | Nextion HMI | `planned` |
-| `oled_ssd1306_096` | OLED SSD1306 0.96" | `planned` |
-| `st7735_18_tft` | ST7735 1.8" TFT | `planned` |
-| `tft_ili9341_2428` | TFT ILI9341 2.4–2.8" | `planned` |
+| `lcd_1602_i2c` | LCD 1602 I2C | `hub` |
+| `lcd_2004_i2c` | LCD 2004 I2C | `hub` |
+| `max7219_88_led_matrix` | MAX7219 8×8 LED matrix | `hub` |
+| `nextion_hmi` | Nextion HMI | `hub` |
+| `oled_ssd1306_096` | OLED SSD1306 0.96" | `hub` |
+| `st7735_18_tft` | ST7735 1.8" TFT | `hub` |
+| `tft_ili9341_2428` | TFT ILI9341 2.4–2.8" | `hub` |
 | `tm1637_4_digit` | TM1637 4-digit | `firmata` |
-| `ws2812b_neopixel` | WS2812B NeoPixel | `planned` |
+| `ws2812b_neopixel` | WS2812B NeoPixel | `hub` |
 
 #### Беспроводная связь (9)
 
 | id | title | runtime |
 |----|-------|---------|
-| `a9g_gsmplusgps` | A9G GSM+GPS | `planned` |
-| `bluetooth_ble_hm_10` | Bluetooth BLE HM-10 | `planned` |
-| `esp32_wifi` | ESP32 Wi‑Fi | `planned` |
-| `hc_05_bluetooth_classic` | HC-05 Bluetooth Classic | `planned` |
-| `hc_06_bluetooth` | HC-06 Bluetooth | `planned` |
-| `lora_sx1278` | LoRa SX1278 | `planned` |
+| `a9g_gsmplusgps` | A9G GSM+GPS | `hub` |
+| `bluetooth_ble_hm_10` | Bluetooth BLE HM-10 | `hub` |
+| `esp32_wifi` | ESP32 Wi‑Fi | `hub` |
+| `hc_05_bluetooth_classic` | HC-05 Bluetooth Classic | `hub` |
+| `hc_06_bluetooth` | HC-06 Bluetooth | `hub` |
+| `lora_sx1278` | LoRa SX1278 | `hub` |
 | `m_433_мгц_fs1000a` | 433 МГц FS1000A | `firmata` |
-| `nrf24l01plus` | nRF24L01+ | `planned` |
-| `sim800l_gsm` | SIM800L GSM | `planned` |
+| `nrf24l01plus` | nRF24L01+ | `hub` |
+| `sim800l_gsm` | SIM800L GSM | `hub` |
 
 #### Управление / ввод (8)
 
@@ -107,9 +107,9 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 |----|-------|---------|
 | `analog_joystick` | Analog Joystick | `firmata` |
 | `membrane_keypad_44` | Membrane Keypad 4×4 | `firmata` |
-| `pn532_nfc` | PN532 NFC | `planned` |
+| `pn532_nfc` | PN532 NFC | `hub` |
 | `relay` | Relay | `firmata` |
-| `rfid_rc522` | RFID RC522 | `planned` |
+| `rfid_rc522` | RFID RC522 | `hub` |
 | `rotary_encoder_ky_040` | Rotary Encoder KY-040 | `firmata` |
 | `tm1638_ledpluskeys` | TM1638 LED+Keys | `firmata` |
 | `touch_sensor_ttp223` | Touch Sensor TTP223 | `firmata` |

@@ -1,5 +1,7 @@
 #include "HardwareArduinoCustomFirmwareControllerWidget.h"
 
+#include <utility>
+
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -48,8 +50,12 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
     auto* sendBtn = new QPushButton(tr("Send"), cmdPage);
     connect(sendBtn, &QPushButton::clicked, this, &HardwareArduinoCustomFirmwareControllerWidget::onSend);
     PresetStack = new QStackedWidget(cmdPage);
-    PresetStack->addWidget(buildGenericPresets(cmdPage)); // index 0
-    PresetStack->addWidget(buildI2cPresets(cmdPage));     // index 1
+    PresetStack->addWidget(buildGenericPresets(cmdPage));  // 0
+    PresetStack->addWidget(buildI2cPresets(cmdPage));      // 1
+    PresetStack->addWidget(buildDisplayPresets(cmdPage));  // 2
+    PresetStack->addWidget(buildPixelPresets(cmdPage));    // 3
+    PresetStack->addWidget(buildRadioPresets(cmdPage));    // 4
+    PresetStack->addWidget(buildUartPresets(cmdPage));     // 5
     auto* cmdRoot = new QVBoxLayout(cmdPage);
     HardwareGuiHelpers::applyCompactLayout(cmdRoot);
     auto* cmdRow = new QHBoxLayout();
@@ -97,13 +103,14 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
     rebuildPluginCombo(QString());
 }
 
-QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildGenericPresets(QWidget* parent)
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildPresetPage(
+    QWidget* parent, const std::initializer_list<std::pair<const char*, const char*>>& presets)
 {
     auto* page = new QWidget(parent);
     auto* lay = new QVBoxLayout(page);
     HardwareGuiHelpers::applyCompactLayout(lay);
-    for (auto* btn : {makePresetButton(page, tr("PING"), QStringLiteral("PING")),
-                      makePresetButton(page, tr("PROTO 2"), QStringLiteral("PROTO 2"))}) {
+    for (const auto& p : presets) {
+        auto* btn = makePresetButton(page, tr(p.first), QString::fromUtf8(p.second));
         connect(btn, &QPushButton::clicked, this,
                 &HardwareArduinoCustomFirmwareControllerWidget::onPresetClicked);
         lay->addWidget(btn);
@@ -112,29 +119,58 @@ QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildGenericPresets(QWid
     return page;
 }
 
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildGenericPresets(QWidget* parent)
+{
+    return buildPresetPage(parent, {{"PING", "PING"}, {"PROTO 2", "PROTO 2"}});
+}
+
 QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildI2cPresets(QWidget* parent)
 {
-    auto* page = new QWidget(parent);
-    auto* lay = new QVBoxLayout(page);
-    HardwareGuiHelpers::applyCompactLayout(lay);
-    const struct {
-        const char* label;
-        const char* cmd;
-    } presets[] = {
-        {"START READING", "START READING"},
-        {"STOP READING", "STOP READING"},
-        {"PING", "PING"},
-        {"SET DELAY 500", "SET DELAY 500"},
-        {"SET PWM 0 2048", "SET PWM 0 2048"},
-    };
-    for (const auto& p : presets) {
-        auto* btn = makePresetButton(page, tr(p.label), QString::fromUtf8(p.cmd));
-        connect(btn, &QPushButton::clicked, this,
-                &HardwareArduinoCustomFirmwareControllerWidget::onPresetClicked);
-        lay->addWidget(btn);
-    }
-    lay->addStretch(1);
-    return page;
+    return buildPresetPage(parent,
+                           {{"START READING", "START READING"},
+                            {"STOP READING", "STOP READING"},
+                            {"PING", "PING"},
+                            {"SET DELAY 500", "SET DELAY 500"},
+                            {"SET PWM 0 2048", "SET PWM 0 2048"}});
+}
+
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildDisplayPresets(QWidget* parent)
+{
+    return buildPresetPage(parent,
+                           {{"CLEAR", "CLEAR"},
+                            {"PRINT 0 0 hello", "PRINT 0 0 hello"},
+                            {"OLED CLEAR", "OLED CLEAR"},
+                            {"OLED PRINT hello", "OLED PRINT hello"},
+                            {"PING", "PING"}});
+}
+
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildPixelPresets(QWidget* parent)
+{
+    return buildPresetPage(parent,
+                           {{"LED FILL", "LED FILL"},
+                            {"LED SHOW", "LED SHOW"},
+                            {"MATRIX CLEAR", "MATRIX CLEAR"},
+                            {"MATRIX TEXT A", "MATRIX TEXT A"},
+                            {"TFT FILL 0", "TFT FILL 0"},
+                            {"PING", "PING"}});
+}
+
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildRadioPresets(QWidget* parent)
+{
+    return buildPresetPage(parent,
+                           {{"RADIO SEND 010203", "RADIO SEND 010203"},
+                            {"PING", "PING"},
+                            {"PROTO 2", "PROTO 2"}});
+}
+
+QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildUartPresets(QWidget* parent)
+{
+    return buildPresetPage(parent,
+                           {{"AT", "AT"},
+                            {"HMI TX hello", "HMI TX hello"},
+                            {"BRIDGE ON", "BRIDGE ON"},
+                            {"BRIDGE OFF", "BRIDGE OFF"},
+                            {"PING", "PING"}});
 }
 
 void HardwareArduinoCustomFirmwareControllerWidget::rebuildPluginCombo(const QString& selectId)
@@ -157,6 +193,14 @@ void HardwareArduinoCustomFirmwareControllerWidget::updatePresetStack(const QStr
 {
     if (pluginId.contains(QStringLiteral("i2c_hub")))
         PresetStack->setCurrentIndex(1);
+    else if (pluginId.contains(QStringLiteral("display_hub")))
+        PresetStack->setCurrentIndex(2);
+    else if (pluginId.contains(QStringLiteral("pixel_hub")))
+        PresetStack->setCurrentIndex(3);
+    else if (pluginId.contains(QStringLiteral("radio_hub")))
+        PresetStack->setCurrentIndex(4);
+    else if (pluginId.contains(QStringLiteral("uart_device_hub")))
+        PresetStack->setCurrentIndex(5);
     else
         PresetStack->setCurrentIndex(0);
 

@@ -1,6 +1,9 @@
 #ifndef HARDWAREARDUINOCUSTOMFIRMWARECONTROLLERWIDGET_H
 #define HARDWAREARDUINOCUSTOMFIRMWARECONTROLLERWIDGET_H
 
+#include <initializer_list>
+#include <utility>
+
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -39,7 +42,13 @@ private:
     void updatePresetStack(const QString& pluginId);
     void sendCommandLine(const QString& line);
     QWidget* buildI2cPresets(QWidget* parent);
+    QWidget* buildDisplayPresets(QWidget* parent);
+    QWidget* buildPixelPresets(QWidget* parent);
+    QWidget* buildRadioPresets(QWidget* parent);
+    QWidget* buildUartPresets(QWidget* parent);
     QWidget* buildGenericPresets(QWidget* parent);
+    QWidget* buildPresetPage(QWidget* parent,
+                             const std::initializer_list<std::pair<const char*, const char*>>& presets);
 
     UComponentGuiContext Context;
     QTabWidget* Tabs = nullptr;
