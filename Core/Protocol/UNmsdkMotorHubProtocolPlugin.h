@@ -16,6 +16,8 @@ public:
     QStringList knownCommands() const override
     {
         return {QStringLiteral("PROTO 2"), QStringLiteral("PING"), QStringLiteral("MOTOR STOP"),
+                QStringLiteral("MOTOR A 0"), QStringLiteral("MOTOR B 0"),
+                QStringLiteral("MOTOR A DIR 1"), QStringLiteral("MOTOR B DIR 1"),
                 QStringLiteral("GET STATUS"), QStringLiteral("GET PINS"),
                 QStringLiteral("WATCHDOG 2000")};
     }

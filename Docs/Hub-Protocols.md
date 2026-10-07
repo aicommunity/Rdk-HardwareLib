@@ -9,8 +9,8 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 | type | Hub | Payload |
 |------|-----|---------|
 | `0x01` | sensor | sensors: `[0, n] + n×float LE` (t, h, distance_cm, hall) |
-| `0x20` | motor | `[ch, pwm, dir] + float sense` |
-| `0x21` | motor | pin map `[dir,pwm,brake,sense]` as MCU pin numbers |
+| `0x20` | motor | `[ch, pwm, dir] + float sense` (ch 0=A/left, 1=B/right; host publishes `left_*`/`right_*`) |
+| `0x21` | motor | pin map 8 bytes `A(dir,pwm,brake,sense)+B(...)`; 4-byte legacy A-only still accepted |
 | `0x22` | sensor | pin map `[dht,trig,echo,hall]` |
 | `0x7F` | both | ping/pong |
 
@@ -24,10 +24,11 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 
 ### Motor (`nmsdk_motor_hub_v1`)
 
-- `PROTO 2`, `PING`, `MOTOR A <0..255>`, `MOTOR A DIR <0|1>`, `MOTOR STOP`
-- `SET PIN dir|pwm|brake|sense <Dn|An>`
-- `WATCHDOG <ms>` — auto `safeStop` if no host command within ms while PWM>0 (default 2000; `0` disables)
+- `PROTO 2`, `PING`, `MOTOR A|B <0..255>`, `MOTOR A|B DIR <0|1>`, `MOTOR STOP`
+- `SET PIN [A|B] dir|pwm|brake|sense <Dn|An>` (legacy without channel → A)
+- `WATCHDOG <ms>` — auto `safeStop` both channels if no host command within ms while any PWM>0 (default 2000; `0` disables)
 - `GET PINS`
+- ESP32 twin sketch: `Firmware/nmsdk_motor_hub_esp32/` / catalog `nmsdk_motor_hub_esp32_v1` (baud 115200)
 
 ## Host plugins
 

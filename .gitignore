@@ -84,3 +84,4 @@ Debug
 doxygen
 .metadata
 Scripts/__pycache__/
+Firmware/**/build/
