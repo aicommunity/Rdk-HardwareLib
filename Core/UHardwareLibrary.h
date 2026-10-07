@@ -10,6 +10,9 @@
 #include "UArduinoAdc.h"
 #include "UArduinoDcDemo.h"
 #include "UArduinoCustomFirmware.h"
+#include "Links/UArduinoWheeledRobot.h"
+#include "Links/UEsp32WheeledRobot.h"
+#include "Links/UWaveRover.h"
 #include "Devices/UArduinoDeviceIO.h"
 
 namespace RDK {

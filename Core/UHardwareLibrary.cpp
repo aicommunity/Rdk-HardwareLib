@@ -27,6 +27,21 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
     cont->Default();
     UploadClass("Esp32Board", cont);
 
+    cont = new UArduinoWheeledRobot;
+    cont->SetName("ArduinoWheeledRobot");
+    cont->Default();
+    UploadClass("ArduinoWheeledRobot", cont);
+
+    cont = new UEsp32WheeledRobot;
+    cont->SetName("Esp32WheeledRobot");
+    cont->Default();
+    UploadClass("Esp32WheeledRobot", cont);
+
+    cont = new UWaveRover;
+    cont->SetName("WaveRover");
+    cont->Default();
+    UploadClass("WaveRover", cont);
+
     cont = new UArduinoSensorSketch;
     cont->SetName("ArduinoSensorSketch");
     cont->Default();

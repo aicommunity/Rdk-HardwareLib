@@ -16,6 +16,7 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Assembly
     ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices
+    ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Wheeled
 )
 
 file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
@@ -27,6 +28,7 @@ file(GLOB HW_CORE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Catalog/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Assembly/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Devices/*.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Wheeled/*.cpp
 )
 
 # Explicit list: file(GLOB) is evaluated at configure time; these were added after
@@ -58,6 +60,13 @@ set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/USensorLabProtocolPlugin.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UNmsdkSensorHubProtocolPlugin.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UNmsdkMotorHubProtocolPlugin.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Protocol/UWaveshareUgvJsonProtocol.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Wheeled/UWheeledDriveLogic.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoWheeledRobot.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UEsp32CustomLink.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UEsp32WheeledRobot.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UEsp32JsonLink.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UWaveRover.cpp
 )
 
 target_sources(${TARGET_NAME} PRIVATE ${HW_CORE_SOURCES} ${HW_CORE_REQUIRED_SOURCES})
