@@ -1,5 +1,5 @@
 /*
- * nmsdk_sensor_hub_v1 — DHT11 + HC-SR04 + analog on Sensor Shield (framed v2).
+ * nmsdk_sensor_hub_v1 — DHT11/22 + HC-SR04 + analog on Sensor Shield (framed v2).
  * Host plugin: nmsdk_sensor_hub_v1
  *
  * Commands:
@@ -7,6 +7,10 @@
  *   SET DEVICE dht|trig|echo|hall <Dn|An>
  *   CLEAR DEVICES   (restore compile-time defaults)
  *   GET PINS
+ *
+ * Build flags:
+ *   -DDHTTYPE=DHT22 for DHT22/AM2302 (default DHT11)
+ * DS18B20: reserved — enable with NMSDK_SENSOR_HUB_DS18B20=1 (OneWire) in a later slice.
  */
 #include <Arduino.h>
 #include <DHT.h>

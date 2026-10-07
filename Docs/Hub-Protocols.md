@@ -21,6 +21,7 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 - `PROTO 2`, `PING`, `START READING` / `STOP READING`, `SET DELAY <ms>`
 - `SET DEVICE dht|trig|echo|hall <Dn|An>` — runtime pin bind (not flash-only)
 - `CLEAR DEVICES`, `GET PINS`
+- DHT22: compile with `-DDHTTYPE=DHT22` (default DHT11). DS18B20 reserved (`NMSDK_SENSOR_HUB_DS18B20`) for Tier B follow-up.
 
 ### Motor (`nmsdk_motor_hub_v1`)
 

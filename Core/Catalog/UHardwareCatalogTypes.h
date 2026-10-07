@@ -62,6 +62,8 @@ struct UHwShieldInfo {
 struct UHwModuleInfo {
     QString id;
     QString title;
+    QString category;
+    QString runtime; // firmata | hub | motor_hub | planned
     QString signalType;
     QStringList wires;
     QStringList roles;
