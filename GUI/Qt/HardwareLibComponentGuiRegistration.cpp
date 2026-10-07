@@ -11,6 +11,9 @@
 #include "HardwareArduinoFirmataControllerWidget.h"
 #include "HardwareArduinoSensorSketchControllerWidget.h"
 #include "HardwareEsp32BoardControllerWidget.h"
+#include "HardwareArduinoWheeledRobotControllerWidget.h"
+#include "HardwareEsp32WheeledRobotControllerWidget.h"
+#include "HardwareWaveRoverControllerWidget.h"
 
 namespace
 {
@@ -90,5 +93,28 @@ void RegisterHardwareLibComponentGuiForms()
         MakeDescriptor(QStringLiteral("hw.esp32.board"), QStringLiteral("ESP32 Board"),
                        [](RDK::UApplication* app) {
                            return new HardwareEsp32BoardControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoWheeledRobot"),
+        MakeDescriptor(QStringLiteral("hw.arduino.wheeled_robot"),
+                       QStringLiteral("Arduino Wheeled Robot"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoWheeledRobotControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("Esp32WheeledRobot"),
+        MakeDescriptor(QStringLiteral("hw.esp32.wheeled_robot"),
+                       QStringLiteral("ESP32 Wheeled Robot"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareEsp32WheeledRobotControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("WaveRover"),
+        MakeDescriptor(QStringLiteral("hw.waverover"), QStringLiteral("WaveRover"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareWaveRoverControllerWidget(nullptr, app);
                        }));
 }

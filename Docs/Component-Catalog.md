@@ -10,6 +10,9 @@
 |-----------|-----|--------------|
 | `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
 | `Esp32Board` | `UEsp32Board` | [Components/Esp32Board.md](Components/Esp32Board.md) |
+| `ArduinoWheeledRobot` | `UArduinoWheeledRobot` | [Components/ArduinoWheeledRobot.md](Components/ArduinoWheeledRobot.md) |
+| `Esp32WheeledRobot` | `UEsp32WheeledRobot` | [Components/Esp32WheeledRobot.md](Components/Esp32WheeledRobot.md) |
+| `WaveRover` | `UWaveRover` | [Components/WaveRover.md](Components/WaveRover.md) |
 | `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
 | `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 
@@ -70,6 +73,9 @@ Components from [`UHardwareLibrary.cpp`](../Core/UHardwareLibrary.cpp).
 |-----------|-----|---------------|
 | `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
 | `Esp32Board` | `UEsp32Board` | [Components/Esp32Board.md](Components/Esp32Board.md) |
+| `ArduinoWheeledRobot` | `UArduinoWheeledRobot` | [Components/ArduinoWheeledRobot.md](Components/ArduinoWheeledRobot.md) |
+| `Esp32WheeledRobot` | `UEsp32WheeledRobot` | [Components/Esp32WheeledRobot.md](Components/Esp32WheeledRobot.md) |
+| `WaveRover` | `UWaveRover` | [Components/WaveRover.md](Components/WaveRover.md) |
 | `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
 | `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 

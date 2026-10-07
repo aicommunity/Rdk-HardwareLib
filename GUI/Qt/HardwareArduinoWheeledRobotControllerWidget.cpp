@@ -1,0 +1,50 @@
+#include "HardwareArduinoWheeledRobotControllerWidget.h"
+
+#include <QVBoxLayout>
+
+#include "widgets/HardwareArduinoAssemblyTabHost.h"
+#include "widgets/HardwareArduinoBoardPanelWidget.h"
+#include "widgets/HardwareGuiHelpers.h"
+#include "widgets/HardwareWheeledDrivePanelWidget.h"
+
+HardwareArduinoWheeledRobotControllerWidget::HardwareArduinoWheeledRobotControllerWidget(
+    QWidget* parent, RDK::UApplication* app)
+    : UVisualControllerWidget(parent, app)
+{
+    Drive = new HardwareWheeledDrivePanelWidget(this);
+    AssemblyTab = new HardwareArduinoAssemblyTabHost(this);
+    BoardPanel = new HardwareArduinoBoardPanelWidget(this);
+    Tabs = new QTabWidget(this);
+    Tabs->setDocumentMode(true);
+    Tabs->addTab(Drive, tr("Drive"));
+    Tabs->addTab(AssemblyTab, tr("Assembly"));
+    Tabs->addTab(BoardPanel, tr("Board"));
+    auto* root = new QVBoxLayout(this);
+    HardwareGuiHelpers::applyCompactLayout(root);
+    root->addWidget(Tabs);
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
+}
+
+void HardwareArduinoWheeledRobotControllerWidget::setComponentContext(const UComponentGuiContext& context)
+{
+    Context = context;
+    Drive->setContext(context);
+    AssemblyTab->setContext(context);
+    BoardPanel->setContext(context);
+    refreshFromModel(true);
+}
+
+QString HardwareArduinoWheeledRobotControllerWidget::componentGuiId() const
+{
+    return QStringLiteral("hw.arduino.wheeled_robot");
+}
+
+void HardwareArduinoWheeledRobotControllerWidget::refreshFromModel(bool force)
+{
+    Q_UNUSED(force);
+    if (Context.componentLongName.isEmpty())
+        return;
+    Drive->refreshFromModel();
+    AssemblyTab->refreshFromModel();
+    BoardPanel->refreshFromModel();
+}

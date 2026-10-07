@@ -96,7 +96,16 @@ file(GLOB HW_GUI_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/*.cpp
 )
 
-target_sources(${GUI_TARGET_NAME} PRIVATE ${HW_GUI_SOURCES})
+# Explicit list: GLOB is configure-time only; keep new controllers linked.
+set(HW_GUI_REQUIRED_SOURCES
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareEsp32BoardControllerWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareArduinoWheeledRobotControllerWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareEsp32WheeledRobotControllerWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareWaveRoverControllerWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledDrivePanelWidget.cpp
+)
+
+target_sources(${GUI_TARGET_NAME} PRIVATE ${HW_GUI_SOURCES} ${HW_GUI_REQUIRED_SOURCES})
 
 qt_add_resources(HW_GUI_RESOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/Resources/hardware_lib.qrc
