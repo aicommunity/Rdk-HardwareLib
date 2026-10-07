@@ -10,6 +10,11 @@
 | `sensor_lab/uno.hex`, `mega2560.hex` | Prebuilt sensor_lab (копируются в `Bin/ArduinoFirmware` скриптом сборки) |
 | `nmsdk_sensor_hub/` | Tier C DHT/HC-SR04 hub (HEX + framed v2) |
 | `nmsdk_motor_hub/` | Tier C motor DIR/PWM hub (watchdog + HEX) |
+| `nmsdk_i2c_hub/` | P2+ I2C sensors (BME/VL53/MPU/INA/PCA + extras) |
+| `nmsdk_display_hub/` | P2+ OLED/LCD text hub |
+| `nmsdk_pixel_hub/` | P2+ WS2812/MAX7219/TFT MVP |
+| `nmsdk_radio_hub/` (+ `_esp32`) | P2+ NRF/RFID + ESP32 Wi‑Fi twin |
+| `nmsdk_uart_device_hub/` | P2+ Nextion/BT/GSM second-UART bridge |
 | `firmata/standard_firmata_*.hex` | StandardFirmata for Uno / Mega |
 | `manifest.json` | Шаблон manifest (копируется в `Bin/ArduinoFirmware`) |
 
