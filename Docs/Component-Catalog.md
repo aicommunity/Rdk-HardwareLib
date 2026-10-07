@@ -9,6 +9,7 @@
 | ClassName | C++ | Документация |
 |-----------|-----|--------------|
 | `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
+| `Esp32Board` | `UEsp32Board` | [Components/Esp32Board.md](Components/Esp32Board.md) |
 | `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
 | `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 
@@ -68,6 +69,7 @@ Components from [`UHardwareLibrary.cpp`](../Core/UHardwareLibrary.cpp).
 | ClassName | C++ | Documentation |
 |-----------|-----|---------------|
 | `ArduinoBoard` | `UArduinoBoard` | [Components/ArduinoBoard.md](Components/ArduinoBoard.md) |
+| `Esp32Board` | `UEsp32Board` | [Components/Esp32Board.md](Components/Esp32Board.md) |
 | `ArduinoSensorSketch` | `UArduinoSensorSketch` | [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md) |
 | `ArduinoFirmata` | `UArduinoFirmata` | [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md) |
 

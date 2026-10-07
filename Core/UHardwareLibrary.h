@@ -4,6 +4,7 @@
 #include "../../../Rdk/Deploy/Include/rdk.h"
 
 #include "UArduinoBoard.h"
+#include "Board/UEsp32Board.h"
 #include "UArduinoSensorSketch.h"
 #include "UArduinoFirmata.h"
 #include "UArduinoAdc.h"

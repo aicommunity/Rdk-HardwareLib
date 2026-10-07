@@ -22,6 +22,11 @@ void UHardwareLibrary::CreateClassSamples(UStorage *storage)
     cont->Default();
     UploadClass("ArduinoBoard", cont);
 
+    cont = new UEsp32Board;
+    cont->SetName("Esp32Board");
+    cont->Default();
+    UploadClass("Esp32Board", cont);
+
     cont = new UArduinoSensorSketch;
     cont->SetName("ArduinoSensorSketch");
     cont->Default();

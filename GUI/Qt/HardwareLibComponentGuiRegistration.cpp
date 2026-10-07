@@ -10,6 +10,7 @@
 #include "HardwareArduinoDeviceIOControllerWidget.h"
 #include "HardwareArduinoFirmataControllerWidget.h"
 #include "HardwareArduinoSensorSketchControllerWidget.h"
+#include "HardwareEsp32BoardControllerWidget.h"
 
 namespace
 {
@@ -82,5 +83,12 @@ void RegisterHardwareLibComponentGuiForms()
                        QStringLiteral("Arduino Custom Firmware"),
                        [](RDK::UApplication* app) {
                            return new HardwareArduinoCustomFirmwareControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("Esp32Board"),
+        MakeDescriptor(QStringLiteral("hw.esp32.board"), QStringLiteral("ESP32 Board"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareEsp32BoardControllerWidget(nullptr, app);
                        }));
 }

@@ -37,6 +37,7 @@ set(HW_CORE_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoSampleBuffer.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UMcuSerialBoard.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoBoard.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UEsp32Board.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UArduinoFirmata.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Board/UFirmwareManifest.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/Core/Links/UArduinoCustomLink.cpp

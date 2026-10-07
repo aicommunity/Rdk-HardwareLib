@@ -15,14 +15,14 @@
 
 | Метрика | Значение |
 |---------|----------|
-| Зарегистрированных классов (`UploadClass`) | **7** |
-| Файлов `Docs/Components/*.md` | **11** |
+| Зарегистрированных классов (`UploadClass`) | **8** |
+| Файлов `Docs/Components/*.md` | **12** |
 | Классов без doc-файла | **0** |
 | Orphan docs (legacy/групповые) | **4** |
 | Отсутствуют в Component-Catalog | **0** |
 | Регистрация | `Core/UHardwareLibrary.cpp` |
 
-**Прогресс по классам:** 7/7 (100%) ✅ — все `UploadClass` имеют per-class документацию.\
+**Прогресс по классам:** 8/8 (100%) ✅ — все `UploadClass` имеют per-class документацию.\
 **Bilingual parity (Track 3):** ✅ `## EN` добавлен в Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike и в пять per-class компонентов на дату Track 3; новые DeviceIO и CustomFirmware имеют отдельные RU/EN документы.
 
 ---
@@ -45,6 +45,7 @@
 ### Компоненты (все зарегистрированные классы, RU/EN)
 - ✅ **ArduinoAdc** — [`Components/ArduinoAdc.md`](Components/ArduinoAdc.md)
 - ✅ **ArduinoBoard** — [`Components/ArduinoBoard.md`](Components/ArduinoBoard.md)
+- ✅ **Esp32Board** — [`Components/Esp32Board.md`](Components/Esp32Board.md)
 - ✅ **ArduinoDcDemo** — [`Components/ArduinoDcDemo.md`](Components/ArduinoDcDemo.md)
 - ✅ **ArduinoFirmata** — [`Components/ArduinoFirmata.md`](Components/ArduinoFirmata.md)
 - ✅ **ArduinoSensorSketch** — [`Components/ArduinoSensorSketch.md`](Components/ArduinoSensorSketch.md)
