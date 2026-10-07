@@ -110,6 +110,10 @@ set(HW_GUI_REQUIRED_SOURCES
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledDrivePanelWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareWheeledSensorsPanelWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareHubTelemetryPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareDisplayHubPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwarePixelHubPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareRadioHubPanelWidget.cpp
+  ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/HardwareUartDeviceHubPanelWidget.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/HardwareArduinoCustomFirmwareControllerWidget.cpp
 )
 

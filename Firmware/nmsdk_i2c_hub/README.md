@@ -7,7 +7,7 @@ P2 / P2+ I2C hub: priority BME280, VL53L0X, MPU6050, INA219, PCA9685 plus option
 | `0x01` | t, h, pressure_hpa | `bme280` | `NMSDK_I2C_HUB_BME280` (1) |
 | `0x30` | distance_mm | `vl53l0x` | `_VL53` (1) |
 | `0x31` | ax..gz | `mpu_6050` | `_MPU6050` (1) |
-| `0x32` | bus_v, current_ma, power_mw | `ina219` | `_INA219` (1) |
+| `0x32` | bus_v, shunt_v, current_ma, power_mw | `ina219` | `_INA219` (1) |
 | `0x33` | ch, duty | `pca9685_16_ch_pwm` | `_PCA9685` (1) |
 | `0x34` | t, h, pressure_hpa | `bmp280`, `bme680` | `_BMP280` / `_BME680` (0) |
 | `0x35` | distance_mm | `vl53l1x` | `_VL53L1` (0) |

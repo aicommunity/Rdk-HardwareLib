@@ -11,8 +11,12 @@
 #include "Protocol/UArduinoProtocolPluginRegistry.h"
 #include "widgets/HardwareArduinoAssemblyTabHost.h"
 #include "widgets/HardwareArduinoBoardPanelWidget.h"
+#include "widgets/HardwareDisplayHubPanelWidget.h"
 #include "widgets/HardwareGuiHelpers.h"
 #include "widgets/HardwareHubTelemetryPanelWidget.h"
+#include "widgets/HardwarePixelHubPanelWidget.h"
+#include "widgets/HardwareRadioHubPanelWidget.h"
+#include "widgets/HardwareUartDeviceHubPanelWidget.h"
 
 namespace {
 
@@ -49,20 +53,37 @@ HardwareArduinoCustomFirmwareControllerWidget::HardwareArduinoCustomFirmwareCont
     CommandEdit = new QLineEdit(cmdPage);
     auto* sendBtn = new QPushButton(tr("Send"), cmdPage);
     connect(sendBtn, &QPushButton::clicked, this, &HardwareArduinoCustomFirmwareControllerWidget::onSend);
+
+    DisplayPanel = new HardwareDisplayHubPanelWidget(cmdPage);
+    PixelPanel = new HardwarePixelHubPanelWidget(cmdPage);
+    RadioPanel = new HardwareRadioHubPanelWidget(cmdPage);
+    UartPanel = new HardwareUartDeviceHubPanelWidget(cmdPage);
+    connect(DisplayPanel, &HardwareDisplayHubPanelWidget::commandRequested, this,
+            &HardwareArduinoCustomFirmwareControllerWidget::onHubCommand);
+    connect(PixelPanel, &HardwarePixelHubPanelWidget::commandRequested, this,
+            &HardwareArduinoCustomFirmwareControllerWidget::onHubCommand);
+    connect(RadioPanel, &HardwareRadioHubPanelWidget::commandRequested, this,
+            &HardwareArduinoCustomFirmwareControllerWidget::onHubCommand);
+    connect(RadioPanel, &HardwareRadioHubPanelWidget::esp32ModeChanged, this,
+            &HardwareArduinoCustomFirmwareControllerWidget::onRadioEsp32Mode);
+    connect(UartPanel, &HardwareUartDeviceHubPanelWidget::commandRequested, this,
+            &HardwareArduinoCustomFirmwareControllerWidget::onHubCommand);
+
     PresetStack = new QStackedWidget(cmdPage);
-    PresetStack->addWidget(buildGenericPresets(cmdPage));  // 0
-    PresetStack->addWidget(buildI2cPresets(cmdPage));      // 1
-    PresetStack->addWidget(buildDisplayPresets(cmdPage));  // 2
-    PresetStack->addWidget(buildPixelPresets(cmdPage));    // 3
-    PresetStack->addWidget(buildRadioPresets(cmdPage));    // 4
-    PresetStack->addWidget(buildUartPresets(cmdPage));     // 5
+    PresetStack->addWidget(buildGenericPresets(cmdPage)); // 0
+    PresetStack->addWidget(buildI2cPresets(cmdPage));     // 1
+    PresetStack->addWidget(DisplayPanel);                 // 2
+    PresetStack->addWidget(PixelPanel);                   // 3
+    PresetStack->addWidget(RadioPanel);                   // 4
+    PresetStack->addWidget(UartPanel);                    // 5
+
     auto* cmdRoot = new QVBoxLayout(cmdPage);
     HardwareGuiHelpers::applyCompactLayout(cmdRoot);
     auto* cmdRow = new QHBoxLayout();
     cmdRow->addWidget(CommandEdit, 1);
     cmdRow->addWidget(sendBtn);
     cmdRoot->addLayout(cmdRow);
-    cmdRoot->addWidget(new QLabel(tr("Presets"), cmdPage));
+    cmdRoot->addWidget(new QLabel(tr("Hub panel / presets"), cmdPage));
     cmdRoot->addWidget(PresetStack, 1);
 
     Telemetry = new HardwareHubTelemetryPanelWidget(this);
@@ -134,45 +155,6 @@ QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildI2cPresets(QWidget*
                             {"SET PWM 0 2048", "SET PWM 0 2048"}});
 }
 
-QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildDisplayPresets(QWidget* parent)
-{
-    return buildPresetPage(parent,
-                           {{"CLEAR", "CLEAR"},
-                            {"PRINT 0 0 hello", "PRINT 0 0 hello"},
-                            {"OLED CLEAR", "OLED CLEAR"},
-                            {"OLED PRINT hello", "OLED PRINT hello"},
-                            {"PING", "PING"}});
-}
-
-QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildPixelPresets(QWidget* parent)
-{
-    return buildPresetPage(parent,
-                           {{"LED FILL", "LED FILL"},
-                            {"LED SHOW", "LED SHOW"},
-                            {"MATRIX CLEAR", "MATRIX CLEAR"},
-                            {"MATRIX TEXT A", "MATRIX TEXT A"},
-                            {"TFT FILL 0", "TFT FILL 0"},
-                            {"PING", "PING"}});
-}
-
-QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildRadioPresets(QWidget* parent)
-{
-    return buildPresetPage(parent,
-                           {{"RADIO SEND 010203", "RADIO SEND 010203"},
-                            {"PING", "PING"},
-                            {"PROTO 2", "PROTO 2"}});
-}
-
-QWidget* HardwareArduinoCustomFirmwareControllerWidget::buildUartPresets(QWidget* parent)
-{
-    return buildPresetPage(parent,
-                           {{"AT", "AT"},
-                            {"HMI TX hello", "HMI TX hello"},
-                            {"BRIDGE ON", "BRIDGE ON"},
-                            {"BRIDGE OFF", "BRIDGE OFF"},
-                            {"PING", "PING"}});
-}
-
 void HardwareArduinoCustomFirmwareControllerWidget::rebuildPluginCombo(const QString& selectId)
 {
     SuppressPluginSignal = true;
@@ -217,6 +199,11 @@ void HardwareArduinoCustomFirmwareControllerWidget::updatePresetStack(const QStr
         }
     }
     FirmwareHint->setText(hint);
+
+    if (!pluginId.contains(QStringLiteral("radio_hub")))
+        BoardPanel->setEsp32Mode(false);
+    else if (RadioPanel->esp32BoardMode())
+        BoardPanel->setEsp32Mode(true);
 }
 
 void HardwareArduinoCustomFirmwareControllerWidget::setComponentContext(
@@ -226,6 +213,8 @@ void HardwareArduinoCustomFirmwareControllerWidget::setComponentContext(
     BoardPanel->setContext(context);
     AssemblyTab->setContext(context);
     Telemetry->setContext(context);
+    RadioPanel->setContext(context);
+    UartPanel->setContext(context);
     refreshFromModel(true);
 }
 
@@ -242,6 +231,8 @@ void HardwareArduinoCustomFirmwareControllerWidget::refreshFromModel(bool force)
     BoardPanel->refreshFromModel();
     AssemblyTab->refreshFromModel();
     Telemetry->refreshFromModel();
+    RadioPanel->refreshFromModel();
+    UartPanel->refreshFromModel();
     const QString pluginId = HardwareGuiHelpers::getProp(Context, "HostPluginId");
     rebuildPluginCombo(pluginId);
     CommandEdit->setText(HardwareGuiHelpers::getProp(Context, "Command"));
@@ -274,6 +265,17 @@ void HardwareArduinoCustomFirmwareControllerWidget::sendCommandLine(const QStrin
 void HardwareArduinoCustomFirmwareControllerWidget::onSend()
 {
     sendCommandLine(CommandEdit->text());
+}
+
+void HardwareArduinoCustomFirmwareControllerWidget::onHubCommand(const QString& line)
+{
+    CommandEdit->setText(line);
+    sendCommandLine(line);
+}
+
+void HardwareArduinoCustomFirmwareControllerWidget::onRadioEsp32Mode(bool enabled)
+{
+    BoardPanel->setEsp32Mode(enabled);
 }
 
 void HardwareArduinoCustomFirmwareControllerWidget::onPresetClicked()

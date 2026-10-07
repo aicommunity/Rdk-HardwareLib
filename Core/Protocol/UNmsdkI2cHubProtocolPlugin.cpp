@@ -58,12 +58,20 @@ bool publishDecoded(UArduinoPluginHost* host, uint8_t type, const QByteArray& pa
             host->publishNamedFloat(QStringLiteral("my"), decoded.values[7]);
         break;
     case 0x32:
-        if (decoded.paramCount >= 1)
+        if (decoded.paramCount >= 4) {
             host->publishNamedFloat(QStringLiteral("bus_v"), decoded.values[0]);
-        if (decoded.paramCount >= 2)
-            host->publishNamedFloat(QStringLiteral("current_ma"), decoded.values[1]);
-        if (decoded.paramCount >= 3)
-            host->publishNamedFloat(QStringLiteral("power_mw"), decoded.values[2]);
+            host->publishNamedFloat(QStringLiteral("shunt_v"), decoded.values[1]);
+            host->publishNamedFloat(QStringLiteral("current_ma"), decoded.values[2]);
+            host->publishNamedFloat(QStringLiteral("power_mw"), decoded.values[3]);
+        } else {
+            // legacy 3-float: bus_v, current_ma, power_mw
+            if (decoded.paramCount >= 1)
+                host->publishNamedFloat(QStringLiteral("bus_v"), decoded.values[0]);
+            if (decoded.paramCount >= 2)
+                host->publishNamedFloat(QStringLiteral("current_ma"), decoded.values[1]);
+            if (decoded.paramCount >= 3)
+                host->publishNamedFloat(QStringLiteral("power_mw"), decoded.values[2]);
+        }
         break;
     case 0x33:
         if (decoded.paramCount >= 1)

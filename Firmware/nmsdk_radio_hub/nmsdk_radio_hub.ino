@@ -30,10 +30,28 @@
 RF24 radio(9, 10);
 bool nrfOk = false;
 #endif
+#if NMSDK_RADIO_HUB_LORA
+#include <LoRa.h>
+bool loraOk = false;
+#ifndef NMSDK_LORA_SS
+#define NMSDK_LORA_SS 10
+#endif
+#ifndef NMSDK_LORA_RST
+#define NMSDK_LORA_RST 9
+#endif
+#ifndef NMSDK_LORA_DIO0
+#define NMSDK_LORA_DIO0 2
+#endif
+#endif
 #if NMSDK_RADIO_HUB_RC522
 #include <MFRC522.h>
 MFRC522 mfrc(10, 9);
 bool rfidOk = false;
+#endif
+#if NMSDK_RADIO_HUB_PN532
+#include <Adafruit_PN532.h>
+Adafruit_PN532 nfc(2, 3); // IRQ, RESET (I2C)
+bool pn532Ok = false;
 #endif
 
 uint8_t crc8Maxim(const uint8_t* data, int len)
@@ -105,9 +123,20 @@ void setup()
     radio.startListening();
   }
 #endif
+#if NMSDK_RADIO_HUB_LORA
+  LoRa.setPins(NMSDK_LORA_SS, NMSDK_LORA_RST, NMSDK_LORA_DIO0);
+  loraOk = LoRa.begin(433E6);
+#endif
 #if NMSDK_RADIO_HUB_RC522
   mfrc.PCD_Init();
   rfidOk = true;
+#endif
+#if NMSDK_RADIO_HUB_PN532
+  nfc.begin();
+  uint32_t ver = nfc.getFirmwareVersion();
+  pn532Ok = ver != 0;
+  if (pn532Ok)
+    nfc.SAMConfig();
 #endif
 }
 
@@ -121,6 +150,17 @@ void loop()
     writeFloats(0x50, meta, 2);
   }
 #endif
+#if NMSDK_RADIO_HUB_LORA
+  if (loraOk) {
+    int packetSize = LoRa.parsePacket();
+    if (packetSize > 0) {
+      float meta[2] = {(float)packetSize, (float)LoRa.packetRssi()};
+      writeFloats(0x50, meta, 2);
+      while (LoRa.available())
+        (void)LoRa.read();
+    }
+  }
+#endif
 #if NMSDK_RADIO_HUB_RC522
   if (rfidOk && mfrc.PICC_IsNewCardPresent() && mfrc.PICC_ReadCardSerial()) {
     float uid = 0;
@@ -128,6 +168,18 @@ void loop()
       uid = uid * 256.f + mfrc.uid.uidByte[i];
     writeFloats(0x51, &uid, 1);
     mfrc.PICC_HaltA();
+  }
+#endif
+#if NMSDK_RADIO_HUB_PN532
+  if (pn532Ok) {
+    uint8_t uidbuf[7] = {0};
+    uint8_t uidLen = 0;
+    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uidbuf, &uidLen)) {
+      float uid = 0;
+      for (uint8_t i = 0; i < uidLen && i < 4; ++i)
+        uid = uid * 256.f + uidbuf[i];
+      writeFloats(0x51, &uid, 1);
+    }
   }
 #endif
 
@@ -157,11 +209,16 @@ void loop()
       radio.write(buf, n);
       radio.startListening();
     }
-#else
-    (void)n;
 #endif
 #if NMSDK_RADIO_HUB_LORA
-    // LoRa driver optional behind flag
+    if (loraOk && n > 0) {
+      LoRa.beginPacket();
+      LoRa.write(buf, n);
+      LoRa.endPacket();
+    }
+#endif
+#if !NMSDK_RADIO_HUB_NRF24 && !NMSDK_RADIO_HUB_LORA
+    (void)n;
 #endif
   }
 }

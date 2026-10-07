@@ -35,6 +35,7 @@ void UNmsdkUartDeviceHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, 
     if (type == 0x60) {
         const QString line = QString::fromUtf8(payload).trimmed();
         host->appendFrameLog(QStringLiteral("RX: %1").arg(line));
+        host->publishNamedString(QStringLiteral("last_line"), line);
         host->publishNamedFloat(QStringLiteral("last_line_len"),
                                 static_cast<float>(line.size()));
         static const QRegularExpression gga(

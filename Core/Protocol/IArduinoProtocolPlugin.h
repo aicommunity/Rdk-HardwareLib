@@ -19,6 +19,12 @@ public:
     virtual void publishSensorMatrixRow(const QVector<double>& row) {}
     virtual void publishPinStatusJson(const QString& json) {}
     virtual void publishNamedFloat(const QString& key, float value) {}
+    /** Optional string NamedValues (e.g. last UART line); default no-op. */
+    virtual void publishNamedString(const QString& key, const QString& value)
+    {
+        Q_UNUSED(key);
+        Q_UNUSED(value);
+    }
     virtual void appendFrameLog(const QString& line) {}
 };
 

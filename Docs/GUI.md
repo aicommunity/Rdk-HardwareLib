@@ -22,7 +22,17 @@
 | `Esp32WheeledRobot` | `hw.esp32.wheeled_robot` | `HardwareEsp32WheeledRobotControllerWidget` |
 | `WaveRover` | `hw.waverover` | `HardwareWaveRoverControllerWidget` |
 
-Wheeled/ESP controllers: вкладки **Drive** | **Sensors** (preview `NamedValuesJson`) | Assembly | Board; WaveRover: Drive | Feedback | Board. `HardwareArduinoBoardPanelWidget::setEsp32Mode(true)` — без AVR upload preview / DTR assumptions.
+### Hub Workbench (`ArduinoCustomFirmware`)
+
+Вкладки **Hub** | **Commands** | **Telemetry** | **Log** | **Assembly** | **Board**:
+
+- Hub: combo `HostPluginId` из registry + firmware hint из catalog
+- Commands: line Send + stack панелей `HardwareDisplay/Pixel/Radio/Uart*HubPanelWidget` (или I2C presets)
+- Telemetry: `HardwareHubTelemetryPanelWidget` (NamedValues table + matrix preview); wheeled **Sensors** переиспользует тот же виджет
+- Radio panel: checkbox **ESP32 board mode** → `BoardPanel->setEsp32Mode(true)` для Wi‑Fi twin
+- Uart panel: multiline TX, `AT`/`AT+GPSRD`, warning Serial1/SoftSerial
+
+Wheeled/ESP controllers: вкладки **Drive** | **Sensors** | Assembly | Board; WaveRover: Drive | Feedback | Board. `setEsp32Mode(true)` — без AVR upload preview / DTR assumptions.
 
 DeviceIO: ModuleId combo grouped by catalog `category` with `[runtime]` badge. Assembly editor: ModuleCombo группирует модули по `category` / `platform`.
 
@@ -121,6 +131,14 @@ Static library **Rdk-HardwareLib.gui** (CMake target), linked from NeuroModeler 
 | `ArduinoAdc` | `hw.arduino.adc` | `HardwareArduinoAdcControllerWidget` |
 | `ArduinoDeviceIO` | `hw.arduino.device_io` | `HardwareArduinoDeviceIOControllerWidget` |
 | `ArduinoCustomFirmware` | `hw.arduino.custom_firmware` | `HardwareArduinoCustomFirmwareControllerWidget` |
+| `Esp32Board` | `hw.esp32.board` | `HardwareEsp32BoardControllerWidget` |
+| `ArduinoWheeledRobot` | `hw.arduino.wheeled_robot` | `HardwareArduinoWheeledRobotControllerWidget` |
+| `Esp32WheeledRobot` | `hw.esp32.wheeled_robot` | `HardwareEsp32WheeledRobotControllerWidget` |
+| `WaveRover` | `hw.waverover` | `HardwareWaveRoverControllerWidget` |
+
+### Hub Workbench (`ArduinoCustomFirmware`)
+
+Tabs **Hub** | **Commands** | **Telemetry** | **Log** | **Assembly** | **Board**: plugin combo, hub panels (Display/Pixel/Radio/Uart), shared `HardwareHubTelemetryPanelWidget` (also wheeled Sensors). Radio panel can enable ESP32 board mode for Wi‑Fi twin.
 
 ## Model access
 

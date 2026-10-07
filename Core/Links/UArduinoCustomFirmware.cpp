@@ -38,7 +38,7 @@ bool UArduinoCustomFirmware::ADefault()
     BundledFirmwareId = "sensor_lab_v1";
     FirmwarePath = UArduinoPropertyString::toStdProperty(
         UFirmwareManifest::bundledHexRelativePath(QStringLiteral("sensor_lab_v1"), 0));
-    NamedValues.clear();
+    NamedValues = QJsonObject();
     registerBuiltinArduinoProtocolPlugins();
     return true;
 }
@@ -93,14 +93,22 @@ void UArduinoCustomFirmware::publishPinStatusJson(const QString& json)
     Q_UNUSED(json);
 }
 
+void UArduinoCustomFirmware::flushNamedValuesJson()
+{
+    NamedValuesJson = UArduinoPropertyString::toStdProperty(
+        QString::fromUtf8(QJsonDocument(NamedValues).toJson(QJsonDocument::Compact)));
+}
+
 void UArduinoCustomFirmware::publishNamedFloat(const QString& key, float value)
 {
     NamedValues.insert(key, value);
-    QJsonObject obj;
-    for (auto it = NamedValues.constBegin(); it != NamedValues.constEnd(); ++it)
-        obj.insert(it.key(), it.value());
-    NamedValuesJson =
-        UArduinoPropertyString::toStdProperty(QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact)));
+    flushNamedValuesJson();
+}
+
+void UArduinoCustomFirmware::publishNamedString(const QString& key, const QString& value)
+{
+    NamedValues.insert(key, value);
+    flushNamedValuesJson();
 }
 
 void UArduinoCustomFirmware::appendFrameLog(const QString& line)

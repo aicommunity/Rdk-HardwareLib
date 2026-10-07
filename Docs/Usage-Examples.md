@@ -287,7 +287,13 @@ See [firmware_build.md](firmware_build.md), [Firmware/README.md](../Firmware/REA
 |--------|-----------|-------|
 | `13-DeviceIO-Joystick` | `ArduinoFirmata` + `ArduinoDeviceIO` | `ModuleId=analog_joystick`, Port A0 |
 | `14-SensorHub` | `ArduinoCustomFirmware` | `nmsdk_sensor_hub_v1`; DHT22/DS18B20 build flags |
-| `15-I2cHub-BME280` | `ArduinoCustomFirmware` | `nmsdk_i2c_hub_v1` climate (+ optional ToF/IMU/INA/PCA) |
+| `15-I2cHub` | `ArduinoCustomFirmware` | `nmsdk_i2c_hub_v1` frames `0x01`/`0x30`–`0x3E` |
+| `16-DisplayHub` | `ArduinoCustomFirmware` | `nmsdk_display_hub_v1` OLED/LCD |
+| `17-PixelHub` | `ArduinoCustomFirmware` | `nmsdk_pixel_hub_v1` WS2812/MAX7219/TFT |
+| `18-RadioHub` | `ArduinoCustomFirmware` | `nmsdk_radio_hub_v1` (+ ESP32 Wi‑Fi twin) |
+| `19-UartDeviceHub` | `ArduinoCustomFirmware` | `nmsdk_uart_device_hub_v1` Nextion/BT/GSM |
+
+Модули `runtime=hub` в DeviceIO Apply → LastError; используйте CustomFirmware + Hub Workbench (см. [GUI.md](GUI.md)).
 
 ```xml
 <DeviceIO Class="ArduinoDeviceIO">

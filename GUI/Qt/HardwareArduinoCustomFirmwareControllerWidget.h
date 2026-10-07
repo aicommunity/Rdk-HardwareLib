@@ -17,7 +17,11 @@
 
 class HardwareArduinoAssemblyTabHost;
 class HardwareArduinoBoardPanelWidget;
+class HardwareDisplayHubPanelWidget;
 class HardwareHubTelemetryPanelWidget;
+class HardwarePixelHubPanelWidget;
+class HardwareRadioHubPanelWidget;
+class HardwareUartDeviceHubPanelWidget;
 class QPushButton;
 
 class HardwareArduinoCustomFirmwareControllerWidget : public UVisualControllerWidget,
@@ -36,16 +40,14 @@ private slots:
     void onClearLog();
     void onPluginChanged(int index);
     void onPresetClicked();
+    void onHubCommand(const QString& line);
+    void onRadioEsp32Mode(bool enabled);
 
 private:
     void rebuildPluginCombo(const QString& selectId);
     void updatePresetStack(const QString& pluginId);
     void sendCommandLine(const QString& line);
     QWidget* buildI2cPresets(QWidget* parent);
-    QWidget* buildDisplayPresets(QWidget* parent);
-    QWidget* buildPixelPresets(QWidget* parent);
-    QWidget* buildRadioPresets(QWidget* parent);
-    QWidget* buildUartPresets(QWidget* parent);
     QWidget* buildGenericPresets(QWidget* parent);
     QWidget* buildPresetPage(QWidget* parent,
                              const std::initializer_list<std::pair<const char*, const char*>>& presets);
@@ -55,6 +57,10 @@ private:
     HardwareArduinoBoardPanelWidget* BoardPanel = nullptr;
     HardwareArduinoAssemblyTabHost* AssemblyTab = nullptr;
     HardwareHubTelemetryPanelWidget* Telemetry = nullptr;
+    HardwareDisplayHubPanelWidget* DisplayPanel = nullptr;
+    HardwarePixelHubPanelWidget* PixelPanel = nullptr;
+    HardwareRadioHubPanelWidget* RadioPanel = nullptr;
+    HardwareUartDeviceHubPanelWidget* UartPanel = nullptr;
 
     QComboBox* PluginCombo = nullptr;
     QLabel* FirmwareHint = nullptr;

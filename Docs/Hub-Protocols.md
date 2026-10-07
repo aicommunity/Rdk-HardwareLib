@@ -52,7 +52,7 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 | `0x01` | t, h, pressure_hpa | `bme280` |
 | `0x30` | distance_mm | `vl53l0x` |
 | `0x31` | ax,ay,az,gx,gy,gz | `mpu_6050` |
-| `0x32` | bus_v, current_ma, power_mw | `ina219` |
+| `0x32` | bus_v, shunt_v, current_ma, power_mw | `ina219` |
 | `0x33` | ch, duty | PCA9685 echo |
 | `0x34` | t, h, pressure_hpa | `bmp280`, `bme680` |
 | `0x35` | distance_mm | `vl53l1x` |

@@ -40,6 +40,32 @@ bool stripOk = false;
 LedControl lc = LedControl(11, 13, 10, 1); // DIN,CLK,CS
 bool matrixOk = false;
 #endif
+#if NMSDK_PIXEL_HUB_ST7735
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#ifndef NMSDK_TFT_CS
+#define NMSDK_TFT_CS 10
+#endif
+#ifndef NMSDK_TFT_DC
+#define NMSDK_TFT_DC 9
+#endif
+#ifndef NMSDK_TFT_RST
+#define NMSDK_TFT_RST 8
+#endif
+Adafruit_ST7735 tft = Adafruit_ST7735(NMSDK_TFT_CS, NMSDK_TFT_DC, NMSDK_TFT_RST);
+bool tftOk = false;
+#elif NMSDK_PIXEL_HUB_ILI9341
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
+#ifndef NMSDK_TFT_CS
+#define NMSDK_TFT_CS 10
+#endif
+#ifndef NMSDK_TFT_DC
+#define NMSDK_TFT_DC 9
+#endif
+Adafruit_ILI9341 tft = Adafruit_ILI9341(NMSDK_TFT_CS, NMSDK_TFT_DC);
+bool tftOk = false;
+#endif
 
 float lastAck = 0;
 
@@ -108,6 +134,15 @@ void setup()
   lc.clearDisplay(0);
   matrixOk = true;
 #endif
+#if NMSDK_PIXEL_HUB_ST7735
+  tft.initR(INITR_BLACKTAB);
+  tft.fillScreen(ST77XX_BLACK);
+  tftOk = true;
+#elif NMSDK_PIXEL_HUB_ILI9341
+  tft.begin();
+  tft.fillScreen(ILI9341_BLACK);
+  tftOk = true;
+#endif
   sendAck(1);
 }
 
@@ -166,14 +201,29 @@ void loop()
 #endif
     sendAck(6);
   } else if (command.startsWith("TFT FILL ")) {
-    sendAck(7); // MVP: ack only unless TFT flag+lib wired
+    uint16_t color = (uint16_t)command.substring(9).toInt();
+#if NMSDK_PIXEL_HUB_ST7735 || NMSDK_PIXEL_HUB_ILI9341
+    if (tftOk)
+      tft.fillScreen(color);
+#else
+    (void)color;
+#endif
+    sendAck(7);
   } else if (command.startsWith("TFT TEXT ")) {
-    Serial.println(command.substring(9));
+    String t = command.substring(9);
+#if NMSDK_PIXEL_HUB_ST7735 || NMSDK_PIXEL_HUB_ILI9341
+    if (tftOk) {
+      tft.setCursor(0, 0);
+      tft.setTextColor(0xFFFF);
+      tft.setTextSize(2);
+      tft.print(t);
+    }
+#else
+    Serial.println(t);
+#endif
     sendAck(8);
   } else if (command == "EPD CLEAR" || command.startsWith("EPD TEXT ")) {
-#if NMSDK_PIXEL_HUB_EPD154
-    // Waveshare lib optional; Serial stub keeps protocol honest when flag=0
-#endif
+    // EPD stays catalog-planned; flag path only Serial/ack until HW verified
     Serial.println(command);
     sendAck(9);
   }

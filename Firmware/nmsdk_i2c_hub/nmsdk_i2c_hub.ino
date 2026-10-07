@@ -265,13 +265,14 @@ void sendImu()
 void sendPower()
 {
 #if NMSDK_I2C_HUB_INA219
-  float v[3] = {0, 0, 0};
+  float v[4] = {0, 0, 0, 0};
   if (inaOk) {
     v[0] = ina219.getBusVoltage_V();
-    v[1] = ina219.getCurrent_mA();
-    v[2] = ina219.getPower_mW();
+    v[1] = ina219.getShuntVoltage_mV() / 1000.0f;
+    v[2] = ina219.getCurrent_mA();
+    v[3] = ina219.getPower_mW();
   }
-  writeFloats(0x32, v, 3);
+  writeFloats(0x32, v, 4);
 #endif
 }
 

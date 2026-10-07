@@ -4,7 +4,7 @@
 #include "UArduinoCustomLink.h"
 #include "Protocol/IArduinoProtocolPlugin.h"
 
-#include <QMap>
+#include <QJsonObject>
 #include <QVector>
 
 namespace RDK {
@@ -30,6 +30,7 @@ public:
     void publishSensorMatrixRow(const QVector<double>& row) override;
     void publishPinStatusJson(const QString& json) override;
     void publishNamedFloat(const QString& key, float value) override;
+    void publishNamedString(const QString& key, const QString& value) override;
     void appendFrameLog(const QString& line) override;
 
 protected:
@@ -41,7 +42,8 @@ protected:
 
 private:
     IArduinoProtocolPlugin* resolvePlugin() const;
-    QMap<QString, float> NamedValues;
+    void flushNamedValuesJson();
+    QJsonObject NamedValues;
 };
 
 } // namespace RDK

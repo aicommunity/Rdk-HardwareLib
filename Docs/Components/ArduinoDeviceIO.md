@@ -23,7 +23,7 @@ GUI ModuleId: группировка по `category`, badge `[runtime]`. Sample:
 
 ### Не на Standard Firmata
 
-Модули с `runtime=hub` / `motor_hub` и timing-sensors: `dht11`, `dht22`, `ds18b20`, `hc_sr04`, … — используйте `ArduinoCustomFirmware` + [Hub-Protocols.md](../Hub-Protocols.md) (samples `14-SensorHub`, `15-I2cHub-BME280`).
+Модули с `runtime=hub` / `motor_hub` и timing-sensors: `dht11`, `dht22`, `ds18b20`, `hc_sr04`, … — используйте `ArduinoCustomFirmware` + [Hub-Protocols.md](../Hub-Protocols.md) (samples `14-SensorHub`, `15-I2cHub`, `16`–`19` hubs).
 
 См. [Shields-Firmata-IO.md](../Shields-Firmata-IO.md), [Modules-Catalog.md](../Modules-Catalog.md).
 

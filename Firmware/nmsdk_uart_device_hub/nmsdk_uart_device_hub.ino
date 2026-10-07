@@ -2,6 +2,8 @@
  * nmsdk_uart_device_hub_v1 — Nextion / HC-05 / SIM800 / A9G on second UART.
  * Host USB = Serial; device = Serial1 (Mega/ESP) or SoftwareSerial 10/11 (Uno).
  * Frame 0x60 = UTF-8 line bytes from device.
+ *
+ * Flags select which command families are accepted (compile-time product profile).
  */
 #include <Arduino.h>
 
@@ -75,6 +77,15 @@ void sendLineFrame(const String& line)
   writeFramedV2(0x60, (const uint8_t*)line.c_str(), (uint16_t)line.length());
 }
 
+bool allowAtFamily()
+{
+#if NMSDK_UART_HUB_HC05 || NMSDK_UART_HUB_SIM800 || NMSDK_UART_HUB_A9G
+  return true;
+#else
+  return false;
+#endif
+}
+
 void setup()
 {
   Serial.begin(NMSDK_UART_HUB_BAUD);
@@ -108,13 +119,26 @@ void loop()
   } else if (command == "BRIDGE OFF") {
     bridgeMode = false;
   } else if (command.startsWith("HMI TX ")) {
+#if NMSDK_UART_HUB_NEXTION
     String payload = command.substring(7);
     device().print(payload);
     device().write(0xFF);
     device().write(0xFF);
     device().write(0xFF);
+#else
+    Serial.println(F("ERR NEXTION disabled"));
+#endif
   } else if (command.startsWith("AT")) {
+    if (!allowAtFamily()) {
+      Serial.println(F("ERR AT family disabled"));
+      return;
+    }
+#if NMSDK_UART_HUB_A9G
+    // A9G GPS peek: host may send AT+GPSRD; forward as-is
+#endif
+#if NMSDK_UART_HUB_SIM800 || NMSDK_UART_HUB_A9G || NMSDK_UART_HUB_HC05
     device().println(command);
+#endif
   } else if (bridgeMode) {
     device().println(command);
   }
