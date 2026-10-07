@@ -174,6 +174,7 @@ void UArduinoSerialSession::onReadyRead()
     }
     if (ShowDebug)
         qDebug().noquote() << "UArduinoSerialSession RX:" << chunk.size() << chunk.toHex(' ');
+    // Do not connect bytesReceived to UNet/ACalculate (engine thread); hosts poll takeReceivedBytes.
     emit bytesReceived();
 }
 
