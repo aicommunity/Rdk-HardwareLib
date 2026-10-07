@@ -9,8 +9,8 @@
 | I2C IMU | same | `mpu_6050` | **done** (`0x31`) |
 | I2C power / PWM | same | `ina219`, `pca9685_16_ch_pwm` | **done** (`0x32`/`0x33`) |
 | I2C extras 1a | same | `bmp280`, `bme680`, `vl53l1x`, `icm_20948` | **done** (`0x34`–`0x36`) |
-| I2C extras 1b | same | `aht20`, `sht31`, `bh1750`, `mlx90614`, `sgp30` | Wave 1b (`0x37`–`0x3A`) |
-| I2C extras 1c | same | `tcs34725`, `adxl345`, `apds_9960`, `ads1115_adc` | Wave 1c (`0x3B`–`0x3E`) |
+| I2C extras 1b | same | `aht20`, `sht31`, `bh1750`, `mlx90614`, `sgp30` | **done** (`0x37`–`0x3A`) |
+| I2C extras 1c | same | `tcs34725`, `adxl345`, `apds_9960`, `ads1115_adc` | **done** (`0x3B`–`0x3E`) |
 | Sensor 1-wire/DHT | `nmsdk_sensor_hub_v1` | `dht22`, `ds18b20` | **done** |
 | UART product | Wave 5 | Nextion/BT/GSM | planned (false hub cleared Wave 0) |
 | Display / pixel / radio | Waves 2–4 | OLED/LCD, WS2812, NRF… | planned |

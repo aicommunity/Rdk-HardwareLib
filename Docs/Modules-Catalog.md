@@ -28,9 +28,9 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 |----|-------|---------|
 | `acs712` | ACS712 | `firmata` |
 | `adxl345` | ADXL345 | `planned` |
-| `aht20` | AHT20 | `planned` |
+| `aht20` | AHT20 | `hub` |
 | `apds_9960` | APDS-9960 | `planned` |
-| `bh1750` | BH1750 | `planned` |
+| `bh1750` | BH1750 | `hub` |
 | `bme280` | BME280 | `hub` |
 | `bme680` | BME680 | `hub` |
 | `bmp280` | BMP280 | `hub` |
@@ -43,11 +43,11 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `icm_20948` | ICM-20948 | `hub` |
 | `ina219` | INA219 | `hub` |
 | `ldr` | LDR (photoresistor) | `firmata` |
-| `mlx90614` | MLX90614 | `planned` |
+| `mlx90614` | MLX90614 | `hub` |
 | `mpu_6050` | MPU-6050 | `hub` |
 | `mq_135` | MQ-135 | `firmata` |
-| `sgp30` | SGP30 | `planned` |
-| `sht31` | SHT31 | `planned` |
+| `sgp30` | SGP30 | `hub` |
+| `sht31` | SHT31 | `hub` |
 | `soil_moisture` | Soil moisture | `firmata` |
 | `tcs34725` | TCS34725 | `planned` |
 | `vl53l0x` | VL53L0X | `hub` |
