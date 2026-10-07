@@ -41,8 +41,13 @@ bool UArduinoSerialSession::tryOpenPort(const QString& device_path, int baud_rat
     SerialPort->setFlowControl(QSerialPort::NoFlowControl);
 
     if (SerialPort->open(QIODevice::ReadWrite)) {
-        SerialPort->setDataTerminalReady(false);
-        SerialPort->setDataTerminalReady(true);
+        if (ToggleDtrOnOpen) {
+            SerialPort->setDataTerminalReady(false);
+            SerialPort->setDataTerminalReady(DtrOnOpen);
+        } else {
+            SerialPort->setDataTerminalReady(DtrOnOpen);
+        }
+        SerialPort->setRequestToSend(RtsOnOpen);
         connect(SerialPort, &QSerialPort::readyRead, this, &UArduinoSerialSession::onReadyRead);
         return true;
     }

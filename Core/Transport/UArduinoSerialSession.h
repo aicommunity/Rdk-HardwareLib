@@ -27,6 +27,10 @@ public:
     static QStringList availablePorts();
 
     bool ShowDebug = false;
+    /** When true (AVR default), pulse DTR low→high after open to reset MCU. */
+    bool ToggleDtrOnOpen = true;
+    bool DtrOnOpen = true;
+    bool RtsOnOpen = false;
 
 signals:
     void bytesReceived();
