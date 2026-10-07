@@ -41,16 +41,16 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `hc_sr501_pir` | HC-SR501 PIR | `firmata` |
 | `hx711_plus_тензодатчик` | HX711 + тензодатчик | `firmata` |
 | `icm_20948` | ICM-20948 | `planned` |
-| `ina219` | INA219 | `planned` |
+| `ina219` | INA219 | `hub` |
 | `ldr` | LDR (photoresistor) | `firmata` |
 | `mlx90614` | MLX90614 | `planned` |
-| `mpu_6050` | MPU-6050 | `planned` |
+| `mpu_6050` | MPU-6050 | `hub` |
 | `mq_135` | MQ-135 | `firmata` |
 | `sgp30` | SGP30 | `planned` |
 | `sht31` | SHT31 | `planned` |
 | `soil_moisture` | Soil moisture | `firmata` |
 | `tcs34725` | TCS34725 | `planned` |
-| `vl53l0x` | VL53L0X | `planned` |
+| `vl53l0x` | VL53L0X | `hub` |
 | `vl53l1x` | VL53L1X | `planned` |
 | `датчик_влажности_почвы` | Датчик влажности почвы | `firmata` |
 | `фоторезистор_ldr_модуль` | Фоторезистор LDR модуль | `firmata` |
@@ -66,7 +66,7 @@ python3 sync_hardware_catalog.py --dest /path/to/Bin/HardwareCatalog
 | `gps_neo_6m` | GPS NEO-6M | `firmata` |
 | `mcp23017_i` | MCP23017 I | `firmata` |
 | `mcp2515_can_модуль` | MCP2515 CAN модуль | `firmata` |
-| `pca9685_16_ch_pwm` | PCA9685 16-ch PWM | `planned` |
+| `pca9685_16_ch_pwm` | PCA9685 16-ch PWM | `hub` |
 | `pcf8574_lcd_backpack` | PCF8574 LCD backpack | `firmata` |
 | `proto_shield` | Proto Shield | `firmata` |
 | `relay_shield` | Relay Shield | `firmata` |

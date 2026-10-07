@@ -44,8 +44,18 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 ### I2C (`nmsdk_i2c_hub_v1`)
 
 - `PROTO 2`, `PING`, `START READING` / `STOP READING`, `SET DELAY <ms>`
-- Frame `0x01`: t_c, humidity_pct, pressure_hpa (BME280 @ 0x76/0x77)
-- See [Tier-CD-Modules.md](Tier-CD-Modules.md)
+- `SET PWM <ch0-15> <0-4095>` — PCA9685 duty (echo frame `0x33`)
+- Frames:
+
+| type | floats | Module |
+|------|--------|--------|
+| `0x01` | t, h, pressure_hpa | `bme280` |
+| `0x30` | distance_mm | `vl53l0x` |
+| `0x31` | ax,ay,az,gx,gy,gz | `mpu_6050` |
+| `0x32` | bus_v, current_ma, power_mw | `ina219` |
+| `0x33` | ch, duty | PCA9685 echo |
+
+See [Tier-CD-Modules.md](Tier-CD-Modules.md), `Firmware/nmsdk_i2c_hub/README.md`.
 
 See also [Protocol-Plugins.md](Protocol-Plugins.md), [WheeledRobots.md](WheeledRobots.md), [Firmware/README.md](../Firmware/README.md).
 

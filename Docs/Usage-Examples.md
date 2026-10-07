@@ -281,7 +281,29 @@ See [firmware_build.md](firmware_build.md), [Firmware/README.md](../Firmware/REA
 
 См. [WheeledRobots.md](WheeledRobots.md).
 
+## 10. DeviceIO / hubs (P1–P2)
+
+| Sample | ClassName | Notes |
+|--------|-----------|-------|
+| `13-DeviceIO-Joystick` | `ArduinoFirmata` + `ArduinoDeviceIO` | `ModuleId=analog_joystick`, Port A0 |
+| `14-SensorHub` | `ArduinoCustomFirmware` | `nmsdk_sensor_hub_v1`; DHT22/DS18B20 build flags |
+| `15-I2cHub-BME280` | `ArduinoCustomFirmware` | `nmsdk_i2c_hub_v1` climate (+ optional ToF/IMU/INA/PCA) |
+
+```xml
+<DeviceIO Class="ArduinoDeviceIO">
+  <Parameters>
+    <LinkedFirmataName>Firmata</LinkedFirmataName>
+    <ModuleId>analog_joystick</ModuleId>
+    <Port>A0</Port>
+    <Continuous>1</Continuous>
+  </Parameters>
+</DeviceIO>
+```
+
+Пустой `Port` → `defaultPort` из каталога модуля.
+
 ## See also
 
 - [Component-Catalog.md](Component-Catalog.md)
 - [Components/](Components/)
+- [Hub-Protocols.md](Hub-Protocols.md)

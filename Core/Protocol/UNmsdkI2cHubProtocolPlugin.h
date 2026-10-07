@@ -5,7 +5,7 @@
 
 namespace RDK {
 
-/** Host plugin for catalog firmware `nmsdk_i2c_hub_v1` (BME280 / Tier C). */
+/** Host plugin for catalog firmware `nmsdk_i2c_hub_v1` (BME280/VL53/MPU/INA/PCA). */
 class UNmsdkI2cHubProtocolPlugin : public IArduinoProtocolPlugin {
 public:
     QString id() const override { return QStringLiteral("nmsdk_i2c_hub_v1"); }
@@ -16,7 +16,8 @@ public:
     QStringList knownCommands() const override
     {
         return {QStringLiteral("PROTO 2"), QStringLiteral("PING"), QStringLiteral("START READING"),
-                QStringLiteral("STOP READING"), QStringLiteral("SET DELAY 500")};
+                QStringLiteral("STOP READING"), QStringLiteral("SET DELAY 500"),
+                QStringLiteral("SET PWM 0 2048")};
     }
     void onBinaryFrame(UArduinoPluginHost* host, uint8_t type, const QByteArray& payload) override;
     void negotiate(UArduinoPluginHost* host, int protocolVersion) override;

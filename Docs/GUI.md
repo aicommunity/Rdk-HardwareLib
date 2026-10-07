@@ -22,7 +22,9 @@
 | `Esp32WheeledRobot` | `hw.esp32.wheeled_robot` | `HardwareEsp32WheeledRobotControllerWidget` |
 | `WaveRover` | `hw.waverover` | `HardwareWaveRoverControllerWidget` |
 
-Wheeled/ESP controllers: вкладки Drive (+ Feedback у WaveRover) | Board. `HardwareArduinoBoardPanelWidget::setEsp32Mode(true)` — без AVR upload preview / DTR assumptions. Assembly editor: ModuleCombo группирует модули по `category` / `platform`.
+Wheeled/ESP controllers: вкладки **Drive** | **Sensors** (preview `NamedValuesJson`) | Assembly | Board; WaveRover: Drive | Feedback | Board. `HardwareArduinoBoardPanelWidget::setEsp32Mode(true)` — без AVR upload preview / DTR assumptions.
+
+DeviceIO: ModuleId combo grouped by catalog `category` with `[runtime]` badge. Assembly editor: ModuleCombo группирует модули по `category` / `platform`.
 
 ## Доступ к модели
 

@@ -54,14 +54,28 @@ CRC-8/MAXIM по байтам от `0xAA` включительно до конц
 На хосте: `ProtocolVersion` ≥ 2 и команда `PROTO 2` при connect.  
 Счётчик `RxFrameCount` растёт при успешном разборе.
 
+Хабы Nmsdk (sensor / motor / I2C) используют тот же framing — [Hub-Protocols.md](Hub-Protocols.md). Sensor hub может отдать 5-й float (`ds18b20`) при сборке с `NMSDK_SENSOR_HUB_DS18B20`.
+
 ## Firmata (отдельный транспорт)
 
 Не через `UArduinoBinaryStreamParser`. Клиент: `UArduinoFirmataClient` (внутренний флаг `HandshakeReady` после firmware/capability/analog mapping; не путать с `UModule::Ready`).  
 См. [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md), [firmata_spike.md](firmata_spike.md).
 
+## Связанные hub-протоколы
+
+| Прошивка | Документ | Sample |
+|----------|----------|--------|
+| `nmsdk_sensor_hub_v1` (+ ESP32) | [Hub-Protocols.md](Hub-Protocols.md) | `14-SensorHub` |
+| `nmsdk_motor_hub_v1` | [Hub-Protocols.md](Hub-Protocols.md) | `09`–`11` |
+| `nmsdk_i2c_hub_v1` | [Hub-Protocols.md](Hub-Protocols.md), [Tier-CD-Modules.md](Tier-CD-Modules.md) | `15-I2cHub-BME280` |
+| WaveRover JSON | [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md) | `10-WaveRover` |
+
+P1 sensor hub: DHT22 — `-DDHTTYPE=DHT22`; DS18B20 — `-DNMSDK_SENSOR_HUB_DS18B20=1`.
+
 ## См. также
 
 - [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md)
+- [Hub-Protocols.md](Hub-Protocols.md)
 - [Firmware/README.md](../Firmware/README.md)
 
 ---
@@ -120,12 +134,28 @@ CRC-8/MAXIM over bytes from `0xAA` inclusive through end of payload.
 On host: `ProtocolVersion` ≥ 2 and `PROTO 2` command on connect.  
 Counter `RxFrameCount` increments on successful parse.
 
+Nmsdk hubs (sensor / motor / I2C) reuse this framing — see [Hub-Protocols.md](Hub-Protocols.md). Sensor hub may emit a 5th float (`ds18b20`) when built with `NMSDK_SENSOR_HUB_DS18B20`.
+
 ## Firmata (separate transport)
 
 Not via `UArduinoBinaryStreamParser`. Client: `UArduinoFirmataClient` (internal `HandshakeReady` flag after firmware/capability/analog mapping; do not confuse with `UModule::Ready`).  
 See [Components/ArduinoFirmata.md](Components/ArduinoFirmata.md), [firmata_spike.md](firmata_spike.md).
 
+## Related hub protocols (not sensor_lab ClassName)
+
+Framed v2 hubs share the same `0xAA|type|len|payload|crc8` framing. Details and commands:
+
+| Firmware | Doc | Sample |
+|----------|-----|--------|
+| `nmsdk_sensor_hub_v1` (+ ESP32 twin) | [Hub-Protocols.md](Hub-Protocols.md) | `14-SensorHub` |
+| `nmsdk_motor_hub_v1` | [Hub-Protocols.md](Hub-Protocols.md) | `09`–`11` wheeled |
+| `nmsdk_i2c_hub_v1` | [Hub-Protocols.md](Hub-Protocols.md), [Tier-CD-Modules.md](Tier-CD-Modules.md) | `15-I2cHub-BME280` |
+| WaveRover JSON | [Protocol-WaveshareUgvJson.md](Protocol-WaveshareUgvJson.md) | `10-WaveRover` |
+
+Sensor hub extras (P1): DHT22 via `-DDHTTYPE=DHT22`; DS18B20 via `-DNMSDK_SENSOR_HUB_DS18B20=1` (5th float `ds18b20`).
+
 ## See also
 
 - [Components/ArduinoSensorSketch.md](Components/ArduinoSensorSketch.md)
+- [Hub-Protocols.md](Hub-Protocols.md)
 - [Firmware/README.md](../Firmware/README.md)
