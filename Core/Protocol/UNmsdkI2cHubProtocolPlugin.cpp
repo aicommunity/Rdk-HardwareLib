@@ -153,8 +153,6 @@ bool publishDecoded(UArduinoPluginHost* host, uint8_t type, const QByteArray& pa
 void UNmsdkI2cHubProtocolPlugin::negotiate(UArduinoPluginHost* host, int protocolVersion)
 {
     IArduinoProtocolPlugin::negotiate(host, protocolVersion);
-    if (host)
-        host->enqueueCommand(QStringLiteral("PROTO 2"));
 }
 
 void UNmsdkI2cHubProtocolPlugin::onHealthCheck(UArduinoPluginHost* host)

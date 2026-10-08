@@ -49,7 +49,8 @@
       "defaultPins": {
         "dht": "D2",
         "echo": "D7",
-        "trig": "D8"
+        "trig": "D8",
+        "ds": "D3"
       }
     },
     {
@@ -67,8 +68,77 @@
       "runtimeBaud": 57600,
       "defaultPins": {
         "dir": "D12",
-        "pwm": "D3"
+        "pwm": "D3",
+        "brake": "D9",
+        "sense": "A0",
+        "dir_b": "D13",
+        "pwm_b": "D11",
+        "brake_b": "D8",
+        "sense_b": "A1"
       }
+    },
+    {
+      "id": "nmsdk_i2c_hub_v1",
+      "name": "Nmsdk I2C Hub",
+      "transport": "custom",
+      "boards": {
+        "uno": { "hex": "nmsdk_i2c_hub/uno.hex" },
+        "mega2560": { "hex": "nmsdk_i2c_hub/mega2560.hex" }
+      },
+      "runtimeBaud": 57600,
+      "defaultPins": { "sda": "A4", "scl": "A5" }
+    },
+    {
+      "id": "nmsdk_display_hub_v1",
+      "name": "Nmsdk Display Hub",
+      "transport": "custom",
+      "boards": {
+        "uno": { "hex": "nmsdk_display_hub/uno.hex" },
+        "mega2560": { "hex": "nmsdk_display_hub/mega2560.hex" }
+      },
+      "runtimeBaud": 57600,
+      "defaultPins": { "sda": "A4", "scl": "A5" }
+    },
+    {
+      "id": "nmsdk_pixel_hub_v1",
+      "name": "Nmsdk Pixel Hub",
+      "transport": "custom",
+      "boards": {
+        "uno": { "hex": "nmsdk_pixel_hub/uno.hex" },
+        "mega2560": { "hex": "nmsdk_pixel_hub/mega2560.hex" }
+      },
+      "runtimeBaud": 57600,
+      "defaultPins": { "led": "D6" }
+    },
+    {
+      "id": "nmsdk_radio_hub_v1",
+      "name": "Nmsdk Radio Hub (AVR)",
+      "transport": "custom",
+      "boards": {
+        "uno": { "hex": "nmsdk_radio_hub/uno.hex" },
+        "mega2560": { "hex": "nmsdk_radio_hub/mega2560.hex" }
+      },
+      "runtimeBaud": 57600,
+      "defaultPins": {
+        "nrf24_ce": "D9",
+        "nrf24_csn": "D10",
+        "rc522_ss": "D8",
+        "rc522_rst": "D7",
+        "spi_mosi": "D11",
+        "spi_miso": "D12",
+        "spi_sck": "D13"
+      }
+    },
+    {
+      "id": "nmsdk_uart_device_hub_v1",
+      "name": "Nmsdk UART Device Hub",
+      "transport": "custom",
+      "boards": {
+        "uno": { "hex": "nmsdk_uart_device_hub/uno.hex" },
+        "mega2560": { "hex": "nmsdk_uart_device_hub/mega2560.hex" }
+      },
+      "runtimeBaud": 57600,
+      "defaultPins": { "rx": "D10", "tx": "D11" }
     }
   ]
 }

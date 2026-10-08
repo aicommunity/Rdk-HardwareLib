@@ -10,7 +10,7 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 |------|-----|---------|
 | `0x01` | sensor | sensors: `[0, n] + n×float LE` (t, h, distance_cm, hall) |
 | `0x20` | motor | `[ch, pwm, dir] + float sense` (ch 0=A/left, 1=B/right; host publishes `left_*`/`right_*`) |
-| `0x21` | motor | pin map 8 bytes `A(dir,pwm,brake,sense)+B(...)`; 4-byte legacy A-only still accepted |
+| `0x21` | motor | current pin map: 12 bytes `A(dir,dir2,pwm,enable,brake,sense)+B(...)`; `255` means unassigned. Host also accepts old 8-byte dual-channel and 4-byte A-only maps |
 | `0x22` | sensor | pin map `[dht,trig,echo,hall]` |
 | `0x7F` | both | ping/pong |
 
@@ -28,8 +28,8 @@ CRC matches `sensor_lab` / `framed_v2_hub` template.
 ### Motor (`nmsdk_motor_hub_v1`)
 
 - `PROTO 2`, `PING`, `MOTOR A|B <0..255>`, `MOTOR A|B DIR <0|1>`, `MOTOR STOP`
-- `SET PIN [A|B] dir|pwm|brake|sense <Dn|An>` (legacy without channel → A)
-- `WATCHDOG <ms>` — auto `safeStop` both channels if no host command within ms while any PWM>0 (default 2000; `0` disables)
+- `SET PIN [A|B] dir|dir2|pwm|enable|brake|sense <Dn|An|NONE>` (legacy without channel → A)
+- `WATCHDOG <ms>` — auto `safeStop` both channels if no host command within ms while any PWM>0 (firmware default 2000; `ArduinoWheeledRobot` clamps the configured value to 500–60000 ms)
 - `GET PINS`
 - ESP32 twin sketch: `Firmware/nmsdk_motor_hub_esp32/` / catalog `nmsdk_motor_hub_esp32_v1` (baud 115200)
 

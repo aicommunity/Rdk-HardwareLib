@@ -55,7 +55,9 @@ protected:
 private:
     IArduinoProtocolPlugin* resolvePlugin() const;
     void emitDrive(const UWheeledDriveCommand& cmd);
+    int effectiveWatchdogMs() const;
     QMap<QString, float> NamedValues;
+    int LastWatchdogMsSent = -1;
 };
 
 } // namespace RDK

@@ -7,7 +7,7 @@
 **Аудит:** 2026-06-06 — [Component-Gap-Report.md](../../../Docs/Audit/Component-Gap-Report.md), [Code-Inventory.json](../../../Docs/Audit/Code-Inventory.json)  
 **Обновление Track 3:** 2026-07-27
 
-**Сверка 2026-09-22:** локальный Hardware HEAD f8da2156 отличается от umbrella pin ac53a601; ниже учтены семь регистраций локального checkout. [Границы аудита](../../../Docs/Audit/TimeLearner-2026-09-22/README.md).
+**Сверка 2026-10-08:** локальный checkout содержит 11 регистраций `UploadClass`; этот статус синхронизирован с `Core/UHardwareLibrary.cpp`.
 
 ---
 
@@ -15,8 +15,8 @@
 
 | Метрика | Значение |
 |---------|----------|
-| Зарегистрированных классов (`UploadClass`) | **11+** (Arduino* + Esp32*/WaveRover/Wheeled) |
-| Файлов `Docs/Components/*.md` | **15+** |
+| Зарегистрированных классов (`UploadClass`) | **11** |
+| Файлов `Docs/Components/*.md` | **15** |
 | Классов без doc-файла | **0** |
 | Orphan docs (legacy/групповые) | **4** |
 | Отсутствуют в Component-Catalog | **0** |
@@ -63,9 +63,11 @@
 См. таблицу миграции в [Component-Catalog.md](Component-Catalog.md) и [Legacy/README.md](Legacy/README.md).
 
 ### Firmware и тесты
-- ✅ Манифест `Firmware/manifest.json` (`sensor_lab_v1`, `standard_firmata`)
+- ✅ Манифест `Firmware/manifest.json`: StandardFirmata и восемь AVR sketches (Uno/Mega)
 - ✅ Тестовые конфиги: `Bin/Configs/SpikeSamples/Hardware/`
 - ✅ Интеграционные тесты: `Test_ArduinoBoardEdges`, `Test_ArduinoFirmataClient`, `Test_ArduinoHardwareIntegration` и др.
+- ✅ Windows MSVC 2019: выбранный набор HardwareLib unit-тестов — 15/15; AVR firmware matrix Uno/Mega — собрана
+- ⚠️ ESP32 firmware не проверена сборкой; физические стендовые проверки не выполнялись
 
 ---
 
@@ -90,11 +92,17 @@
 |-----------|----------|------------|----|--------|
 | `ArduinoAdc` | `Components/ArduinoAdc.md` | ✅ | ✅ | ✅ |
 | `ArduinoBoard` | `Components/ArduinoBoard.md` | ✅ | ✅ | ✅ |
+| `ArduinoCustomFirmware` | `Components/ArduinoCustomFirmware.md` | ✅ | ✅ | ✅ |
+| `ArduinoDeviceIO` | `Components/ArduinoDeviceIO.md` | ✅ | ✅ | ✅ |
 | `ArduinoDcDemo` | `Components/ArduinoDcDemo.md` | ✅ | ✅ | ✅ |
 | `ArduinoFirmata` | `Components/ArduinoFirmata.md` | ✅ | ✅ | ✅ |
 | `ArduinoSensorSketch` | `Components/ArduinoSensorSketch.md` | ✅ | ✅ | ✅ |
+| `ArduinoWheeledRobot` | `Components/ArduinoWheeledRobot.md` | ✅ | ✅ | ✅ |
+| `Esp32Board` | `Components/Esp32Board.md` | ✅ | ✅ | ✅ |
+| `Esp32WheeledRobot` | `Components/Esp32WheeledRobot.md` | ✅ | ✅ | ✅ |
+| `WaveRover` | `Components/WaveRover.md` | ✅ | ✅ | ✅ |
 
-**Прогресс: 7/7 (100%)** ✅
+**Прогресс: 11/11 (100%)** ✅
 
 ---
 
@@ -118,9 +126,11 @@
 
 ### Documentation status summary
 
-Rdk-HardwareLib has **7** registered `UploadClass` entries; **all 7** have per-class component documentation with RU/EN. Infrastructure docs (Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike) include `## EN`. **4** orphan docs are expected legacy redirects.
+Rdk-HardwareLib has **11** registered `UploadClass` entries; **all 11** have per-class component documentation with RU/EN. Infrastructure docs (Architecture, API-Overview, Usage-Examples, Component-Catalog, Transport, Protocol, GUI, firmata_spike) include `## EN`. **4** orphan docs are expected legacy redirects.
 
-**Progress:** 7/7 classes (100%) ✅ · bilingual Track 3 infra/components: done
+**Progress:** 11/11 classes (100%) ✅ · bilingual Track 3 infra/components: done
+
+Windows verification on 2026-10-08: MSVC 2019 selected HardwareLib tests 15/15 passed; AVR firmware matrix for Uno/Mega compiled. ESP32 firmware and physical hardware remain unverified.
 
 ### Remaining work
 

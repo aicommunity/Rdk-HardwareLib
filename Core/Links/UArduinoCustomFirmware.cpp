@@ -1,6 +1,7 @@
 #include "UArduinoCustomFirmware.h"
 
 #include "UArduinoPropertyString.h"
+#include "Board/UArduinoSampleBuffer.h"
 #include "UFirmwareManifest.h"
 #include "Protocol/UArduinoProtocolPluginRegistry.h"
 
@@ -14,6 +15,7 @@ UArduinoCustomFirmware::UArduinoCustomFirmware()
     , FrameLog("FrameLog", this)
     , NamedValuesJson("NamedValuesJson", this)
     , DoubleMatrixReadings("DoubleMatrixReadings", this)
+    , MaxReadingsRows("MaxReadingsRows", this)
     , ClearFrameLog("ClearFrameLog", this)
     , PluginBound("PluginBound", this)
 {
@@ -33,6 +35,7 @@ bool UArduinoCustomFirmware::ADefault()
     FrameLog = "";
     NamedValuesJson = "{}";
     DoubleMatrixReadings.Assign(0, 8, 0.0);
+    MaxReadingsRows = 4096;
     ClearFrameLog = false;
     PluginBound = false;
     BundledFirmwareId = "sensor_lab_v1";
@@ -81,11 +84,9 @@ void UArduinoCustomFirmware::publishSensorMatrixRow(const QVector<double>& row)
 {
     if (row.isEmpty())
         return;
-    const int r = DoubleMatrixReadings->GetRows();
-    const int cols = qMax(row.size(), DoubleMatrixReadings->GetCols());
-    DoubleMatrixReadings->Resize(r + 1, cols, 0.0);
-    for (int c = 0; c < row.size(); ++c)
-        (*DoubleMatrixReadings)(r, c) = row[c];
+    const int maxRows = qBound(1, static_cast<int>(MaxReadingsRows), 65536);
+    RDK::UArduinoSampleBuffer::appendRowBounded(
+        *DoubleMatrixReadings, row.constData(), row.size(), maxRows);
 }
 
 void UArduinoCustomFirmware::publishPinStatusJson(const QString& json)

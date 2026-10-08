@@ -4,13 +4,15 @@
  *
  * Commands:
  *   MOTOR A|B <pwm 0..255> | MOTOR A|B DIR <0|1> | MOTOR STOP | PING | PROTO 2
- *   SET PIN A|B dir|pwm|brake|sense <Dn|An>   (legacy: SET PIN dir … applies to A)
+ *   SET PIN A|B dir|dir2|pwm|enable|brake|sense <Dn|An|NONE>
+ *     (legacy: SET PIN dir … applies to A)
  *   WATCHDOG <ms>   (0 = off; auto MOTOR STOP if no host cmd within ms)
  *   GET PINS
  *
  * Frames:
  *   0x20 status: ch(u8) pwm dir sense_f32  — sent for A then B when reporting
- *   0x21 pin map: 8 bytes A(dir,pwm,brake,sense) B(dir,pwm,brake,sense)
+ *   0x21 pin map: 12 bytes A(dir,dir2,pwm,enable,brake,sense), then B
+ *     255 means that a pin role is not assigned.
  */
 #include <Arduino.h>
 
@@ -52,13 +54,15 @@ struct MotorCh {
   uint8_t pwm;
   uint8_t dir;
   int dirPin;
+  int dir2Pin;
   int pwmPin;
+  int enablePin;
   int brakePin;
   int sensePin;
 };
 
-MotorCh chA = {0, 1, DIR_PIN_A, PWM_PIN_A, BRAKE_PIN_A, SENSE_PIN_A};
-MotorCh chB = {0, 1, DIR_PIN_B, PWM_PIN_B, BRAKE_PIN_B, SENSE_PIN_B};
+MotorCh chA = {0, 1, DIR_PIN_A, -1, PWM_PIN_A, -1, BRAKE_PIN_A, SENSE_PIN_A};
+MotorCh chB = {0, 1, DIR_PIN_B, -1, PWM_PIN_B, -1, BRAKE_PIN_B, SENSE_PIN_B};
 
 unsigned long watchdogMs = 2000;
 unsigned long lastHostCmdMs = 0;
@@ -107,16 +111,27 @@ void writeFramedV2(uint8_t type, const uint8_t* payload, uint16_t len)
 
 void applyMotor(MotorCh& m)
 {
-  digitalWrite(m.dirPin, m.dir ? HIGH : LOW);
-  digitalWrite(m.brakePin, LOW);
-  analogWrite(m.pwmPin, m.pwm);
+  if (m.dirPin >= 0)
+    digitalWrite(m.dirPin, m.dir ? HIGH : LOW);
+  if (m.dir2Pin >= 0)
+    digitalWrite(m.dir2Pin, m.dir ? LOW : HIGH);
+  if (m.brakePin >= 0)
+    digitalWrite(m.brakePin, LOW);
+  if (m.enablePin >= 0)
+    digitalWrite(m.enablePin, HIGH);
+  if (m.pwmPin >= 0)
+    analogWrite(m.pwmPin, m.pwm);
 }
 
 void safeStopCh(MotorCh& m)
 {
   m.pwm = 0;
-  digitalWrite(m.brakePin, HIGH);
-  analogWrite(m.pwmPin, 0);
+  if (m.brakePin >= 0)
+    digitalWrite(m.brakePin, HIGH);
+  if (m.pwmPin >= 0)
+    analogWrite(m.pwmPin, 0);
+  if (m.enablePin >= 0)
+    digitalWrite(m.enablePin, LOW);
 }
 
 void safeStop()
@@ -132,7 +147,7 @@ void touchHost()
 
 void sendMotorStatus(uint8_t channel, const MotorCh& m)
 {
-  float sense = (float)analogRead(m.sensePin);
+  float sense = m.sensePin >= 0 ? (float)analogRead(m.sensePin) : 0.0f;
   uint8_t body[7];
   body[0] = channel;
   body[1] = m.pwm;
@@ -149,16 +164,14 @@ void sendPong()
 
 void sendPinConfig()
 {
-  uint8_t body[8];
-  body[0] = (uint8_t)chA.dirPin;
-  body[1] = (uint8_t)chA.pwmPin;
-  body[2] = (uint8_t)chA.brakePin;
-  body[3] = (uint8_t)chA.sensePin;
-  body[4] = (uint8_t)chB.dirPin;
-  body[5] = (uint8_t)chB.pwmPin;
-  body[6] = (uint8_t)chB.brakePin;
-  body[7] = (uint8_t)chB.sensePin;
-  writeFramedV2(0x21, body, 8);
+  const auto pinValue = [](int pin) -> uint8_t { return pin < 0 ? 255 : (uint8_t)pin; };
+  uint8_t body[12] = {
+    pinValue(chA.dirPin), pinValue(chA.dir2Pin), pinValue(chA.pwmPin),
+    pinValue(chA.enablePin), pinValue(chA.brakePin), pinValue(chA.sensePin),
+    pinValue(chB.dirPin), pinValue(chB.dir2Pin), pinValue(chB.pwmPin),
+    pinValue(chB.enablePin), pinValue(chB.brakePin), pinValue(chB.sensePin)
+  };
+  writeFramedV2(0x21, body, sizeof(body));
 }
 
 MotorCh* channelFromToken(const String& tok)
@@ -172,10 +185,18 @@ MotorCh* channelFromToken(const String& tok)
 
 void setupPins(MotorCh& m)
 {
-  pinMode(m.dirPin, OUTPUT);
-  pinMode(m.pwmPin, OUTPUT);
-  pinMode(m.brakePin, OUTPUT);
-  pinMode(m.sensePin, INPUT);
+  if (m.dirPin >= 0)
+    pinMode(m.dirPin, OUTPUT);
+  if (m.dir2Pin >= 0)
+    pinMode(m.dir2Pin, OUTPUT);
+  if (m.pwmPin >= 0)
+    pinMode(m.pwmPin, OUTPUT);
+  if (m.enablePin >= 0)
+    pinMode(m.enablePin, OUTPUT);
+  if (m.brakePin >= 0)
+    pinMode(m.brakePin, OUTPUT);
+  if (m.sensePin >= 0)
+    pinMode(m.sensePin, INPUT);
 }
 
 void setup()
@@ -241,21 +262,25 @@ void loop()
       if (m && sp > 0) {
         String role = rest.substring(0, sp);
         String pinStr = rest.substring(sp + 1);
-        int pin = getPinFromString(pinStr);
-        if (pin >= 0) {
+        const bool clearPin = pinStr.equalsIgnoreCase("NONE") || pinStr == "-";
+        const int pin = clearPin ? -1 : getPinFromString(pinStr);
+        if (pin >= 0 || clearPin) {
+          const int mode = role == "sense" ? INPUT : OUTPUT;
           if (role == "dir") {
             m->dirPin = pin;
-            pinMode(m->dirPin, OUTPUT);
+          } else if (role == "dir2") {
+            m->dir2Pin = pin;
           } else if (role == "pwm") {
             m->pwmPin = pin;
-            pinMode(m->pwmPin, OUTPUT);
+          } else if (role == "enable") {
+            m->enablePin = pin;
           } else if (role == "brake") {
             m->brakePin = pin;
-            pinMode(m->brakePin, OUTPUT);
           } else if (role == "sense") {
             m->sensePin = pin;
-            pinMode(m->sensePin, INPUT);
           }
+          if (pin >= 0)
+            pinMode(pin, mode);
           applyMotor(*m);
           sendPinConfig();
         }
