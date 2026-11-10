@@ -7,8 +7,6 @@ namespace RDK {
 void UNmsdkPixelHubProtocolPlugin::negotiate(UArduinoPluginHost* host, int protocolVersion)
 {
     IArduinoProtocolPlugin::negotiate(host, protocolVersion);
-    if (host)
-        host->enqueueCommand(QStringLiteral("PROTO 2"));
 }
 
 void UNmsdkPixelHubProtocolPlugin::onHealthCheck(UArduinoPluginHost* host)

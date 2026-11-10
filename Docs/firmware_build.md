@@ -15,13 +15,13 @@
 
 ```bash
 ./Scripts/build_arduino_firmware.sh
-# HardwareLib wrapper (+ nmsdk_motor_hub Uno/Mega):
+# HardwareLib wrapper (same complete AVR bundle):
 ./Libraries/Rdk-HardwareLib/Scripts/build_arduino_firmware.sh
 ```
 
 ### Windows (PowerShell)
 
-После [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) / [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX уже собраны. Отдельная пересборка:
+После [`Scripts/setup_arduino_tools.ps1`](../../../Scripts/setup_arduino_tools.ps1) / [`SetupArduinoTools.bat`](../../../Bin/Platform/Win/SetupArduinoTools.bat) HEX уже собраны. Полная пересборка AVR-набора:
 
 ```powershell
 .\Scripts\build_arduino_firmware.ps1
@@ -32,15 +32,18 @@
 ```powershell
 .\Scripts\build_arduino_firmware.ps1 `
   -ArduinoCli "Bin\Platform\Win\ArduinoCLI\arduino-cli.exe" `
-  -ArduinoData "Bin\Platform\Win\ArduinoData"
+  -ArduinoData "Bin\Platform\Win\ArduinoData" `
+  -ArduinoUser "Bin\Platform\Win\ArduinoData"
 ```
 
 См. [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
 
-Скрипт устанавливает ядро `arduino:avr`, библиотеку DHT, компилирует `sensor_lab` (Uno + Mega) и StandardFirmata, копирует артефакты в:
+Скрипты собирают StandardFirmata, `sensor_lab`, sensor/motor/I2C/display/pixel/radio/UART hubs для Uno и Mega 2560. Они устанавливают Arduino AVR core и закреплённые версии необходимых Arduino-библиотек, копируют HEX в `Bin/ArduinoFirmware/` и соответствующие каталоги `Firmware/`, затем проверяют каждый HEX-путь из `manifest.json`. `-ArduinoUser` задаёт папку пользовательских библиотек отдельно от Arduino data-каталога; `-SkipLibraries` использует уже установленные библиотеки.
 
-- `Firmware/sensor_lab/uno.hex`, `mega2560.hex`
+- `Firmware/<sketch>/uno.hex`, `mega2560.hex` для восьми bundled sketches
 - `Firmware/firmata/standard_firmata_uno.hex`, `standard_firmata_mega2560.hex`
+
+Bundled AVR HEX не включает ESP32 sketches. I2C default profile оставляет MPU6050 и дополнительные датчики выключенными, чтобы Uno укладывался в flash; список фактически включённых возможностей находится в `Catalog/firmwares/*.json`.
 
 ## Ручная сборка sensor_lab
 
@@ -98,15 +101,18 @@ With explicit paths to the local toolchain:
 ```powershell
 .\Scripts\build_arduino_firmware.ps1 `
   -ArduinoCli "Bin\Platform\Win\ArduinoCLI\arduino-cli.exe" `
-  -ArduinoData "Bin\Platform\Win\ArduinoData"
+  -ArduinoData "Bin\Platform\Win\ArduinoData" `
+  -ArduinoUser "Bin\Platform\Win\ArduinoData"
 ```
 
 See [Arduino-Setup-Windows.md](Arduino-Setup-Windows.md).
 
-The script installs the `arduino:avr` core, the DHT library, compiles `sensor_lab` (Uno + Mega) and StandardFirmata, and copies artifacts to:
+The scripts build StandardFirmata, `sensor_lab`, and the sensor/motor/I2C/display/pixel/radio/UART hubs for Uno and Mega 2560. They install the Arduino AVR core and pinned Arduino libraries, copy HEX into `Bin/ArduinoFirmware/` and matching `Firmware/` subdirectories, then validate every HEX path in `manifest.json`. `-ArduinoUser` selects a library folder separately from Arduino data; `-SkipLibraries` uses already installed libraries.
 
-- `Firmware/sensor_lab/uno.hex`, `mega2560.hex`
+- `Firmware/<sketch>/uno.hex`, `mega2560.hex` for eight bundled sketches
 - `Firmware/firmata/standard_firmata_uno.hex`, `standard_firmata_mega2560.hex`
+
+ESP32 sketches are outside this bundled AVR build. The I2C default profile leaves MPU6050 and extra sensors disabled so Uno remains within its flash limit; `Catalog/firmwares/*.json` lists the capabilities actually enabled in bundled HEX.
 
 ## Manual sensor_lab build
 

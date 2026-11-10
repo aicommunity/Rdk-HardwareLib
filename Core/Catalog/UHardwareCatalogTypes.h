@@ -49,6 +49,7 @@ struct UHwMotorChannel {
 struct UHwShieldInfo {
     QString id;
     QString title;
+    QString controlModel;
     QStringList compatibleBoards;
     QString defaultFirmware;
     QString layoutAsset;

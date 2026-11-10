@@ -1,16 +1,13 @@
 #include "UNmsdkUartDeviceHubProtocolPlugin.h"
 
+#include "UNmeaGpsParser.h"
 #include "USensorLabFrameDecoder.h"
-
-#include <QRegularExpression>
 
 namespace RDK {
 
 void UNmsdkUartDeviceHubProtocolPlugin::negotiate(UArduinoPluginHost* host, int protocolVersion)
 {
     IArduinoProtocolPlugin::negotiate(host, protocolVersion);
-    if (host)
-        host->enqueueCommand(QStringLiteral("PROTO 2"));
 }
 
 void UNmsdkUartDeviceHubProtocolPlugin::onHealthCheck(UArduinoPluginHost* host)
@@ -38,12 +35,11 @@ void UNmsdkUartDeviceHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, 
         host->publishNamedString(QStringLiteral("last_line"), line);
         host->publishNamedFloat(QStringLiteral("last_line_len"),
                                 static_cast<float>(line.size()));
-        static const QRegularExpression gga(
-            QStringLiteral(R"(\$GPGGA,[^,]*,([0-9.]+),([NS]),([0-9.]+),([EW]))"));
-        const auto m = gga.match(line);
-        if (m.hasMatch()) {
-            host->publishNamedFloat(QStringLiteral("gps_lat"), m.captured(1).toFloat());
-            host->publishNamedFloat(QStringLiteral("gps_lon"), m.captured(3).toFloat());
+        double latitude = 0.0;
+        double longitude = 0.0;
+        if (UNmeaGpsParser::parseGga(line, &latitude, &longitude)) {
+            host->publishNamedFloat(QStringLiteral("gps_lat"), static_cast<float>(latitude));
+            host->publishNamedFloat(QStringLiteral("gps_lon"), static_cast<float>(longitude));
         }
         host->setProtocolReady(true);
         return;

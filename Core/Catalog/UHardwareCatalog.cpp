@@ -127,6 +127,7 @@ bool UHardwareCatalog::loadFromRoot(const QString& root, QString* error)
                 return false;
             }
             info.title = obj.value(QStringLiteral("title")).toString(info.id);
+            info.controlModel = obj.value(QStringLiteral("controlModel")).toString();
             info.compatibleBoards = toStringList(obj.value(QStringLiteral("compatibleBoards")).toArray());
             info.defaultFirmware = obj.value(QStringLiteral("defaultFirmware")).toString();
             info.layoutAsset = obj.value(QStringLiteral("layoutAsset")).toString();

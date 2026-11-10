@@ -9,10 +9,6 @@ namespace RDK {
 void UNmsdkMotorHubProtocolPlugin::negotiate(UArduinoPluginHost* host, int protocolVersion)
 {
     IArduinoProtocolPlugin::negotiate(host, protocolVersion);
-    if (host) {
-        host->enqueueCommand(QStringLiteral("PROTO 2"));
-        host->enqueueCommand(QStringLiteral("WATCHDOG 2000"));
-    }
 }
 
 void UNmsdkMotorHubProtocolPlugin::onHealthCheck(UArduinoPluginHost* host)
@@ -53,29 +49,41 @@ void UNmsdkMotorHubProtocolPlugin::onBinaryFrame(UArduinoPluginHost* host, uint8
         row << 4.0 << channel << pwm << dir << sense;
         host->publishSensorMatrixRow(row);
         host->setProtocolReady(true);
-    } else if (type == 0x21 && payload.size() >= 4) {
-        host->publishNamedFloat(QStringLiteral("pin_dir"), static_cast<float>((uint8_t)payload[0]));
-        host->publishNamedFloat(QStringLiteral("pin_pwm"), static_cast<float>((uint8_t)payload[1]));
-        host->publishNamedFloat(QStringLiteral("pin_brake"), static_cast<float>((uint8_t)payload[2]));
-        host->publishNamedFloat(QStringLiteral("pin_sense"), static_cast<float>((uint8_t)payload[3]));
-        if (payload.size() >= 8) {
-            host->publishNamedFloat(QStringLiteral("pin_dir_b"),
-                                    static_cast<float>((uint8_t)payload[4]));
-            host->publishNamedFloat(QStringLiteral("pin_pwm_b"),
-                                    static_cast<float>((uint8_t)payload[5]));
-            host->publishNamedFloat(QStringLiteral("pin_brake_b"),
-                                    static_cast<float>((uint8_t)payload[6]));
-            host->publishNamedFloat(QStringLiteral("pin_sense_b"),
-                                    static_cast<float>((uint8_t)payload[7]));
-            host->publishNamedFloat(QStringLiteral("left_pin_dir"),
-                                    static_cast<float>((uint8_t)payload[0]));
-            host->publishNamedFloat(QStringLiteral("left_pin_pwm"),
-                                    static_cast<float>((uint8_t)payload[1]));
-            host->publishNamedFloat(QStringLiteral("right_pin_dir"),
-                                    static_cast<float>((uint8_t)payload[4]));
-            host->publishNamedFloat(QStringLiteral("right_pin_pwm"),
-                                    static_cast<float>((uint8_t)payload[5]));
-        }
+    } else if (type == 0x21 && payload.size() >= 8) {
+        // V1 frames contain four pins per channel. V2 adds dir2 and enable and
+        // uses 255 for an unassigned pin.
+        const bool extended = payload.size() >= 12;
+        const int stride = extended ? 6 : 4;
+        const int dirIndex = 0;
+        const int dir2Index = extended ? 1 : -1;
+        const int pwmIndex = extended ? 2 : 1;
+        const int enableIndex = extended ? 3 : -1;
+        const int brakeIndex = extended ? 4 : 2;
+        const int senseIndex = extended ? 5 : 3;
+        const auto publishPin = [&](const QString& name, int index) {
+            if (index < 0)
+                return;
+            const int raw = static_cast<uint8_t>(payload[index]);
+            host->publishNamedFloat(name, raw == 255 ? -1.f : static_cast<float>(raw));
+        };
+        const auto publishChannel = [&](const QString& suffix, int base) {
+            publishPin(QStringLiteral("pin_dir%1").arg(suffix), base + dirIndex);
+            publishPin(QStringLiteral("pin_dir2%1").arg(suffix), dir2Index < 0 ? -1 : base + dir2Index);
+            publishPin(QStringLiteral("pin_pwm%1").arg(suffix), base + pwmIndex);
+            publishPin(QStringLiteral("pin_enable%1").arg(suffix), enableIndex < 0 ? -1 : base + enableIndex);
+            publishPin(QStringLiteral("pin_brake%1").arg(suffix), base + brakeIndex);
+            publishPin(QStringLiteral("pin_sense%1").arg(suffix), base + senseIndex);
+        };
+        publishChannel(QString(), 0);
+        publishChannel(QStringLiteral("_b"), stride);
+        host->publishNamedFloat(QStringLiteral("left_pin_dir"),
+                                static_cast<float>(static_cast<uint8_t>(payload[0])));
+        host->publishNamedFloat(QStringLiteral("left_pin_pwm"),
+                                static_cast<float>(static_cast<uint8_t>(payload[pwmIndex])));
+        host->publishNamedFloat(QStringLiteral("right_pin_dir"),
+                                static_cast<float>(static_cast<uint8_t>(payload[stride])));
+        host->publishNamedFloat(QStringLiteral("right_pin_pwm"),
+                                static_cast<float>(static_cast<uint8_t>(payload[stride + pwmIndex])));
         host->setProtocolReady(true);
     } else if (type == 0x7F) {
         host->setProtocolReady(true);

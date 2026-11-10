@@ -46,6 +46,7 @@ bool UArduinoWheeledRobot::ADefault()
     ApplyDrive = false;
     Stop = false;
     WatchdogMs = 2000;
+    HeartbeatIntervalMs = 500;
     MotorDriverId = "motor_shield_r3";
     ApplyMotorDriver = false;
     LeftPwmFb = 0;
@@ -140,13 +141,22 @@ void UArduinoWheeledRobot::emitDrive(const UWheeledDriveCommand& cmd)
 
 void UArduinoWheeledRobot::ProcessWheeledEdges()
 {
+    if (ConnectionState != ArduinoConnected)
+        LastWatchdogMsSent = -1;
+
     if (ApplyMotorDriver) {
+        EnqueueCommand(UArduinoPropertyString::toStdProperty(QStringLiteral("MOTOR STOP")));
         for (const QString& line :
              UWheeledDriveLogic::buildSetPinCommands(UArduinoPropertyString::fromStdProperty(*MotorDriverId)))
             EnqueueCommand(UArduinoPropertyString::toStdProperty(line));
-        EnqueueCommand(UArduinoPropertyString::toStdProperty(
-            QStringLiteral("WATCHDOG %1").arg(static_cast<int>(WatchdogMs))));
         ResetEdge(ApplyMotorDriver);
+    }
+
+    const int watchdogMs = effectiveWatchdogMs();
+    if (ConnectionState == ArduinoConnected && watchdogMs != LastWatchdogMsSent) {
+        EnqueueCommand(UArduinoPropertyString::toStdProperty(
+            QStringLiteral("WATCHDOG %1").arg(watchdogMs)));
+        LastWatchdogMsSent = watchdogMs;
     }
 
     UWheeledDriveCommand cmd;
@@ -182,6 +192,13 @@ void UArduinoWheeledRobot::NegotiateProtocol()
         plugin->negotiate(this, ProtocolVersion);
     else
         UArduinoCustomLink::NegotiateProtocol();
+}
+
+int UArduinoWheeledRobot::effectiveWatchdogMs() const
+{
+    // Zero disables the firmware's fail-safe watchdog. Keep it enabled and
+    // leave enough time for the host heartbeat and serial queue to recover.
+    return qBound(500, static_cast<int>(WatchdogMs), 60000);
 }
 
 void UArduinoWheeledRobot::OnHealthCheck()

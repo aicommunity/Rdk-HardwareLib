@@ -15,6 +15,7 @@ public:
     UProperty<string, UArduinoCustomFirmware, ptPubState> FrameLog;
     UProperty<string, UArduinoCustomFirmware, ptPubState> NamedValuesJson;
     UProperty<MDMatrix<double>, UArduinoCustomFirmware, ptPubOutput | ptPubState> DoubleMatrixReadings;
+    UProperty<int, UArduinoCustomFirmware, ptPubParameter> MaxReadingsRows;
     UProperty<bool, UArduinoCustomFirmware, ptPubParameter | ptInput> ClearFrameLog;
     UProperty<bool, UArduinoCustomFirmware, ptPubState> PluginBound;
 

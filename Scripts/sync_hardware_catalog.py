@@ -34,7 +34,7 @@ def main() -> int:
         out = dest / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, out)
-    print(f"synced {SRC} → {dest}")
+    print(f"synced {SRC} -> {dest}")
     return 0
 
 

@@ -27,7 +27,13 @@
 
 #if NMSDK_RADIO_HUB_NRF24
 #include <RF24.h>
-RF24 radio(9, 10);
+#ifndef NMSDK_NRF24_CE
+#define NMSDK_NRF24_CE 9
+#endif
+#ifndef NMSDK_NRF24_CSN
+#define NMSDK_NRF24_CSN 10
+#endif
+RF24 radio(NMSDK_NRF24_CE, NMSDK_NRF24_CSN);
 bool nrfOk = false;
 #endif
 #if NMSDK_RADIO_HUB_LORA
@@ -45,13 +51,28 @@ bool loraOk = false;
 #endif
 #if NMSDK_RADIO_HUB_RC522
 #include <MFRC522.h>
-MFRC522 mfrc(10, 9);
+#ifndef NMSDK_RC522_SS
+#define NMSDK_RC522_SS 8
+#endif
+#ifndef NMSDK_RC522_RST
+#define NMSDK_RC522_RST 7
+#endif
+MFRC522 mfrc(NMSDK_RC522_SS, NMSDK_RC522_RST);
 bool rfidOk = false;
 #endif
 #if NMSDK_RADIO_HUB_PN532
 #include <Adafruit_PN532.h>
 Adafruit_PN532 nfc(2, 3); // IRQ, RESET (I2C)
 bool pn532Ok = false;
+#endif
+
+#if NMSDK_RADIO_HUB_NRF24 && NMSDK_RADIO_HUB_RC522 \
+    && NMSDK_NRF24_CSN == NMSDK_RC522_SS
+#error "NRF24 CSN and RC522 SS must use different pins"
+#endif
+#if NMSDK_RADIO_HUB_NRF24 && NMSDK_RADIO_HUB_LORA \
+    && NMSDK_NRF24_CSN == NMSDK_LORA_SS
+#error "NRF24 CSN and LoRa SS must use different pins"
 #endif
 
 uint8_t crc8Maxim(const uint8_t* data, int len)

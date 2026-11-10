@@ -85,6 +85,18 @@
 | `DoubleMatrixReadings` | MDMatrix | state |
 | `PinStatusJson` | string | state |
 
+## ArduinoCustomFirmware (`UArduinoCustomFirmware`)
+
+| Свойство | Тип | Роль |
+|----------|-----|------|
+| `HostPluginId` | string | param; пусто → plugin по `BundledFirmwareId` |
+| `PluginBound` | bool | state; plugin найден, negotiation отдельно |
+| `FrameLog` / `NamedValuesJson` | string | state |
+| `DoubleMatrixReadings` | MDMatrix | последние строки телеметрии |
+| `MaxReadingsRows` | int | param; default 4096, effective range 1–65536 |
+
+When full, the oldest quarter of matrix rows is discarded in one batch.
+
 ## ArduinoFirmata (`UArduinoFirmata`)
 
 | Свойство | Тип | Роль |
@@ -243,6 +255,18 @@ Plus CustomLink + Board:
 | `Rotate` / `StopRotate` | bool | edge |
 | `DoubleMatrixReadings` | MDMatrix | state |
 | `PinStatusJson` | string | state |
+
+## ArduinoCustomFirmware (`UArduinoCustomFirmware`)
+
+| Property | Type | Role |
+|----------|------|------|
+| `HostPluginId` | string | param; empty → plugin selected by `BundledFirmwareId` |
+| `PluginBound` | bool | state; plugin lookup succeeded, negotiation is separate |
+| `FrameLog` / `NamedValuesJson` | string | state |
+| `DoubleMatrixReadings` | MDMatrix | recent telemetry rows |
+| `MaxReadingsRows` | int | param; default 4096, effective range 1–65536 |
+
+When full, the oldest quarter of matrix rows is discarded in one batch.
 
 ## ArduinoFirmata (`UArduinoFirmata`)
 

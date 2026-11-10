@@ -98,15 +98,21 @@ QStringList UWheeledDriveLogic::buildSetPinCommands(const QString& motorDriverId
     const UHwShieldInfo* shield = UHardwareCatalog::instance().shield(motorDriverId);
     if (!shield)
         return out;
+    if (!shield->controlModel.isEmpty()
+        && shield->controlModel != QLatin1String("dir_pwm")
+        && shield->controlModel != QLatin1String("dir2_pwm"))
+        return out;
     auto emitCh = [&](const QString& label, const UHwMotorChannel& ch) {
-        if (!ch.dir.isEmpty())
-            out << QStringLiteral("SET PIN %1 dir %2").arg(label, ch.dir);
-        if (!ch.pwm.isEmpty())
-            out << QStringLiteral("SET PIN %1 pwm %2").arg(label, ch.pwm);
-        if (!ch.brake.isEmpty())
-            out << QStringLiteral("SET PIN %1 brake %2").arg(label, ch.brake);
-        if (!ch.sense.isEmpty())
-            out << QStringLiteral("SET PIN %1 sense %2").arg(label, ch.sense);
+        const auto setPin = [&](const QString& role, const QString& pin) {
+            out << QStringLiteral("SET PIN %1 %2 %3")
+                       .arg(label, role, pin.isEmpty() ? QStringLiteral("NONE") : pin);
+        };
+        setPin(QStringLiteral("dir"), ch.dir);
+        setPin(QStringLiteral("dir2"), ch.dir2);
+        setPin(QStringLiteral("pwm"), ch.pwm);
+        setPin(QStringLiteral("enable"), ch.enable);
+        setPin(QStringLiteral("brake"), ch.brake);
+        setPin(QStringLiteral("sense"), ch.sense);
     };
     if (shield->channels.contains(QStringLiteral("A")))
         emitCh(QStringLiteral("A"), shield->channels.value(QStringLiteral("A")));
