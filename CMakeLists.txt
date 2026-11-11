@@ -97,7 +97,7 @@ target_link_libraries(${TARGET_NAME} PUBLIC
 set(GUI_TARGET_NAME Rdk-HardwareLib.gui)
 add_library(${GUI_TARGET_NAME} STATIC)
 
-file(GLOB HW_GUI_SOURCES
+file(GLOB HW_GUI_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/*.cpp
   ${CMAKE_SOURCE_DIR}/Libraries/Rdk-HardwareLib/GUI/Qt/widgets/*.cpp
 )
