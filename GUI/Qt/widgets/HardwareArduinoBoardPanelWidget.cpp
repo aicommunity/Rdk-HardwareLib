@@ -1,0 +1,923 @@
+#include "HardwareArduinoBoardPanelWidget.h"
+
+#include <QFileDialog>
+
+#include <QFormLayout>
+
+#include <QHBoxLayout>
+
+#include <QGridLayout>
+
+#include <QScrollArea>
+
+#include <QSignalBlocker>
+
+#include <QVBoxLayout>
+
+#include "HardwareGuiHelpers.h"
+
+#include "../../../Core/Catalog/UHardwareCatalog.h"
+
+#include "../../../Core/Catalog/UHardwareSetup.h"
+
+#include "../../../Core/Transport/UArduinoBoardProfile.h"
+
+#include "../../../Core/Transport/UArduinoSerialPortUtil.h"
+
+#include "../../../Core/Board/UFirmwareManifest.h"
+
+HardwareArduinoBoardPanelWidget::HardwareArduinoBoardPanelWidget(QWidget* parent)
+
+    : QWidget(parent)
+
+{
+
+    PortCombo = new QComboBox(this);
+
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(PortCombo);
+
+    HardwareGuiHelpers::configureExpandingCombo(PortCombo, 14);
+
+    auto* refreshPortsBtn = new QPushButton(tr("Refresh"), this);
+
+    connect(refreshPortsBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onRefreshPorts);
+
+    BoardProfileCombo = new QComboBox(this);
+
+    BoardProfileCombo->addItem(tr("Arduino Uno"), 0);
+
+    BoardProfileCombo->addItem(tr("Arduino Mega 2560"), 1);
+
+    HardwareGuiHelpers::configureExpandingCombo(BoardProfileCombo, 18);
+
+    AutoDetectBoardCheck = new QCheckBox(this);
+
+    AutoDetectBoardCheck->setChecked(true);
+
+    auto* autoDetectLabel = new QLabel(tr("Auto-detect board when port changes"), this);
+
+    autoDetectLabel->setWordWrap(true);
+
+    autoDetectLabel->setBuddy(AutoDetectBoardCheck);
+
+    auto* autoDetectRow = new QWidget(this);
+
+    auto* autoDetectLayout = new QHBoxLayout(autoDetectRow);
+
+    autoDetectLayout->setContentsMargins(0, 0, 0, 0);
+
+    autoDetectLayout->setSpacing(4);
+
+    autoDetectLayout->addWidget(AutoDetectBoardCheck, 0, Qt::AlignTop);
+
+    autoDetectLayout->addWidget(autoDetectLabel, 1);
+
+    UploadPreviewLabel = new QLabel(this);
+
+    UploadPreviewLabel->setWordWrap(true);
+
+    UploadPreviewLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+    BaudSpin = new QSpinBox(this);
+
+    BaudSpin->setRange(9600, 250000);
+
+    BaudSpin->setValue(57600);
+
+    ConnectOnBuildCheck = new QCheckBox(tr("Connect on build"), this);
+
+    AutoReconnectCheck = new QCheckBox(tr("Auto reconnect"), this);
+
+    HeartbeatEnabledCheck = new QCheckBox(tr("Heartbeat enabled"), this);
+
+    ShowDebugCheck = new QCheckBox(tr("Show debug"), this);
+
+    HeartbeatIntervalSpin = new QSpinBox(this);
+
+    HeartbeatIntervalSpin->setRange(500, 60000);
+
+    HeartbeatIntervalSpin->setSuffix(tr(" ms"));
+
+    HeartbeatIntervalSpin->setValue(3000);
+
+    HeartbeatTimeoutSpin = new QSpinBox(this);
+
+    HeartbeatTimeoutSpin->setRange(1000, 120000);
+
+    HeartbeatTimeoutSpin->setSuffix(tr(" ms"));
+
+    HeartbeatTimeoutSpin->setValue(10000);
+
+    BundledFirmwareCombo = new QComboBox(this);
+    HardwareGuiHelpers::configureExpandingCombo(BundledFirmwareCombo, 16);
+    populateBundledFirmwareCombo();
+
+    FirmwarePathEdit = new QLineEdit(this);
+
+    auto* browseBtn = new QPushButton(tr("Browse\u2026"), this);
+
+    connect(browseBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseHex);
+
+    HardwareSetupPathEdit = new QLineEdit(this);
+    auto* browseSetupBtn = new QPushButton(tr("Browse setup\u2026"), this);
+    connect(browseSetupBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onBrowseSetup);
+    auto* applyFwFromSetupBtn = new QPushButton(tr("Apply firmware from setup"), this);
+    connect(applyFwFromSetupBtn, &QPushButton::clicked, this,
+            &HardwareArduinoBoardPanelWidget::onApplyFirmwareFromSetup);
+    SetupStatusLabel = new QLabel(this);
+    SetupStatusLabel->setWordWrap(true);
+    SetupStatusLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+    UploadProgress = new QProgressBar(this);
+
+    StatusLog = HardwareGuiHelpers::createStatusLogWidget(this, 48, 96);
+
+    ConnectBtn = new QPushButton(tr("Connect"), this);
+
+    DisconnectBtn = new QPushButton(tr("Disconnect"), this);
+
+    ReconnectBtn = new QPushButton(tr("Reconnect"), this);
+
+    HealthBtn = new QPushButton(tr("Health check"), this);
+
+    UploadBtn = new QPushButton(tr("Upload firmware"), this);
+
+    CancelUploadBtn = new QPushButton(tr("Cancel upload"), this);
+
+    CancelUploadBtn->setEnabled(false);
+
+    connect(ConnectBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onConnect);
+
+    connect(DisconnectBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onDisconnect);
+
+    connect(ReconnectBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onReconnect);
+
+    connect(HealthBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onHealthCheck);
+
+    connect(UploadBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onUpload);
+
+    connect(CancelUploadBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onCancelUpload);
+
+    auto* applyBtn = new QPushButton(tr("Apply parameters"), this);
+
+    auto* resetBtn = new QPushButton(tr("Reset component"), this);
+
+    auto* calcBtn = new QPushButton(tr("Calculate component"), this);
+
+    connect(applyBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onApply);
+
+    connect(resetBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onReset);
+
+    connect(calcBtn, &QPushButton::clicked, this, &HardwareArduinoBoardPanelWidget::onCalculate);
+
+    auto* form = new QFormLayout();
+    HardwareGuiHelpers::applyCompactForm(form);
+
+    auto* portRow = new QHBoxLayout();
+    portRow->setContentsMargins(0, 0, 0, 0);
+    portRow->setSpacing(4);
+    portRow->addWidget(PortCombo, 1);
+    portRow->addWidget(refreshPortsBtn);
+    form->addRow(tr("Port:"), portRow);
+
+    form->addRow(tr("Board:"), BoardProfileCombo);
+
+    form->addRow(QString(), autoDetectRow);
+
+    form->addRow(tr("Upload preview:"), UploadPreviewLabel);
+
+    form->addRow(tr("Baud rate:"), BaudSpin);
+
+    auto* checksGrid = new QGridLayout();
+    checksGrid->setContentsMargins(0, 0, 0, 0);
+    checksGrid->setSpacing(4);
+    checksGrid->addWidget(ConnectOnBuildCheck, 0, 0);
+    checksGrid->addWidget(AutoReconnectCheck, 0, 1);
+    checksGrid->addWidget(HeartbeatEnabledCheck, 1, 0);
+    checksGrid->addWidget(ShowDebugCheck, 1, 1);
+    form->addRow(QString(), checksGrid);
+
+    auto* heartbeatRow = new QHBoxLayout();
+    heartbeatRow->setContentsMargins(0, 0, 0, 0);
+    heartbeatRow->setSpacing(4);
+    heartbeatRow->addWidget(HeartbeatIntervalSpin);
+    heartbeatRow->addWidget(HeartbeatTimeoutSpin);
+    form->addRow(tr("Heartbeat:"), heartbeatRow);
+
+    form->addRow(tr("Bundled firmware:"), BundledFirmwareCombo);
+
+    auto* hexRow = new QHBoxLayout();
+    hexRow->setContentsMargins(0, 0, 0, 0);
+    hexRow->setSpacing(4);
+    hexRow->addWidget(FirmwarePathEdit, 1);
+    hexRow->addWidget(browseBtn);
+    form->addRow(tr("HEX path:"), hexRow);
+
+    auto* setupRow = new QHBoxLayout();
+    setupRow->setContentsMargins(0, 0, 0, 0);
+    setupRow->setSpacing(4);
+    setupRow->addWidget(HardwareSetupPathEdit, 1);
+    setupRow->addWidget(browseSetupBtn);
+    form->addRow(tr("Hardware setup:"), setupRow);
+    form->addRow(QString(), applyFwFromSetupBtn);
+    form->addRow(tr("Setup status:"), SetupStatusLabel);
+
+    auto* uploadRow = new QWidget(this);
+    auto* uploadRowLayout = new QHBoxLayout(uploadRow);
+    uploadRowLayout->setContentsMargins(0, 0, 0, 0);
+    uploadRowLayout->setSpacing(4);
+    uploadRowLayout->addWidget(UploadBtn);
+    uploadRowLayout->addWidget(CancelUploadBtn);
+    form->addRow(tr("Upload:"), uploadRow);
+
+    form->addRow(QString(), UploadProgress);
+
+    form->addRow(tr("Status / log:"), StatusLog);
+
+    auto* connGrid = new QGridLayout();
+    connGrid->setContentsMargins(0, 0, 0, 0);
+    connGrid->setSpacing(4);
+    connGrid->addWidget(ConnectBtn, 0, 0);
+    connGrid->addWidget(DisconnectBtn, 0, 1);
+    connGrid->addWidget(ReconnectBtn, 1, 0);
+    connGrid->addWidget(HealthBtn, 1, 1);
+    form->addRow(tr("Connection:"), connGrid);
+
+    auto* btnRow = new QHBoxLayout();
+    btnRow->setContentsMargins(0, 0, 0, 0);
+    btnRow->setSpacing(4);
+    btnRow->addWidget(applyBtn);
+    btnRow->addWidget(resetBtn);
+    btnRow->addWidget(calcBtn);
+    form->addRow(QString(), btnRow);
+
+    auto* inner = new QWidget(this);
+
+    inner->setLayout(form);
+
+    auto* scroll = new QScrollArea(this);
+
+    scroll->setWidgetResizable(true);
+
+    scroll->setWidget(inner);
+
+    auto* root = new QVBoxLayout(this);
+
+    root->setContentsMargins(0, 0, 0, 0);
+
+    root->addWidget(scroll);
+
+    UploadPollTimer = new QTimer(this);
+
+    UploadPollTimer->setInterval(200);
+
+    connect(UploadPollTimer, &QTimer::timeout, this, &HardwareArduinoBoardPanelWidget::onUploadPollTick);
+
+    connect(PortCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+
+            &HardwareArduinoBoardPanelWidget::onPortOrProfileChanged);
+
+    connect(BoardProfileCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+
+            &HardwareArduinoBoardPanelWidget::onPortOrProfileChanged);
+
+    connect(BundledFirmwareCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+
+            &HardwareArduinoBoardPanelWidget::onPortOrProfileChanged);
+
+    connect(FirmwarePathEdit, &QLineEdit::textChanged, this,
+            &HardwareArduinoBoardPanelWidget::updateUploadPreview);
+    connect(AutoDetectBoardCheck, &QCheckBox::toggled, this,
+            &HardwareArduinoBoardPanelWidget::onPortOrProfileChanged);
+
+    HardwareGuiHelpers::applyUnicodeFriendlyFont(this);
+
+    onRefreshPorts();
+
+    updateUploadPreview();
+
+}
+
+void HardwareArduinoBoardPanelWidget::setContext(const UComponentGuiContext& context)
+
+{
+
+    Context = context;
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::setEsp32Mode(bool enabled)
+{
+    Esp32Mode = enabled;
+    if (BoardProfileCombo) {
+        BoardProfileCombo->setVisible(!enabled);
+        if (QWidget* parent = BoardProfileCombo->parentWidget()) {
+            if (auto* form = qobject_cast<QFormLayout*>(parent->layout())) {
+                if (QWidget* lab = form->labelForField(BoardProfileCombo))
+                    lab->setVisible(!enabled);
+            }
+        }
+    }
+    if (AutoDetectBoardCheck)
+        AutoDetectBoardCheck->setVisible(!enabled);
+    if (enabled && BaudSpin && BaudSpin->value() == 57600)
+        BaudSpin->setValue(115200);
+}
+
+void HardwareArduinoBoardPanelWidget::updateUploadPreview()
+
+{
+
+    const int profile = BoardProfileCombo->currentData().toInt();
+
+    const RDK::UArduinoBoardProfile prof =
+
+        RDK::UArduinoBoardProfileUtil::profileForKind(profile);
+
+    const QString bundled = BundledFirmwareCombo->currentData().toString();
+
+    const QString custom_hex = FirmwarePathEdit->text().trimmed();
+
+    QString hex_display;
+
+    QString hex_for_validate;
+
+    if (!custom_hex.isEmpty()) {
+
+        hex_display = custom_hex;
+
+        hex_for_validate = RDK::UFirmwareManifest::resolveFromApplicationDir(custom_hex);
+
+    } else {
+
+        hex_display = RDK::UFirmwareManifest::bundledHexRelativePath(bundled, profile);
+
+        hex_for_validate = RDK::UFirmwareManifest::resolveBundledHex(bundled, profile);
+
+    }
+
+    const QString validation =
+
+        RDK::UArduinoBoardProfileUtil::validateUploadTargets(profile, hex_for_validate);
+
+    QString text = tr("MCU: %1, protocol: %2\nHEX: %3")
+
+                       .arg(QString::fromUtf8(prof.mcu),
+
+                            QString::fromUtf8(prof.protocol),
+
+                            hex_display);
+
+    if (!validation.isEmpty()) {
+
+        text += QStringLiteral("\n\n") + tr("Warning: %1").arg(validation);
+
+        UploadPreviewLabel->setStyleSheet(QStringLiteral("color: #c06000;"));
+
+    } else {
+
+        UploadPreviewLabel->setStyleSheet(QString());
+
+    }
+
+    UploadPreviewLabel->setText(text);
+
+}
+
+void HardwareArduinoBoardPanelWidget::updateUploadControlsEnabled()
+
+{
+
+    if (Context.componentLongName.isEmpty())
+
+        return;
+
+    const bool uploading = HardwareGuiHelpers::getPropBool(Context, "IsUploading", false);
+
+    UploadBtn->setEnabled(!uploading);
+
+    CancelUploadBtn->setEnabled(uploading);
+
+    ConnectBtn->setEnabled(!uploading);
+
+    DisconnectBtn->setEnabled(!uploading);
+
+    ReconnectBtn->setEnabled(!uploading);
+
+    HealthBtn->setEnabled(!uploading);
+
+}
+
+void HardwareArduinoBoardPanelWidget::startUploadUiPoll()
+
+{
+
+    UploadPollTimer->start();
+
+    onUploadPollTick();
+
+}
+
+void HardwareArduinoBoardPanelWidget::stopUploadUiPoll()
+
+{
+
+    UploadPollTimer->stop();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onUploadPollTick()
+
+{
+
+    if (Context.componentLongName.isEmpty())
+
+        return;
+
+    HardwareGuiHelpers::envCalculate(Context);
+
+    refreshFromModel();
+
+    updateUploadControlsEnabled();
+
+    const bool uploading = HardwareGuiHelpers::getPropBool(Context, "IsUploading", false);
+
+    if (!uploading)
+
+        stopUploadUiPoll();
+
+}
+
+QString HardwareArduinoBoardPanelWidget::formatBoardDetectLine(const QString& port_path,
+                                                               int detected) const
+{
+    if (port_path.isEmpty())
+        return tr("Detected: (no port selected)");
+    if (detected == 0)
+        return tr("Detected: Arduino Uno");
+    if (detected == 1)
+        return tr("Detected: Arduino Mega 2560");
+    return tr("Detected: unknown (set board manually; CH340 clones often need manual profile)");
+}
+
+void HardwareArduinoBoardPanelWidget::populateBundledFirmwareCombo()
+{
+    BundledFirmwareCombo->clear();
+    QString err;
+    if (RDK::UHardwareCatalog::instance().load(&err)) {
+        const QStringList ids = RDK::UHardwareCatalog::instance().firmwareIds(true);
+        for (const QString& id : ids) {
+            const RDK::UHwFirmwareInfo* fw = RDK::UHardwareCatalog::instance().firmware(id);
+            const QString title = fw ? fw->title : id;
+            BundledFirmwareCombo->addItem(title, id);
+        }
+    }
+    if (BundledFirmwareCombo->count() == 0) {
+        BundledFirmwareCombo->addItem(tr("Sensor Lab v1"), QStringLiteral("sensor_lab_v1"));
+        BundledFirmwareCombo->addItem(tr("Standard Firmata"), QStringLiteral("standard_firmata"));
+        if (!err.isEmpty() && StatusLog)
+            StatusLog->appendPlainText(tr("Catalog load failed, using built-in firmware list: %1").arg(err));
+    }
+}
+
+void HardwareArduinoBoardPanelWidget::updateBoardDetectHint()
+{
+    const QString port_path = HardwareGuiHelpers::selectedSerialPortPath(PortCombo);
+    const int detected =
+        port_path.isEmpty() ? -1
+                            : RDK::UArduinoSerialPortUtil::inferBoardProfileForDevicePath(port_path);
+    if (AutoDetectBoardCheck->isChecked())
+        BoardDetectHint.clear();
+    else
+        BoardDetectHint = formatBoardDetectLine(port_path, detected);
+}
+
+void HardwareArduinoBoardPanelWidget::onPortOrProfileChanged()
+
+{
+
+    const QString port_path = HardwareGuiHelpers::selectedSerialPortPath(PortCombo);
+
+    const int detected =
+
+        port_path.isEmpty() ? -1
+
+                            : RDK::UArduinoSerialPortUtil::inferBoardProfileForDevicePath(port_path);
+
+    if (AutoDetectBoardCheck->isChecked() && (detected == 0 || detected == 1)) {
+        QSignalBlocker b(BoardProfileCombo);
+        BoardProfileCombo->setCurrentIndex(detected);
+        BoardDetectHint.clear();
+        BoardProfileCombo->setToolTip(QString());
+    } else if (!port_path.isEmpty() && detected < 0) {
+        // AU-10: CH340 / unknown VID-PID — force attention to manual BoardProfile.
+        BoardDetectHint = formatBoardDetectLine(port_path, detected);
+        BoardProfileCombo->setToolTip(
+            tr("USB board type unknown (common with CH340 clones). Select Uno or Mega manually before Upload."));
+    } else {
+        updateBoardDetectHint();
+        BoardProfileCombo->setToolTip(QString());
+    }
+
+    updateUploadPreview();
+}
+
+void HardwareArduinoBoardPanelWidget::refreshFromModel()
+
+{
+
+    if (Context.componentLongName.isEmpty())
+
+        return;
+
+    QSignalBlocker b1(PortCombo);
+
+    QSignalBlocker b2(BoardProfileCombo);
+
+    QSignalBlocker b3(BaudSpin);
+
+    QSignalBlocker b4(BundledFirmwareCombo);
+
+    QSignalBlocker b5(FirmwarePathEdit);
+
+    QSignalBlocker b6(ConnectOnBuildCheck);
+
+    QSignalBlocker b7(AutoReconnectCheck);
+
+    QSignalBlocker b8(HeartbeatEnabledCheck);
+
+    QSignalBlocker b9(HeartbeatIntervalSpin);
+
+    QSignalBlocker b10(HeartbeatTimeoutSpin);
+
+    QSignalBlocker b11(ShowDebugCheck);
+
+    const QString port = HardwareGuiHelpers::getProp(Context, "PortName");
+
+    const QString port_path =
+
+        port.isEmpty() ? port : RDK::UArduinoSerialPortUtil::normalizeDevicePath(port);
+
+    HardwareGuiHelpers::selectSerialPortInCombo(PortCombo, port_path);
+
+    const int profile = HardwareGuiHelpers::getPropInt(Context, "BoardProfile", 0);
+
+    BoardProfileCombo->setCurrentIndex(profile == 1 ? 1 : 0);
+
+    BaudSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "BaudRate", 57600));
+
+    ConnectOnBuildCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "ConnectOnBuild", true));
+
+    AutoReconnectCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "AutoReconnect", false));
+
+    HeartbeatEnabledCheck->setChecked(
+
+        HardwareGuiHelpers::getPropBool(Context, "HeartbeatEnabled", true));
+
+    ShowDebugCheck->setChecked(HardwareGuiHelpers::getPropBool(Context, "ShowDebug", false));
+
+    HeartbeatIntervalSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "HeartbeatIntervalMs", 3000));
+
+    HeartbeatTimeoutSpin->setValue(HardwareGuiHelpers::getPropInt(Context, "HeartbeatTimeoutMs", 10000));
+
+    const QString bundled = HardwareGuiHelpers::getProp(Context, "BundledFirmwareId");
+
+    const int bundledIdx = BundledFirmwareCombo->findData(bundled);
+
+    BundledFirmwareCombo->setCurrentIndex(bundledIdx >= 0 ? bundledIdx : 0);
+
+    FirmwarePathEdit->setText(HardwareGuiHelpers::getProp(Context, "FirmwarePath"));
+
+    HardwareSetupPathEdit->setText(HardwareGuiHelpers::getProp(Context, "HardwareSetupPath"));
+    updateSetupStatusLabel();
+
+    const bool uploading = HardwareGuiHelpers::getPropBool(Context, "IsUploading", false);
+
+    const int progress = HardwareGuiHelpers::getPropInt(Context, "UploadProgress", 0);
+
+    if (uploading && progress < 15)
+
+        UploadProgress->setRange(0, 0);
+
+    else {
+
+        UploadProgress->setRange(0, 100);
+
+        UploadProgress->setValue(progress);
+
+    }
+
+    const bool connected = HardwareGuiHelpers::getPropBool(Context, "IsConnected", false);
+
+    const bool hasError = HardwareGuiHelpers::getPropBool(Context, "HasError", false);
+
+    const QString err = HardwareGuiHelpers::getProp(Context, "LastError");
+
+    const QString uploadRes = HardwareGuiHelpers::getProp(Context, "UploadLastResult");
+
+    updateBoardDetectHint();
+
+    QString status = tr("Connected: %1\nHas error: %2\nLast error: %3\nUpload: %4")
+                         .arg(connected ? tr("yes") : tr("no"))
+                         .arg(hasError ? tr("yes") : tr("no"))
+                         .arg(err, uploadRes);
+    if (!BoardDetectHint.isEmpty())
+        status += QLatin1Char('\n') + BoardDetectHint;
+    HardwareGuiHelpers::setStatusLogText(StatusLog, status);
+
+    updateUploadPreview();
+
+    updateUploadControlsEnabled();
+
+}
+
+void HardwareArduinoBoardPanelWidget::applyToModel()
+
+{
+
+    HardwareGuiHelpers::setProp(Context,
+
+                                "PortName",
+
+                                HardwareGuiHelpers::selectedSerialPortPath(PortCombo));
+
+    HardwareGuiHelpers::setProp(Context, "BoardProfile",
+
+                                QString::number(BoardProfileCombo->currentData().toInt()));
+
+    HardwareGuiHelpers::setProp(Context, "BaudRate", QString::number(BaudSpin->value()));
+
+    HardwareGuiHelpers::setProp(Context, "ConnectOnBuild",
+
+                                ConnectOnBuildCheck->isChecked() ? QStringLiteral("1")
+
+                                                                   : QStringLiteral("0"));
+
+    HardwareGuiHelpers::setProp(Context, "AutoReconnect",
+
+                                AutoReconnectCheck->isChecked() ? QStringLiteral("1")
+
+                                                                  : QStringLiteral("0"));
+
+    HardwareGuiHelpers::setProp(Context, "HeartbeatEnabled",
+
+                                HeartbeatEnabledCheck->isChecked() ? QStringLiteral("1")
+
+                                                                     : QStringLiteral("0"));
+
+    HardwareGuiHelpers::setProp(Context, "ShowDebug",
+
+                                ShowDebugCheck->isChecked() ? QStringLiteral("1")
+
+                                                              : QStringLiteral("0"));
+
+    HardwareGuiHelpers::setProp(Context, "HeartbeatIntervalMs",
+
+                                QString::number(HeartbeatIntervalSpin->value()));
+
+    HardwareGuiHelpers::setProp(Context, "HeartbeatTimeoutMs",
+
+                                QString::number(HeartbeatTimeoutSpin->value()));
+
+    HardwareGuiHelpers::setProp(Context, "BundledFirmwareId",
+
+                                BundledFirmwareCombo->currentData().toString());
+
+    HardwareGuiHelpers::setProp(Context, "FirmwarePath", FirmwarePathEdit->text());
+
+    HardwareGuiHelpers::setProp(Context, "HardwareSetupPath", HardwareSetupPathEdit->text());
+
+}
+
+void HardwareArduinoBoardPanelWidget::onRefreshPorts()
+
+{
+
+    const QString current = HardwareGuiHelpers::selectedSerialPortPath(PortCombo);
+
+    HardwareGuiHelpers::populateSerialPortCombo(PortCombo, current);
+
+    onPortOrProfileChanged();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onApply()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::envReset(Context);
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onReset()
+
+{
+
+    HardwareGuiHelpers::envReset(Context);
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onCalculate()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::envCalculate(Context);
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onConnect()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::pulseEdge(Context, "Connect");
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onDisconnect()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::pulseEdge(Context, "Disconnect");
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onReconnect()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::pulseEdge(Context, "Reconnect");
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onHealthCheck()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::pulseEdge(Context, "RequestHealthCheck");
+
+    refreshFromModel();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onUpload()
+
+{
+
+    applyToModel();
+
+    HardwareGuiHelpers::pulseEdge(Context, "UploadFirmware");
+
+    startUploadUiPoll();
+
+}
+
+void HardwareArduinoBoardPanelWidget::onCancelUpload()
+
+{
+
+    if (Context.componentLongName.isEmpty())
+
+        return;
+
+    HardwareGuiHelpers::pulseEdge(Context, "CancelUpload");
+
+    startUploadUiPoll();
+
+}
+
+
+
+void HardwareArduinoBoardPanelWidget::onBrowseHex()
+
+{
+
+    const QString path = QFileDialog::getOpenFileName(this, tr("Select HEX file"), QString(),
+
+                                                      tr("Intel HEX (*.hex);;All (*)"));
+
+    if (!path.isEmpty()) {
+
+        FirmwarePathEdit->setText(path);
+
+        updateUploadPreview();
+
+    }
+
+}
+
+void HardwareArduinoBoardPanelWidget::updateSetupStatusLabel()
+{
+    if (!SetupStatusLabel)
+        return;
+    const bool valid = HardwareGuiHelpers::getPropBool(Context, "HardwareSetupValid", true);
+    const QString issues = HardwareGuiHelpers::getProp(Context, "HardwareSetupIssues");
+    if (valid) {
+        SetupStatusLabel->setText(tr("Setup: OK"));
+        SetupStatusLabel->setStyleSheet(QStringLiteral("color: #1b7f3a;"));
+        SetupStatusLabel->setToolTip(issues.isEmpty() ? tr("No validation issues") : issues);
+    } else {
+        SetupStatusLabel->setText(tr("Setup: INVALID"));
+        SetupStatusLabel->setStyleSheet(QStringLiteral("color: #b00020; font-weight: bold;"));
+        SetupStatusLabel->setToolTip(issues.isEmpty() ? tr("Validation failed") : issues);
+    }
+}
+
+void HardwareArduinoBoardPanelWidget::onBrowseSetup()
+{
+    const QString path = QFileDialog::getOpenFileName(this, tr("Select Hardware Setup JSON"), QString(),
+                                                      tr("JSON (*.json);;All (*)"));
+    if (path.isEmpty())
+        return;
+    HardwareSetupPathEdit->setText(path);
+    applyToModel();
+    RDK::UHardwareSetup setup;
+    QString err;
+    if (setup.loadFromFile(path, &err)) {
+        QVector<RDK::UHwIssue> issues;
+        RDK::UHardwareCatalog& cat = RDK::UHardwareCatalog::instance();
+        if (!cat.isLoaded())
+            cat.load(nullptr);
+        const bool ok = cat.isLoaded() && setup.validate(cat, &issues);
+        QString issuesText;
+        for (const RDK::UHwIssue& issue : issues) {
+            if (!issuesText.isEmpty())
+                issuesText.append('\n');
+            issuesText.append(issue.code + QStringLiteral(": ") + issue.message);
+        }
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupValid",
+                                    ok ? QStringLiteral("1") : QStringLiteral("0"));
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupIssues", issuesText);
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupJson",
+                                    QString::fromUtf8(setup.toJson(true)));
+        if (!setup.document().firmwareId.isEmpty()) {
+            const int idx = BundledFirmwareCombo->findData(setup.document().firmwareId);
+            if (idx >= 0)
+                BundledFirmwareCombo->setCurrentIndex(idx);
+            HardwareGuiHelpers::setProp(Context, "BundledFirmwareId", setup.document().firmwareId);
+        }
+        if (setup.document().board == QStringLiteral("mega2560")) {
+            BoardProfileCombo->setCurrentIndex(BoardProfileCombo->findData(1));
+            HardwareGuiHelpers::setProp(Context, "BoardProfile", QStringLiteral("1"));
+        } else if (setup.document().board == QStringLiteral("uno")) {
+            BoardProfileCombo->setCurrentIndex(BoardProfileCombo->findData(0));
+            HardwareGuiHelpers::setProp(Context, "BoardProfile", QStringLiteral("0"));
+        }
+    } else if (!err.isEmpty()) {
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupValid", QStringLiteral("0"));
+        HardwareGuiHelpers::setProp(Context, "HardwareSetupIssues", err);
+    }
+    updateSetupStatusLabel();
+    updateUploadPreview();
+}
+
+void HardwareArduinoBoardPanelWidget::onApplyFirmwareFromSetup()
+{
+    applyToModel();
+    const QString path = HardwareSetupPathEdit->text().trimmed();
+    const QString inlineJson = HardwareGuiHelpers::getProp(Context, "HardwareSetupJson");
+    RDK::UHardwareSetup setup;
+    QString err;
+    bool loaded = false;
+    if (!path.isEmpty())
+        loaded = setup.loadFromFile(path, &err);
+    if (!loaded && !inlineJson.isEmpty())
+        loaded = setup.loadFromJson(inlineJson.toUtf8(), &err);
+    if (!loaded)
+        return;
+    const QString fw = setup.document().firmwareId;
+    if (fw.isEmpty())
+        return;
+    const int idx = BundledFirmwareCombo->findData(fw);
+    if (idx >= 0)
+        BundledFirmwareCombo->setCurrentIndex(idx);
+    HardwareGuiHelpers::setProp(Context, "BundledFirmwareId", fw);
+    FirmwarePathEdit->clear();
+    HardwareGuiHelpers::setProp(Context, "FirmwarePath", QString());
+    updateUploadPreview();
+}

@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>boards/arduino_uno_pinout.svg</file>
+        <file>boards/arduino_mega2560_pinout.svg</file>
+        <file>boards/uno_pins.json</file>
+        <file>boards/mega2560_pins.json</file>
+    </qresource>
+</RCC>

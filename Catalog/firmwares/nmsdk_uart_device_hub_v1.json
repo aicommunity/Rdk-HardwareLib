@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "nmsdk_uart_device_hub_v1",
+  "title": "Nmsdk UART Device Hub (Nextion/BT/GSM)",
+  "tier": "D",
+  "transport": "custom",
+  "available": true,
+  "runtimeBaud": 57600,
+  "boards": [
+    "uno",
+    "mega2560",
+    "esp32_devkit"
+  ],
+  "compatibleShields": [],
+  "capabilities": [
+    "nextion",
+    "bluetooth",
+    "uart_device"
+  ],
+  "hex": {
+    "uno": "nmsdk_uart_device_hub/uno.hex",
+    "mega2560": "nmsdk_uart_device_hub/mega2560.hex"
+  },
+  "hostPlugin": "nmsdk_uart_device_hub_v1",
+  "protocolId": "nmsdk_hub_uart_device_v1",
+  "defaultPins": {
+    "rx": "D10",
+    "tx": "D11"
+  },
+  "legacyManifestId": "nmsdk_uart_device_hub_v1",
+  "notes": "Bundled AVR HEX enables Nextion and HC-05. GSM and A9G support require a custom build; Mega/ESP32 hardware serial is preferred."
+}

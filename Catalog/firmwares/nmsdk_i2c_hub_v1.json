@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "nmsdk_i2c_hub_v1",
+  "title": "Nmsdk I2C Hub (climate/ToF/IMU/power/env extras)",
+  "tier": "C",
+  "transport": "custom",
+  "available": true,
+  "runtimeBaud": 57600,
+  "boards": [
+    "uno",
+    "mega2560"
+  ],
+  "compatibleShields": [
+    "pca9685_16_ch_pwm"
+  ],
+  "capabilities": [
+    "bme280",
+    "i2c",
+    "ina219",
+    "pca9685",
+    "vl53l0x"
+  ],
+  "hex": {
+    "uno": "nmsdk_i2c_hub/uno.hex",
+    "mega2560": "nmsdk_i2c_hub/mega2560.hex"
+  },
+  "hostPlugin": "nmsdk_i2c_hub_v1",
+  "protocolId": "nmsdk_hub_i2c_v1",
+  "defaultPins": {
+    "sda": "A4",
+    "scl": "A5"
+  },
+  "legacyManifestId": "nmsdk_i2c_hub_v1",
+  "notes": "Bundled Uno/Mega HEX enables BME280, VL53L0X, INA219 and PCA9685. MPU6050 and other catalog sensors require a custom build with their NMSDK_I2C_HUB_* flag and matching libraries enabled; MPU6050 is off by default to fit the Uno flash limit."
+}

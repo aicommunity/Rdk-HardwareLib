@@ -1,0 +1,84 @@
+#ifndef HARDWAREARDUINOBOARDPANELWIDGET_H
+#define HARDWAREARDUINOBOARDPANELWIDGET_H
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QTimer>
+#include <QWidget>
+
+#include "../../../../../Rdk/GUI/Qt/UComponentGuiContext.h"
+
+class HardwareArduinoBoardPanelWidget : public QWidget {
+    Q_OBJECT
+public:
+    explicit HardwareArduinoBoardPanelWidget(QWidget* parent = nullptr);
+
+    void setContext(const UComponentGuiContext& context);
+    /** When true: hide AVR BoardProfile, default baud hint 115200 (ESP32 boards). */
+    void setEsp32Mode(bool enabled);
+    void refreshFromModel();
+    void applyToModel();
+
+private slots:
+    void onRefreshPorts();
+    void onApply();
+    void onReset();
+    void onCalculate();
+    void onConnect();
+    void onDisconnect();
+    void onReconnect();
+    void onHealthCheck();
+    void onUpload();
+    void onCancelUpload();
+    void onBrowseHex();
+    void onBrowseSetup();
+    void onApplyFirmwareFromSetup();
+    void onPortOrProfileChanged();
+    void onUploadPollTick();
+
+private:
+    void updateUploadPreview();
+    void updateUploadControlsEnabled();
+    void updateBoardDetectHint();
+    void updateSetupStatusLabel();
+    void populateBundledFirmwareCombo();
+    QString formatBoardDetectLine(const QString& port_path, int detected) const;
+    void startUploadUiPoll();
+    void stopUploadUiPoll();
+
+    bool Esp32Mode = false;
+    UComponentGuiContext Context;
+    QComboBox* PortCombo = nullptr;
+    QComboBox* BoardProfileCombo = nullptr;
+    QCheckBox* AutoDetectBoardCheck = nullptr;
+    QLabel* UploadPreviewLabel = nullptr;
+    QLabel* SetupStatusLabel = nullptr;
+    QCheckBox* ConnectOnBuildCheck = nullptr;
+    QCheckBox* AutoReconnectCheck = nullptr;
+    QCheckBox* HeartbeatEnabledCheck = nullptr;
+    QCheckBox* ShowDebugCheck = nullptr;
+    QSpinBox* HeartbeatIntervalSpin = nullptr;
+    QSpinBox* HeartbeatTimeoutSpin = nullptr;
+    QSpinBox* BaudSpin = nullptr;
+    QComboBox* BundledFirmwareCombo = nullptr;
+    QLineEdit* FirmwarePathEdit = nullptr;
+    QLineEdit* HardwareSetupPathEdit = nullptr;
+    QProgressBar* UploadProgress = nullptr;
+    QPlainTextEdit* StatusLog = nullptr;
+    QPushButton* UploadBtn = nullptr;
+    QPushButton* CancelUploadBtn = nullptr;
+    QPushButton* ConnectBtn = nullptr;
+    QPushButton* DisconnectBtn = nullptr;
+    QPushButton* ReconnectBtn = nullptr;
+    QPushButton* HealthBtn = nullptr;
+    QTimer* UploadPollTimer = nullptr;
+    QString BoardDetectHint;
+};
+
+#endif

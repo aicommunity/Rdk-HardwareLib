@@ -1,46 +1,76 @@
-#ifndef UHardwareLibrary_CPP
-#define UHardwareLibrary_CPP
-
 #include "UHardwareLibrary.h"
 
+#include "Protocol/UArduinoProtocolPluginRegistry.h"
 
 namespace RDK {
 
 UHardwareLibrary HardwareLibrary;
 
-
-
-// --------------------------
-// Конструкторы и деструкторы
-// --------------------------
 UHardwareLibrary::UHardwareLibrary(void)
- : ULibrary("HardwareLibrary","1.0", GetGlobalVersion())
+    : ULibrary("HardwareLibrary", "2.0", GetGlobalVersion())
 {
 }
-// --------------------------
 
-// --------------------------
-// Методы заполенения бибилиотеки
-// --------------------------
-// Заполняет массив ClassSamples готовыми экземплярами образцов и их именами.
-// Не требуется предварительная очистка массива и уборка памяти.
 void UHardwareLibrary::CreateClassSamples(UStorage *storage)
 {
-/*
- UContainer *cont;
- cont=new UFileIO;
- cont->SetName("FileIO");
- cont->Default();
- UploadClass("UFileIO",cont);
+    Q_UNUSED(storage);
+    registerBuiltinArduinoProtocolPlugins();
+    UContainer *cont;
 
- cont=new UIOTextConverter;
- cont->SetName("IOTextConverter");
- cont->Default();
- UploadClass("UIOTextConverter",cont);
- */
+    cont = new UArduinoBoard;
+    cont->SetName("ArduinoBoard");
+    cont->Default();
+    UploadClass("ArduinoBoard", cont);
+
+    cont = new UEsp32Board;
+    cont->SetName("Esp32Board");
+    cont->Default();
+    UploadClass("Esp32Board", cont);
+
+    cont = new UArduinoWheeledRobot;
+    cont->SetName("ArduinoWheeledRobot");
+    cont->Default();
+    UploadClass("ArduinoWheeledRobot", cont);
+
+    cont = new UEsp32WheeledRobot;
+    cont->SetName("Esp32WheeledRobot");
+    cont->Default();
+    UploadClass("Esp32WheeledRobot", cont);
+
+    cont = new UWaveRover;
+    cont->SetName("WaveRover");
+    cont->Default();
+    UploadClass("WaveRover", cont);
+
+    cont = new UArduinoSensorSketch;
+    cont->SetName("ArduinoSensorSketch");
+    cont->Default();
+    UploadClass("ArduinoSensorSketch", cont);
+
+    cont = new UArduinoFirmata;
+    cont->SetName("ArduinoFirmata");
+    cont->Default();
+    UploadClass("ArduinoFirmata", cont);
+
+    cont = new UArduinoAdc;
+    cont->SetName("ArduinoAdc");
+    cont->Default();
+    UploadClass("ArduinoAdc", cont);
+
+    cont = new UArduinoDcDemo;
+    cont->SetName("ArduinoDcDemo");
+    cont->Default();
+    UploadClass("ArduinoDcDemo", cont);
+
+    cont = new UArduinoDeviceIO;
+    cont->SetName("ArduinoDeviceIO");
+    cont->Default();
+    UploadClass("ArduinoDeviceIO", cont);
+
+    cont = new UArduinoCustomFirmware;
+    cont->SetName("ArduinoCustomFirmware");
+    cont->Default();
+    UploadClass("ArduinoCustomFirmware", cont);
 }
-// --------------------------
 
-}
-
-#endif
+} // namespace RDK

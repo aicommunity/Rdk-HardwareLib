@@ -1,0 +1,120 @@
+#include "HardwareLibComponentGuiRegistration.h"
+
+#include <QCoreApplication>
+
+#include "../../../../Rdk/GUI/Qt/UComponentFormRegistry.h"
+#include "HardwareArduinoAdcControllerWidget.h"
+#include "HardwareArduinoBoardControllerWidget.h"
+#include "HardwareArduinoDcDemoControllerWidget.h"
+#include "HardwareArduinoCustomFirmwareControllerWidget.h"
+#include "HardwareArduinoDeviceIOControllerWidget.h"
+#include "HardwareArduinoFirmataControllerWidget.h"
+#include "HardwareArduinoSensorSketchControllerWidget.h"
+#include "HardwareEsp32BoardControllerWidget.h"
+#include "HardwareArduinoWheeledRobotControllerWidget.h"
+#include "HardwareEsp32WheeledRobotControllerWidget.h"
+#include "HardwareWaveRoverControllerWidget.h"
+
+namespace
+{
+UComponentFormDescriptor MakeDescriptor(const QString& id,
+                                      const QString& title,
+                                      const std::function<UVisualControllerWidget*(RDK::UApplication*)>& factory)
+{
+    UComponentFormDescriptor descriptor;
+    descriptor.formId = id;
+    descriptor.title = title;
+    descriptor.singleInstance = true;
+    descriptor.factory = factory;
+    return descriptor;
+}
+}
+
+void RegisterHardwareLibComponentGuiForms()
+{
+    // Static lib: qrc object is not linked unless init is referenced from pulled .o files.
+    Q_INIT_RESOURCE(hardware_lib);
+
+    UComponentFormRegistry& registry = UComponentFormRegistry::instance();
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoBoard"),
+        MakeDescriptor(QStringLiteral("hw.arduino.board"), QStringLiteral("Arduino Board"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoBoardControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoSensorSketch"),
+        MakeDescriptor(QStringLiteral("hw.arduino.sensor_sketch"),
+                       QStringLiteral("Arduino Sensor Sketch"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoSensorSketchControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoFirmata"),
+        MakeDescriptor(QStringLiteral("hw.arduino.firmata"), QStringLiteral("Arduino Firmata"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoFirmataControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoDcDemo"),
+        MakeDescriptor(QStringLiteral("hw.arduino.dc_demo"), QStringLiteral("Arduino DC Demo"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoDcDemoControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoAdc"),
+        MakeDescriptor(QStringLiteral("hw.arduino.adc"), QStringLiteral("Arduino ADC"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoAdcControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoDeviceIO"),
+        MakeDescriptor(QStringLiteral("hw.arduino.device_io"), QStringLiteral("Arduino Device IO"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoDeviceIOControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoCustomFirmware"),
+        MakeDescriptor(QStringLiteral("hw.arduino.custom_firmware"),
+                       QStringLiteral("Arduino Custom Firmware"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoCustomFirmwareControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("Esp32Board"),
+        MakeDescriptor(QStringLiteral("hw.esp32.board"), QStringLiteral("ESP32 Board"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareEsp32BoardControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("ArduinoWheeledRobot"),
+        MakeDescriptor(QStringLiteral("hw.arduino.wheeled_robot"),
+                       QStringLiteral("Arduino Wheeled Robot"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareArduinoWheeledRobotControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("Esp32WheeledRobot"),
+        MakeDescriptor(QStringLiteral("hw.esp32.wheeled_robot"),
+                       QStringLiteral("ESP32 Wheeled Robot"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareEsp32WheeledRobotControllerWidget(nullptr, app);
+                       }));
+
+    registry.registerFormFactory(
+        QStringLiteral("WaveRover"),
+        MakeDescriptor(QStringLiteral("hw.waverover"), QStringLiteral("WaveRover"),
+                       [](RDK::UApplication* app) {
+                           return new HardwareWaveRoverControllerWidget(nullptr, app);
+                       }));
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "nmsdk_pixel_hub_v1",
+  "title": "Nmsdk Pixel Hub (WS2812/MAX7219/TFT)",
+  "tier": "C",
+  "transport": "custom",
+  "available": true,
+  "runtimeBaud": 57600,
+  "boards": [
+    "uno",
+    "mega2560"
+  ],
+  "compatibleShields": [],
+  "capabilities": [
+    "max7219",
+    "ws2812",
+    "pixel"
+  ],
+  "hex": {
+    "uno": "nmsdk_pixel_hub/uno.hex",
+    "mega2560": "nmsdk_pixel_hub/mega2560.hex"
+  },
+  "hostPlugin": "nmsdk_pixel_hub_v1",
+  "protocolId": "nmsdk_hub_pixel_v1",
+  "defaultPins": {
+    "led": "D6"
+  },
+  "legacyManifestId": "nmsdk_pixel_hub_v1",
+  "notes": "Bundled HEX enables WS2812 and MAX7219. TFT and e-paper remain custom-build or planned features."
+}
